@@ -238,4 +238,4 @@ The sample devices and data provided in this solution accelerator are based on f
 
 - For detailed documentation of the various Azure IoT services, see [Azure IoT Fundamentals](https://docs.microsoft.com/azure/iot-fundamentals/).
 
-- Deploy and adapt the solution accelerator for your needs by following the [quickstart guide](Demo&#32;step-by&#32;step&#32;-&#32;Cosmos&#32;DB&#32;scenario-based&#32;labs&#32;-&#32;IoT.md).
+- Deploy and adapt the solution accelerator for your needs by following the [quickstart guide](HOL%20step-by%20step%20-%20Cosmos%20DB%20scenario-based%20labs%20-%20IoT.md).
