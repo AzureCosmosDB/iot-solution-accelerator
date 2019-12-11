@@ -60,7 +60,7 @@
   - [Exercise 10: Deploy the predictive maintenance web service](#exercise-10-deploy-the-predictive-maintenance-web-service)
     - [Task 1: Run deployment notebook](#task-1-run-deployment-notebook)
     - [Task 2: Call the deployed scoring web service from the Web App](#task-2-call-the-deployed-scoring-web-service-from-the-web-app)
-  - [Exercise 11: Create the Predictive Maintenance & Trip/Consignment Status reports in Power BI](#exercise-11-create-the-predictive-maintenance--tripconsignment-status-reports-in-power-bi)
+  - [Exercise 11: Create the Predictive Maintenance &amp; Trip/Consignment Status reports in Power BI](#exercise-11-create-the-predictive-maintenance-amp-tripconsignment-status-reports-in-power-bi)
     - [Task 1: Import report in Power BI Desktop](#task-1-import-report-in-power-bi-desktop)
     - [Task 2: Update report data sources](#task-2-update-report-data-sources)
     - [Task 3: Explore report](#task-3-explore-report)
@@ -117,9 +117,8 @@ Below is a diagram of the solution architecture you will build in this lab. Plea
    - **IMPORTANT**: To complete the OAuth 2.0 access components of this hands-on lab you must have permissions within your Azure subscription to create an App Registration and service principal within Azure Active Directory.
 2. Install [Power BI Desktop](https://powerbi.microsoft.com/desktop/)
 3. [Azure CLI](https://docs.microsoft.com/cli/azure/install-azure-cli?view=azure-cli-latest) - version 2.0.68 or later
-4. Install [Visual Studio 2019 Community](https://visualstudio.microsoft.com/vs/) or greater
-5. Install [.NET Core SDK 2.2](https://dotnet.microsoft.com/download/dotnet-core/2.2) or greater
-   - If you are running Visual Studio 2017, install SDK 2.2.109
+4. Install [Visual Studio 2019 Community](https://visualstudio.microsoft.com/vs/) (v16.4) or greater
+5. Install [.NET Core SDK 3.1](https://dotnet.microsoft.com/download/dotnet-core/3.1) or greater
 
 ## Before the hands-on lab
 

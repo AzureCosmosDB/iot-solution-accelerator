@@ -43,7 +43,7 @@
     - [Task 1: View batch scoring notebook](#task-1-view-batch-scoring-notebook)
     - [Task 2: Model training highlights](#task-2-model-training-highlights)
     - [Task 2: Call the deployed scoring web service from the Web App](#task-2-call-the-deployed-scoring-web-service-from-the-web-app)
-  - [Exercise 6: View the live dashboard, Predictive Maintenance, & Trip/Consignment Status reports in Power BI](#exercise-6-view-the-live-dashboard-predictive-maintenance--tripconsignment-status-reports-in-power-bi)
+  - [Exercise 6: View the live dashboard, Predictive Maintenance, &amp; Trip/Consignment Status reports in Power BI](#exercise-6-view-the-live-dashboard-predictive-maintenance-amp-tripconsignment-status-reports-in-power-bi)
     - [Task 1: Open the live dashboard report in Power BI online](#task-1-open-the-live-dashboard-report-in-power-bi-online)
     - [Task 2: Explore report in Power BI Desktop](#task-2-explore-report-in-power-bi-desktop)
   - [After the demo](#after-the-demo)
@@ -99,9 +99,8 @@ Below is a diagram of the solution architecture you will build in this lab. Plea
    - **IMPORTANT**: To complete the OAuth 2.0 access components of this hands-on lab you must have permissions within your Azure subscription to create an App Registration and service principal within Azure Active Directory.
 2. Install [Power BI Desktop](https://powerbi.microsoft.com/desktop/)
 3. [Azure CLI](https://docs.microsoft.com/cli/azure/install-azure-cli?view=azure-cli-latest) - version 2.0.68 or later
-4. Install [Visual Studio 2019 Community](https://visualstudio.microsoft.com/vs/) or greater
-5. Install [.NET Core SDK 2.2](https://dotnet.microsoft.com/download/dotnet-core/2.2) or greater
-   1. If you are running Visual Studio 2017, install SDK 2.2.109
+4. Install [Visual Studio 2019 Community](https://visualstudio.microsoft.com/vs/) (v16.4) or greater
+5. Install [.NET Core SDK 3.1](https://dotnet.microsoft.com/download/dotnet-core/3.1) or greater
 
 ## Exercise 1: Configure environment
 
