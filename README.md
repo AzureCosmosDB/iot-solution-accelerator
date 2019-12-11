@@ -7,6 +7,9 @@ This accelerator helps you quickly build a solution that uses Azure Cosmos DB to
 - [Cosmos DB IoT solution accelerator](#cosmos-db-iot-solution-accelerator)
   - [Table of contents](#table-of-contents)
   - [High-level concepts](#high-level-concepts)
+    - [Non-relational data and NoSQL](#non-relational-data-and-nosql)
+      - [Document data stores](#document-data-stores)
+      - [Cosmos DB - managed NoSQL database on Azure](#cosmos-db---managed-nosql-database-on-azure)
     - [Event sourcing pattern](#event-sourcing-pattern)
     - [Serverless and no/low code processing](#serverless-and-nolow-code-processing)
     - [IoT reference architecture](#iot-reference-architecture)
@@ -23,11 +26,40 @@ This accelerator helps you quickly build a solution that uses Azure Cosmos DB to
     - [Adapting the sample scenario to your own](#adapting-the-sample-scenario-to-your-own)
     - [Architecture components](#architecture-components)
   - [Requirements](#requirements)
+  - [References](#references)
   - [Next steps](#next-steps)
 
 ## High-level concepts
 
 In this document, we cover the high-level concepts needed to understand the components of the reference architecture. Although Internet-of-Things (IoT) is the primary theme of this solution accelerator, _the concepts beyond the IoT devices and cloud gateway (IoT Hub) are applicable to many other, event-oriented scenarios_.
+
+### Non-relational data and NoSQL
+
+A *non-relational database* is a database that does not use the tabular schema of rows and columns found in most traditional database systems. Instead, non-relational databases use a storage model that is optimized for the specific requirements of the type of data being stored. For example, data may be stored as simple key/value pairs, as JSON documents, or as a graph consisting of edges and vertices.
+
+What all of these data stores have in common is that they don't use a relational model. Also, they tend to be more specific in the type of data they support and how data can be queried. For example, time series data stores are optimized for queries over time-based sequences of data, while graph data stores are optimized for exploring weighted relationships between entities. Neither format would generalize well to the task of managing transactional data.
+
+The term *NoSQL* refers to data stores that do not use SQL for queries, and instead use other programming languages and constructs to query the data. In practice, "NoSQL" means "non-relational database," even though many of these databases do support SQL-compatible queries. However, the underlying query execution strategy is usually very different from the way a traditional RDBMS would execute the same SQL query.
+
+The following sections describe the major categories of non-relational or NoSQL database.
+
+#### Document data stores
+
+A document data store manages a set of named string fields and object data values in an entity referred to as a *document*. These data stores typically store data in the form of JSON documents. Each field value could be a scalar item, such as a number, or a compound element, such as a list or a parent-child collection. The data in the fields of a document can be encoded in a variety of ways, including XML, YAML, JSON, BSON, or even stored as plain text. The fields within documents are exposed to the storage management system, enabling an application to query and filter data by using the values in these fields.
+
+Typically, a document contains the entire data for an entity. What items constitute an entity are application-specific. For example, an entity could contain the details of a customer, an order, or a combination of both. A single document might contain information that would be spread across several relational tables in a relational database management system (RDBMS). A document store does not require that all documents have the same structure. This free-form approach provides a great deal of flexibility. For example, applications can store different data in documents in response to a change in business requirements.
+
+![Example document data store](media/document.png)
+
+The application can retrieve documents by using the document key. This is a unique identifier for the document, which is often hashed, to help distribute data evenly. Some document databases create the document key automatically. Others enable you to specify an attribute of the document to use as the key. The application can also query documents based on the value of one or more fields. Some document databases support indexing to facilitate fast lookup of documents based on one or more indexed fields.
+
+Many document databases support in-place updates, enabling an application to modify the values of specific fields in a document without rewriting the entire document. Read and write operations over multiple fields in a single document are typically atomic.
+
+#### Cosmos DB - managed NoSQL database on Azure
+
+Azure Cosmos DB is Microsoft's globally distributed, multi-model database service. With a click of a button, Cosmos DB enables you to elastically and independently scale throughput and storage across any number of Azure regions worldwide. You can elastically scale throughput and storage, and take advantage of fast, single-digit-millisecond data access using your favorite API including SQL, MongoDB, Cassandra, Tables, or Gremlin. Cosmos DB provides comprehensive [service level agreements](https://aka.ms/acdbsla) (SLAs) for throughput, latency, availability, and consistency guarantees, something no other database service offers.
+
+![A global map is displayed with Cosmos DB deployed to multiple regions.](media/cosmos-db-overview.png "Cosmos DB overview")
 
 ### Event sourcing pattern
 
@@ -232,10 +264,14 @@ The sample devices and data provided in this solution accelerator are based on f
 4. Install [Visual Studio 2019 Community](https://visualstudio.microsoft.com/vs/) (v16.4) or greater
 5. Install [.NET Core SDK 3.1](https://dotnet.microsoft.com/download/dotnet-core/3.1) or greater
 
-## Next steps
+## References
 
 - For a more detailed discussion of the solution accelerator, see [Microsoft Azure Cosmos DB IoT solution accelerator](#) (PDF).
 
 - For detailed documentation of the various Azure IoT services, see [Azure IoT Fundamentals](https://docs.microsoft.com/azure/iot-fundamentals/).
+
+- For more information about various data architectures in Azure, see [Azure Data Architecture Guide](https://docs.microsoft.com/azure/architecture/data-guide/).
+
+## Next steps
 
 - Deploy and adapt the solution accelerator for your needs by following the step-by-step instructions in the [quickstart guide](HOL%20step-by%20step%20-%20Cosmos%20DB%20scenario-based%20labs%20-%20IoT.md).
