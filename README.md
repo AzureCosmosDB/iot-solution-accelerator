@@ -2,6 +2,29 @@
 
 This accelerator helps you quickly build a solution that uses Azure Cosmos DB to ingest streaming telemetry from your IoT devices. The documentation and starter artifacts help you create a near-real-time analytics pipeline built on [Azure Cosmos DB](https://docs.microsoft.com/azure/cosmos-db/introduction), Azure Functions, Event Hubs, Azure Databricks, Azure Storage, Azure Stream Analytics, Power BI, Azure Web Apps, and Logic Apps.
 
+## Table of contents
+
+- [Cosmos DB IoT solution accelerator](#cosmos-db-iot-solution-accelerator)
+  - [Table of contents](#table-of-contents)
+  - [High-level concepts](#high-level-concepts)
+    - [Event sourcing pattern](#event-sourcing-pattern)
+    - [Serverless and no/low code processing](#serverless-and-nolow-code-processing)
+    - [IoT reference architecture](#iot-reference-architecture)
+    - [Reference architecture components](#reference-architecture-components)
+    - [Scalability considerations](#scalability-considerations)
+    - [Security considerations](#security-considerations)
+      - [Use Azure Key Vault to protect secrets](#use-azure-key-vault-to-protect-secrets)
+      - [Trustworthy and secure communication](#trustworthy-and-secure-communication)
+      - [Physical tamper-proofing](#physical-tamper-proofing)
+      - [Monitoring and logging](#monitoring-and-logging)
+      - [Tracing telemetry](#tracing-telemetry)
+      - [Logging](#logging)
+  - [High-level architecture for the solution accelerator](#high-level-architecture-for-the-solution-accelerator)
+    - [Adapting the sample scenario to your own](#adapting-the-sample-scenario-to-your-own)
+    - [Architecture components](#architecture-components)
+  - [Requirements](#requirements)
+  - [Next steps](#next-steps)
+
 ## High-level concepts
 
 In this document, we cover the high-level concepts needed to understand the components of the reference architecture. Although Internet-of-Things (IoT) is the primary theme of this solution accelerator, _the concepts beyond the IoT devices and cloud gateway (IoT Hub) are applicable to many other, event-oriented scenarios_.
@@ -169,21 +192,31 @@ We have covered a lot of ground with concepts covered by the Cosmos DB IoT solut
 
 ![A diagram showing the components of the solution is displayed.](media/solution-architecture.png 'Solution Architecture')
 
+### Adapting the sample scenario to your own
+
+The sample devices and data provided in this solution accelerator are based on fleets of vehicles containing sensors used to track vehicle and refrigeration unit telemetry. Feel free to adapt this to your own scenario, whether you work with oil field pumps, temperature sensors, or any of the thousands of possibilities in the IoT space.
+
+> We refer to vehicles and oil field pumps throughout the guide to help you adapt the sample scenario to your own.
+
+### Architecture components
+
 - Data ingest, event processing, and storage:
 
-  The solution for the IoT scenario centers around **Cosmos DB**, which acts as the globally-available, highly scalable data storage for streaming event data, fleet, consignment, package, and trip metadata, and aggregate data for reporting. Vehicle telemetry data flows in from the data generator, through registered IoT devices in **IoT Hub**, where an **Azure function** processes the event data and inserts it into a telemetry container in Cosmos DB.
+  The solution for the IoT scenario centers around **Cosmos DB**, which acts as the globally-available, highly scalable data storage for streaming event data, fleet, consignment, package, and trip metadata, and aggregate data for reporting. Vehicle telemetry (you may not have vehicles, but oil field pumps) data flows in from the data generator, through registered IoT devices in **IoT Hub**, where an **Azure function** processes the event data and inserts it into a telemetry container in Cosmos DB.
 
 - Trip processing with Azure Functions:
 
-  The Cosmos DB change feed triggers three separate Azure functions, with each managing their own checkpoints so they can process the same incoming data without conflicting with one another. One function serializes the event data and stores it into time-sliced folders in **Azure Storage** for long-term cold storage of raw data. Another function processes the vehicle telemetry, aggregating the batch data and updating the trip and consignment status in the metadata container, based on odometer readings and whether the trip is running on schedule. This function also triggers a **Logic App** to send email alerts when trip milestones are reached. A third function sends the event data to **Event Hubs**, which in turn triggers **Stream Analytics** to execute time window aggregate queries.
+  The Cosmos DB change feed triggers three separate Azure functions, with each managing their own checkpoints so they can process the same incoming data without conflicting with one another. One function serializes the event data and stores it into time-sliced folders in **Azure Storage** for long-term cold storage of raw data. Another function processes the vehicle (or pump) telemetry, aggregating the batch data and updating the trip and consignment status in the metadata container, based on odometer readings and whether the trip is running on schedule. This function also triggers a **Logic App** to send email alerts when trip milestones are reached. A third function sends the event data to **Event Hubs**, which in turn triggers **Stream Analytics** to execute time window aggregate queries.
 
 - Stream processing, dashboards, and reports:
 
-  The Stream Analytics queries output vehicle-specific aggregates to the Cosmos DB metadata container, and overall vehicle aggregates to **Power BI** to populate its real-time dashboard of vehicle status information. A Power BI Desktop report is used to display detailed vehicle, trip, and consignment information, pulled directly from the Cosmos DB metadata container. It also displays batch battery failure predictions, pulled from the maintenance container.
+  The Stream Analytics queries output vehicle-specific aggregates to the Cosmos DB metadata container, and overall vehicle aggregates to **Power BI** to populate its real-time dashboard of vehicle status information. A Power BI Desktop report displays detailed vehicle, trip, and consignment information pulled directly from the Cosmos DB metadata container. It also displays batch battery failure predictions, pulled from the maintenance container.
 
 - Advanced analytics and ML model training:
 
-  **Azure Databricks** is used to train a machine learning model to predict vehicle battery failure, based on historic information. It saves a trained model locally for batch predictions, and deploys a model and scoring web service to **Azure Kubernetes Service (AKS)** or **Azure Container Instances (ACI)** for real-time predictions. Azure Databricks also uses the **Spark Cosmos DB connector** to pull down each day's trip information to make batch predictions on battery failure and store the predictions in the maintenance container.
+  **Azure Databricks** is used to train a machine learning model to predict vehicle battery failure, based on historical information. It saves a trained model locally for batch predictions, and deploys a model and scoring web service to **Azure Kubernetes Service (AKS)** or **Azure Container Instances (ACI)** for real-time predictions. Azure Databricks also uses the **Spark Cosmos DB connector** to pull down each day's trip information to make batch predictions on battery failure and store the predictions in the maintenance container.
+
+  > We use vehicle battery data in this sample scenario to provide a concrete example of how Apache Spark, through an Azure Databricks workspace, can directly connect to Cosmos DB and use it as a source for advanced analytics and machine learning. The data, or the machine learning model, are not important. What we highlight is the Spark connector for Cosmos DB and the Azure Key Vault-backed secret store to securely access secrets, like the Cosmos DB connection string. You may choose to adapt the supplied notebooks to your scenario or skip the ML pieces altogether.
 
 - Fleet management web app, security, and monitoring:
 
@@ -201,8 +234,8 @@ We have covered a lot of ground with concepts covered by the Cosmos DB IoT solut
 
 ## Next steps
 
-- For a more detailed discussion of the recommended architecture and implementation choices, see [Microsoft Azure IoT Reference Architecture](https://aka.ms/iotrefarchitecture) (PDF).
+- For a more detailed discussion of the solution accelerator, see [Microsoft Azure Cosmos DB IoT solution accelerator](#) (PDF).
 
 - For detailed documentation of the various Azure IoT services, see [Azure IoT Fundamentals](https://docs.microsoft.com/azure/iot-fundamentals/).
 
-- A sample IoT implementation is available on [GitHub](https://github.com/mspnp/iot-guidance).
+- Deploy and adapt the solution accelerator for your needs by following the [quickstart guide](Demo&#32;step-by&#32;step&#32;-&#32;Cosmos&#32;DB&#32;scenario-based&#32;labs&#32;-&#32;IoT.md).
