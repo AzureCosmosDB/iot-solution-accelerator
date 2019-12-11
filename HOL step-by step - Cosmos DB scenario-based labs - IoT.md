@@ -1,10 +1,10 @@
-# Cosmos DB scenario-based labs - IoT hands-on lab step-by-step
+# Microsoft Azure Cosmos DB IoT solution accelerator - step-by-step quickstart guide
 
 <details>
 <summary><strong><em>Table of Contents</em></strong></summary>
 <!-- TOC -->
 
-- [Cosmos DB scenario-based labs - IoT hands-on lab step-by-step](#cosmos-db-scenario-based-labs---iot-hands-on-lab-step-by-step)
+- [Microsoft Azure Cosmos DB IoT solution accelerator - step-by-step quickstart guide](#microsoft-azure-cosmos-db-iot-solution-accelerator---step-by-step-quickstart-guide)
   - [Overview](#overview)
     - [Adapting the sample scenario to your own](#adapting-the-sample-scenario-to-your-own)
   - [Solution architecture](#solution-architecture)
