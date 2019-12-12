@@ -41,8 +41,6 @@ What all of these data stores have in common is that they don't use a relational
 
 The term *NoSQL* refers to data stores that do not use SQL for queries, and instead use other programming languages and constructs to query the data. In practice, "NoSQL" means "non-relational database," even though many of these databases do support SQL-compatible queries. However, the underlying query execution strategy is usually very different from the way a traditional RDBMS would execute the same SQL query.
 
-The following sections describe the major categories of non-relational or NoSQL database.
-
 #### Document data stores
 
 A document data store manages a set of named string fields and object data values in an entity referred to as a *document*. These data stores typically store data in the form of JSON documents. Each field value could be a scalar item, such as a number, or a compound element, such as a list or a parent-child collection. The data in the fields of a document can be encoded in a variety of ways, including XML, YAML, JSON, BSON, or even stored as plain text. The fields within documents are exposed to the storage management system, enabling an application to query and filter data by using the values in these fields.
@@ -51,13 +49,15 @@ Typically, a document contains the entire data for an entity. What items constit
 
 ![Example document data store](media/document.png)
 
-The application can retrieve documents by using the document key. This is a unique identifier for the document, which is often hashed, to help distribute data evenly. Some document databases create the document key automatically. Others enable you to specify an attribute of the document to use as the key. The application can also query documents based on the value of one or more fields. Some document databases support indexing to facilitate fast lookup of documents based on one or more indexed fields.
+The application can retrieve documents by using the document key. This key is a unique identifier for the document, which is often hashed, to help distribute data evenly. Some document databases create the document key automatically. Others enable you to specify an attribute of the document to use as the key. The application can also query documents based on the value of one or more fields. Some document databases support indexing to facilitate a fast lookup of documents based on one or more indexed fields.
 
 Many document databases support in-place updates, enabling an application to modify the values of specific fields in a document without rewriting the entire document. Read and write operations over multiple fields in a single document are typically atomic.
 
 #### Cosmos DB - managed NoSQL database on Azure
 
-Azure Cosmos DB is Microsoft's globally distributed, multi-model database service. With a click of a button, Cosmos DB enables you to elastically and independently scale throughput and storage across any number of Azure regions worldwide. You can elastically scale throughput and storage, and take advantage of fast, single-digit-millisecond data access using your favorite API including SQL, MongoDB, Cassandra, Tables, or Gremlin. Cosmos DB provides comprehensive [service level agreements](https://aka.ms/acdbsla) (SLAs) for throughput, latency, availability, and consistency guarantees, something no other database service offers.
+[Azure Cosmos DB](https://docs.microsoft.com/azure/cosmos-db/introduction) is Microsoft's globally distributed, multi-model database service. With a click of a button, Cosmos DB enables you to elastically and independently scale throughput and storage across any number of Azure regions worldwide. You can elastically scale throughput and storage and take advantage of fast, single-digit-millisecond data access using your favorite API, including SQL, MongoDB, Cassandra, Tables, or Gremlin. Cosmos DB provides comprehensive [service level agreements](https://aka.ms/acdbsla) (SLAs) for throughput, latency, availability, and consistency guarantees, something no other database service offers.
+
+The solution accelerator uses Cosmos DB as its non-relational data store, along with the SQL API to enable the document data store and SQL query constructs. The high-throughput, high-availability, and low-latency characteristics of Cosmos DB, coupled with its [change feed](https://docs.microsoft.com/azure/cosmos-db/change-feed) feature, makes it an ideal data store for IoT telemetry, operational data, and materialized views while enabling the powerful flexibility and capabilities the event sourcing pattern provides.
 
 ![A global map is displayed with Cosmos DB deployed to multiple regions.](media/cosmos-db-overview.png "Cosmos DB overview")
 
@@ -69,7 +69,7 @@ The event store acts as the system of record (the authoritative data source) abo
 
 Typical uses of the events published by the change feed are to maintain [materialized views](https://docs.microsoft.com/azure/architecture/patterns/materialized-view) of entities as telemetry is ingested or actions in the application change them, and for integration with external systems. For example, as device telemetry is saved, materialized views are updated with aggregated information about the IoT device telemetry, which is used to populate parts of the UI such as dashboards and reports. The aggregated data in this example is saved to a different container in Cosmos DB, eliminating the need to query against the event collection and perform expensive aggregates across multiple partitions. Other aggregated data is sent to Power BI to update a real-time dashboard to display the overall state of the IoT devices.
 
-Implementing the event sourcing pattern allows data and software architects to think beyond typical CRUD operations that may be used to for their databases and applications. This pattern helps these architects consider how they can handle the rising velocity, variety, and volume of data in today's Big Data landscape.
+Implementing the event sourcing pattern allows data and software architects to think beyond typical CRUD operations that may be used to for their databases and applications. The components of the event sourcing pattern are loosely coupled and can often operate in parallel for maximum scalability. This pattern helps these architects consider how they can handle the rising velocity, variety, and volume of data in today's Big Data landscape.
 
 ### Serverless and no/low code processing
 
@@ -85,9 +85,7 @@ The service that provides no-code processing in the solution accelerator is [Azu
 
 ### IoT reference architecture
 
-The IoT reference architecture has been adapted and slightly modified from the [source](https://docs.microsoft.com/azure/architecture/reference-architectures/iot/). The diagram below shows one recommended architecture for IoT applications on Azure using PaaS (platform-as-a-service) components.
-
-![Diagram of a reference IoT architecture](media/iot-reference-architecture.png)
+> The IoT reference architecture has been adapted and slightly modified from the [source](https://docs.microsoft.com/azure/architecture/reference-architectures/iot/).
 
 IoT applications can be described as **things** (devices) sending data that generates **insights**. These insights generate **actions** to improve a business or process. An example is an engine (the thing) sending temperature data. This data is used to evaluate whether the engine is performing as expected (the insight). The insight is used to proactively prioritize the maintenance schedule for the engine (the action).
 
@@ -236,7 +234,7 @@ The sample devices and data provided in this solution accelerator are based on f
 
   The solution for the IoT scenario centers around **Cosmos DB**, which acts as the globally-available, highly scalable data storage for streaming event data, fleet, consignment, package, and trip metadata, and aggregate data for reporting. Vehicle telemetry (you may not have vehicles, but oil field pumps) data flows in from the data generator, through registered IoT devices in **IoT Hub**, where an **Azure function** processes the event data and inserts it into a telemetry container in Cosmos DB.
 
-- Trip processing with Azure Functions:
+- Downstream event processing with Azure Functions:
 
   The Cosmos DB change feed triggers three separate Azure functions, with each managing their own checkpoints so they can process the same incoming data without conflicting with one another. One function serializes the event data and stores it into time-sliced folders in **Azure Storage** for long-term cold storage of raw data. Another function processes the vehicle (or pump) telemetry, aggregating the batch data and updating the trip and consignment status in the metadata container, based on odometer readings and whether the trip is running on schedule. This function also triggers a **Logic App** to send email alerts when trip milestones are reached. A third function sends the event data to **Event Hubs**, which in turn triggers **Stream Analytics** to execute time window aggregate queries.
 

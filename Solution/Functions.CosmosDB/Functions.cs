@@ -7,22 +7,17 @@ using System.Text;
 using System.Threading.Tasks;
 using CosmosDbIoTScenario.Common;
 using CosmosDbIoTScenario.Common.Models;
-using CosmosDbIoTScenario.Common.Models.Alerts;
+using Functions.CosmosDB.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Azure.Documents;
-using Microsoft.Azure.Documents.Client;
-using Microsoft.Azure.Documents.Linq;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using PartitionKey = Microsoft.Azure.Documents.PartitionKey;
-using RequestOptions = Microsoft.Azure.Documents.Client.RequestOptions;
 
 namespace Functions.CosmosDB
 {
@@ -53,9 +48,8 @@ namespace Functions.CosmosDB
 
             // Retrieve the Trip records by VIN, compare the odometer reading to the starting odometer reading to calculate miles driven,
             // and update the Trip and Consignment status and send an alert if needed once completed.
-            var sendTripAlert = false;
-            var database = "ContosoAuto";
-            var metadataContainer = "metadata";
+            const string database = "ContosoAuto";
+            const string metadataContainer = "metadata";
 
             if (vehicleEvents.Count > 0)
             {
@@ -84,101 +78,14 @@ namespace Functions.CosmosDB
                         
                         if (trip != null)
                         {
-                            // Retrieve the Consignment record.
-                            var document = await container.ReadItemAsync<Consignment>(trip.consignmentId,
-                                new Microsoft.Azure.Cosmos.PartitionKey(trip.consignmentId));
-                            var consignment = document.Resource;
-                            var updateTrip = false;
-                            var updateConsignment = false;
+                            var tripHelper = new TripHelper(trip, container, _httpClientFactory);
 
-                            // Calculate how far along the vehicle is for this trip.
-                            var milesDriven = odometerHigh - trip.odometerBegin;
-                            if (milesDriven >= trip.plannedTripDistance)
-                            {
-                                // The trip is completed!
-                                trip.status = WellKnown.Status.Completed;
-                                trip.odometerEnd = odometerHigh;
-                                trip.tripEnded = DateTime.UtcNow;
-                                consignment.status = WellKnown.Status.Completed;
+                            var sendTripAlert = await tripHelper.UpdateTripProgress(odometerHigh);
 
-                                // Update the trip and consignment records.
-                                updateTrip = true;
-                                updateConsignment = true;
-
-                                sendTripAlert = true;
-                            }
-                            else
-                            {
-                                if (DateTime.UtcNow >= consignment.deliveryDueDate && trip.status != WellKnown.Status.Delayed)
-                                {
-                                    // The trip is delayed!
-                                    trip.status = WellKnown.Status.Delayed;
-                                    consignment.status = WellKnown.Status.Delayed;
-
-                                    // Update the trip and consignment records.
-                                    updateTrip = true;
-                                    updateConsignment = true;
-
-                                    sendTripAlert = true;
-                                }
-                            }
-
-                            if (trip.tripStarted == null)
-                            {
-                                // Set the trip start date.
-                                trip.tripStarted = DateTime.UtcNow;
-                                // Set the trip and consignment status to Active.
-                                trip.status = WellKnown.Status.Active;
-                                consignment.status = WellKnown.Status.Active;
-
-                                updateTrip = true;
-                                updateConsignment = true;
-
-                                sendTripAlert = true;
-                            }
-
-                            // Update the trip and consignment records.
-                            if (updateTrip)
-                            {
-                                await container.ReplaceItemAsync(trip, trip.id, new Microsoft.Azure.Cosmos.PartitionKey(trip.partitionKey));
-                            }
-
-                            if (updateConsignment)
-                            {
-                                await container.ReplaceItemAsync(consignment, consignment.id, new Microsoft.Azure.Cosmos.PartitionKey(consignment.partitionKey));
-                            }
-
-                            // Send a trip alert.
                             if (sendTripAlert)
                             {
-                                // Have the HttpClient factory create a new client instance.
-                                var httpClient = _httpClientFactory.CreateClient(NamedHttpClients.LogicAppClient);
-
-                                // Create the payload to send to the Logic App.
-                                var payload = new LogicAppAlert
-                                {
-                                    consignmentId = trip.consignmentId,
-                                    customer = trip.consignment.customer,
-                                    deliveryDueDate = trip.consignment.deliveryDueDate,
-                                    hasHighValuePackages = trip.packages.Any(p => p.highValue),
-                                    id = trip.id,
-                                    lastRefrigerationUnitTemperatureReading = averageRefrigerationUnitTemp,
-                                    location = trip.location,
-                                    lowestPackageStorageTemperature = trip.packages.Min(p => p.storageTemperature),
-                                    odometerBegin = trip.odometerBegin,
-                                    odometerEnd = trip.odometerEnd,
-                                    plannedTripDistance = trip.plannedTripDistance,
-                                    tripStarted = trip.tripStarted,
-                                    tripEnded = trip.tripEnded,
-                                    status = trip.status,
-                                    vin = trip.vin,
-                                    temperatureSetting = trip.temperatureSetting,
-                                    recipientEmail = Environment.GetEnvironmentVariable("RecipientEmail")
-                                };
-
-                                var postBody = JsonConvert.SerializeObject(payload);
-
-                                await httpClient.PostAsync(Environment.GetEnvironmentVariable("LogicAppUrl"), new StringContent(postBody, Encoding.UTF8, "application/json"));
+                                // Send a trip alert.
+                                await tripHelper.SendTripAlert(averageRefrigerationUnitTemp);
                             }
                         }
                     }
