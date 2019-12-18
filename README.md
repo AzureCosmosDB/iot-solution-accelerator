@@ -272,4 +272,4 @@ The sample devices and data provided in this solution accelerator are based on f
 
 ## Next steps
 
-- Deploy and adapt the solution accelerator for your needs by following the step-by-step instructions in the [quickstart guide](HOL%20step-by%20step%20-%20Cosmos%20DB%20scenario-based%20labs%20-%20IoT.md).
+- Deploy and adapt the solution accelerator for your needs by following the step-by-step instructions in the [quickstart guide](Quickstart.md).
