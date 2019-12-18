@@ -10,14 +10,15 @@
   - [Solution architecture](#solution-architecture)
     - [Architecture components](#architecture-components)
   - [Requirements](#requirements)
-  - [Before the hands-on lab](#before-the-hands-on-lab)
+    - [Task 0: Download the starter files](#task-0-download-the-starter-files)
   - [Exercise 1: Configure environment](#exercise-1-configure-environment)
-    - [Task 1: Create Cosmos DB database and container](#task-1-create-cosmos-db-database-and-container)
+    - [Task 1: Run deployment scripts](#task-1-run-deployment-scripts)
+      - [Deployment information: Cosmos DB](#deployment-information-cosmos-db)
       - [About Cosmos DB throughput](#about-cosmos-db-throughput)
       - [About Cosmos DB partitioning](#about-cosmos-db-partitioning)
-    - [Task 2: Configure Cosmos DB container indexing and TTL](#task-2-configure-cosmos-db-container-indexing-and-ttl)
       - [About the Cosmos DB indexing policies](#about-the-cosmos-db-indexing-policies)
-    - [Task 3: Create a Logic App workflow for email alerts](#task-3-create-a-logic-app-workflow-for-email-alerts)
+    - [Task 2: Authenticate the Office 365 API Connection for sending email alerts](#task-2-authenticate-the-office-365-api-connection-for-sending-email-alerts)
+      - [About the Logic App](#about-the-logic-app)
     - [Task 4: Create system-assigned managed identities for your Function Apps and Web App to connect to Key Vault](#task-4-create-system-assigned-managed-identities-for-your-function-apps-and-web-app-to-connect-to-key-vault)
     - [Task 5: Add Function Apps and Web App to Key Vault access policy](#task-5-add-function-apps-and-web-app-to-key-vault-access-policy)
     - [Task 6: Add your user account to Key Vault access policy](#task-6-add-your-user-account-to-key-vault-access-policy)
@@ -134,9 +135,21 @@ Below is a diagram of the solution architecture you will build in this guide. Pl
 4. Install [Visual Studio 2019 Community](https://visualstudio.microsoft.com/vs/) (v16.4) or greater
 5. Install [.NET Core SDK 3.1](https://dotnet.microsoft.com/download/dotnet-core/3.1) or greater
 
-## Before the hands-on lab
+### Task 0: Download the starter files
 
-Refer to the [Before the hands-on lab setup guide](./Before%20the%20HOL%20-%20Cosmos%20DB%20scenario-based%20labs%20-%20IoT.md) manual before continuing to the lab exercises.
+Download a starter project that includes a vehicle simulator, Azure Function App projects, a Web App project, Azure Databricks notebooks, and data files used in the lab.
+
+1. From your lab computer, download the starter files by downloading a .zip copy of the Cosmos DB scenario-based labs GitHub repo.
+
+2. In a web browser, navigate to the [Cosmos DB IoT solution accelerator repo](https://github.com/solliancenet/cosmos-db-iot-solution-accelerator).
+
+3. On the repo page, select **Clone or download**, then select **Download ZIP**.
+
+   ![Download .zip containing the repository](media/github-download-repo.png 'Download ZIP')
+
+4. Unzip the contents to your root hard drive (i.e. `C:\`). This will create a folder on your root drive named `cosmos-db-iot-solution-accelerator-master`.
+
+5. Navigate to the [.NET Core 3.1 SDK download page](https://dotnet.microsoft.com/download/dotnet-core/3.1), then download the SDK for your environment, such as Windows .NET Core Installer x64.
 
 ## Exercise 1: Configure environment
 
@@ -144,15 +157,43 @@ Refer to the [Before the hands-on lab setup guide](./Before%20the%20HOL%20-%20Co
 
 You must provision a few resources in Azure before you start developing the solution. Ensure all resources use the same resource group for easier cleanup.
 
-In this exercise, you will configure your lab environment so you can start sending and processing generated vehicle, consignment, package, and trip data. You will begin by creating a Cosmos DB database and containers, then you will create a new Logic App and create a workflow for sending email notifications, create an Application Insights service for real-time monitoring of your solution, then retrieve secrets used in the solution's application settings (such as connection strings) and securely store them in Azure Key Vault, and finally configure your Azure Databricks environment.
+In this exercise, you will configure your environment so you can start sending and processing generated vehicle, consignment, package, and trip data. You will begin by creating a Cosmos DB database and containers, then you will create a new Logic App and create a workflow for sending email notifications, create an Application Insights service for real-time monitoring of your solution, then retrieve secrets used in the solution's application settings (such as connection strings) and securely store them in Azure Key Vault, and finally configure your Azure Databricks environment.
 
-### Task 1: Create Cosmos DB database and container
+### Task 1: Run deployment scripts
 
-In this task, you will create a Cosmos DB database and three SQL-based containers:
+1. Select the **Deploy to Azure** button below to get started. When prompted, sign in to the Azure portal with your account.
+
+   <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fsolliancenet%2Fcosmos-db-iot-solution-accelerator%2Fmaster%2Fdeploy%2FdemoDeploy.json" target="_blank">
+   <img src="http://azuredeploy.net/deploybutton.png"/>
+   </a>
+
+2. Enter the following values:
+
+   - **Subscription**: select the Azure subscription you are using for this lab.
+   - **Resource group**: _if you are using a hosted environment, select the existing `iot` resource group provided for you_; Otherwise, create a new resource group like `cosmos-db-iot`.
+   - **Location**: select the location closest to you. This value sets the Resource Group location.
+   - **Recipient Email**: Enter an email address to receive notifications from the Logic App.
+   - **Location**: select the location closest to you. This value sets the location for all deployed services. _The options in this list are limited to those locations commonly available to all services in this solution_.
+
+3. Check the **I agree to the terms and conditions stated above** box.
+
+    ![The template form is displayed with the previously described values.](media/portal-deploy-template-form.png "Custom Template")
+
+4. Select **Purchase**
+
+> The template deployment will take a few minutes to complete. Continue with the guide once it completes.
+
+#### Deployment information: Cosmos DB
+
+Among the Azure resources the deployment script created, is a Cosmos DB database and three SQL-based containers:
 
 - **telemetry**: Used for ingesting hot vehicle telemetry data with a 90-day lifespan (TTL).
 - **metadata**: Stores vehicle, consignment, package, trip, and aggregate event data.
 - **maintenance**: The batch battery failure predictions are stored here for reporting purposes.
+
+These containers are used for the demo solution used as a reference for this accelerator. In this document, as well as the companion accelerator guide (TODO: Add link here), we provide detailed information about design decisions and database configuration that you can use to adapt the solution to your scenario.
+
+To view the Cosmos DB containers, perform the following steps:
 
 1. Using a new tab or instance of your browser, navigate to the Azure portal, <https://portal.azure.com>.
 
@@ -164,63 +205,84 @@ In this task, you will create a Cosmos DB database and three SQL-based container
 
    ![The Cosmos DB account is highlighted in the resource group.](media/resource-group-cosmos-db.png 'Cosmos DB in the Resource Group')
 
-4. Select **Data Explorer** in the left-hand menu, then select **New Container**.
+4. Select **Data Explorer** in the left-hand menu, then expand the **ContosoAuto** database.
 
-   ![The Cosmos DB Data Explorer is shown with the New Container button highlighted.](media/cosmos-new-container.png 'Data Explorer - New Container')
+   ![Data Explorer is selected and the ContosoAuto database is expanded.](media/cosmos-containers.png "Data Explorer")
 
-5. On the **Add Container** blade, specify the following configuration options:
+5. Expand the **maintenance** container in the Cosmos DB Data Explorer, then select **Scale & Settings**.
 
-   a. Enter **ContosoAuto** for the **Database id**.
+    ![The Scale & Settings blade for the maintenance container is displayed.](media/cosmos-scale-settings-maintenance.png "Scale & Settings")
 
-   b. Leave **Provision database throughput** unchecked.
+    The **Throughput** value for this container is set to **400** RU/s. This is the lowest setting for a container, which is sufficient for the throughput requirements for maintenance data due to low read and write usage.
 
-   c. Enter **metadata** for the **Container id**.
+    The **Partition Key** is set to **/vin** (VIN means *vehicle identification number*) so we can group maintenance data by vehicle, and because the `vin` field is used in most queries.
 
-   d. Partition key: **/partitionKey**
+    The **Indexing Policy** is set to the default value, which automatically indexes all fields for each document stored in the container. This is because all paths are included (remember, since we are storing JSON documents, we use paths to identify the property since they can exist within child collections in the document) by setting the value of `includedPaths` to `"path": "/*"`, and the only excluded path is the internal `_etag` property, which is used for versioning the documents. The default Indexing Policy is:
 
-   e. Throughput: **50000**
+    ```json
+    {
+        "indexingMode": "consistent",
+        "automatic": true,
+        "includedPaths": [
+            {
+                "path": "/*"
+            }
+        ],
+        "excludedPaths": [
+            {
+                "path": "/\"_etag\"/?"
+            }
+        ]
+    }
+    ```
 
-   ![The New Container form is displayed with the previously described values.](media/cosmos-new-container-metadata.png 'New metadata container')
+6. Expand the **metadata** container in the Cosmos DB Data Explorer, then select **Scale & Settings**.
 
-   > **Note**: We are initially setting the throughput on this container to `50000` RU/s because the data generator will perform a bulk insert of metadata the first time it runs. After inserting the data, it will programmatically reduce the throughput to `15000`.
+    The **Throughput** value for this container is set to **50000** RU/s. We are initially setting the throughput on this container to this high number of RU/s because the data generator will perform a bulk insert of metadata the first time it runs. After inserting the data, it will programmatically reduce the throughput to **15000**.
 
-6. Select **OK** to create the container.
+    The **Partition Key** is set to **/partitionKey**. This is because we store several different types of documents (records) in this container. As such, the fields vary between document types. Each document has a `partitionKey` field added, and an `entityType` field to indicate the type of document, such as "Vehicle", "Package", or "Trip". The `partitionKey` field is set to a field property value appropriate to the document type, such as `vin` for Vehicle documents. Trip documents also use `vin` as the partition key since trip data is retrieved by the related vehicle's VIN, and is often retrieved along with vehicle data. The `entityType` field can be used to filter by type of document within a given partition key.
 
-7. Select **New Container** once again in the Data Explorer.
+    The **Indexing Policy** is set to the default value.
 
-8. On the **Add Container** blade, specify the following configuration options:
+7. Expand the **telemetry** container in the Cosmos DB Data Explorer, then select **Scale & Settings**.
 
-   a. **Database id**: Select **Use existing**, then select **ContosoAuto** from the list.
+    The **Throughput** value for this container is set to **15000** RU/s, which is optimal for handling the rate of vehicle telemetry data written to this container.
 
-   c. Enter **telemetry** for the **Container id**.
+    The **Partition Key** is set to **/partitionKey**. The partitionKey property represents a synthetic composite partition key for the Cosmos DB container, consisting of the VIN + current year/month. Using a composite key instead of simply the VIN provides us with the following benefits:
 
-   d. Partition key: **/partitionKey**
+    1. Distributing the write workload at any given point in time over a high cardinality of partition keys.
+    2. Ensuring efficient routing on queries on a given VIN - you can spread these across time, e.g. `SELECT * FROM c WHERE c.partitionKey IN (“VIN123-2019-01”, “VIN123-2019-02”, …)`.
+    3. Scale beyond the 10GB quota for a single partition key value.
 
-   e. Throughput: **15000**
+    Notice that the **Time to Live** setting is set to **On (no default)**. This was turned off for the other containers. Time to Live (TTL) tells Cosmos DB when to expire, or delete, the document(s) automatically. This setting can help save in storage costs by removing what you no longer need. Typically, this is used on hot data, or data that must be expired after a period of time due to regulatory requirements. Turning the Time to Live setting on with no default allows us to define the TTL individually for each document, giving us more flexibility in deciding which documents should expire after a set period of time. To do this, we have a `ttl` field on the document that is saved to this container that specifies the TTL in seconds.
 
-   ![The New Container form is displayed with the previously described values.](media/cosmos-new-container-telemetry.png 'New telemetry container')
+    Now view the **Indexing Policy**, which is different from the default policy the other containers use. This custom policy is optimized for write-heavy workloads by excluding all paths and only including the paths used when we query the container (`vin`, `state`, and `partitionKey`):
 
-9. Select **OK** to create the container.
-
-10. Select **New Container** once again in the Data Explorer.
-
-11. On the **Add Container** blade, specify the following configuration options:
-
-    a. **Database id**: Select **Use existing**, then select **ContosoAuto** from the list.
-
-    c. Enter **maintenance** for the **Container id**.
-
-    d. Partition key: **/vin**
-
-    e. Throughput: **400**
-
-    ![The New Container form is displayed with the previously described values.](media/cosmos-new-container-maintenance.png 'New maintenance container')
-
-12. Select **OK** to create the container.
-
-13. You should now have three containers listed in the Data Explorer.
-
-    ![The three new containers are shown in Data Explorer.](media/cosmos-three-containers.png 'Data Explorer')
+    ```json
+    {
+        "indexingMode": "consistent",
+        "automatic": true,
+        "includedPaths": [
+        {
+            "path": "/vin/?"
+        },
+        {
+            "path": "/state/?"
+        },
+        {
+            "path": "/partitionKey/?"
+        }
+        ],
+        "excludedPaths": [
+        {
+            "path": "/*"
+        },
+        {
+            "path": "/\"_etag\"/?"
+        }
+        ]
+    }
+    ```
 
 #### About Cosmos DB throughput
 
@@ -236,194 +298,31 @@ When you created each container, you were required to define a **partition key**
 
 Choosing an appropriate partition key for Cosmos DB is a critical step for ensuring balanced reads and writes, scaling, and, in the case of this solution, in-order change feed processing per partition. While there are no limits, per se, on the number of logical partitions, a single logical partition is allowed an upper limit of 10 GB of storage. Logical partitions cannot be split across physical partitions. For the same reason, if the partition key chosen is of bad cardinality, you could potentially have skewed storage distribution. For instance, if one logical partition becomes larger faster than the others and hits the maximum limit of 10 GB, while the others are nearly empty, the physical partition housing the maxed out logical partition cannot split and could cause an application downtime.
 
-### Task 2: Configure Cosmos DB container indexing and TTL
-
-In this task, you will review the default indexing set on your new containers, and configure the indexing for your `telemetry` container so it is optimized for write-heavy workloads. Next, you will enable time-to-live (TTL) on the `telemetry` container, allowing you to set the TTL value, in seconds, on individual documents stored in the container. This value tells Cosmos DB when to expire, or delete, the document(s) automatically. This setting can help save in storage costs by removing what you no longer need. Typically, this is used on hot data, or data that must be expired after a period of time due to regulatory requirements.
-
-1. Expand the **telemetry** container in the Cosmos DB Data Explorer, then select **Scale & Settings**.
-
-2. Within the Scale & Settings blade, expand the Settings section and select **On (no default)** under **Time to Live**.
-
-   ![The Time to Live settings are set to On with no default.](media/cosmos-ttl-on.png 'Scale & Settings')
-
-   Turning the Time to Live setting on with no default allows us to define the TTL individually for each document, giving us more flexibilty in deciding which documents should expire after a set period of time. To do this, we have a `ttl` field on the document that is saved to this container that specifies the TTL in seconds.
-
-3. Scroll down in the Scale & Settings blade to view the **Indexing Policy**. The default policy is to automatically index all fields for each document stored in the collection. This is because all paths are included (remember, since we are storing JSON documents, we use paths to identify the property since they can exist within child collections in the document) by setting the value of `includedPaths` to `"path": "/*"`, and the only excluded path is the internal `_etag` property, which is used for versioning the documents. Here is what the default Indexing Policy looks like:
-
-   ```json
-   {
-     "indexingMode": "consistent",
-     "automatic": true,
-     "includedPaths": [
-       {
-         "path": "/*"
-       }
-     ],
-     "excludedPaths": [
-       {
-         "path": "/\"_etag\"/?"
-       }
-     ]
-   }
-   ```
-
-4. Replace the **Indexing Policy** with the following, which excludes all paths, and only includes the paths used when we query the container (`vin`, `state`, and `partitionKey`):
-
-   ```json
-   {
-     "indexingMode": "consistent",
-     "automatic": true,
-     "includedPaths": [
-       {
-         "path": "/vin/?"
-       },
-       {
-         "path": "/state/?"
-       },
-       {
-         "path": "/partitionKey/?"
-       }
-     ],
-     "excludedPaths": [
-       {
-         "path": "/*"
-       },
-       {
-         "path": "/\"_etag\"/?"
-       }
-     ]
-   }
-   ```
-
-   ![The Indexing Policy section is highlighted, as well as the Save button.](media/cosmos-indexing-policy.png 'Scale & Settings')
-
-5. Select **Save** to apply your changes.
-
 #### About the Cosmos DB indexing policies
 
-In this task, we updated the indexing policy for the `telemetry` container, but left the other two containers with the default policy. The default indexing policy for newly created containers indexes every property of every item, enforcing range indexes for any string or number, and spatial indexes for any GeoJSON object of type Point. This allows you to get high query performance without having to think about indexing and index management upfront. Since the `metadata` and `maintenance` containers have more read-heavy workloads than `telemetry`, it makes sense to use the default indexing policy where query performance is optimized. Since we need faster writes for `telemetry`, we exclude unused paths. The use of indexing paths can offer improved write performance and lower index storage for scenarios in which the query patterns are known beforehand, as indexing costs are directly correlated to the number of unique paths indexed.
+The default indexing policy for newly created containers indexes every property of every item, enforcing range indexes for any string or number, and spatial indexes for any GeoJSON object of type Point. This allows you to get high query performance without having to think about indexing and index management upfront. Since the `metadata` and `maintenance` containers have more read-heavy workloads than `telemetry`, it makes sense to use the default indexing policy where query performance is optimized. Since we need faster writes for `telemetry`, we exclude unused paths. The use of indexing paths can offer improved write performance and lower index storage for scenarios in which the query patterns are known beforehand, as indexing costs are directly correlated to the number of unique paths indexed.
 
 The indexing mode for all three containers is set to **Consistent**. This means the index is updated synchronously as items are added, updated, or deleted, enforcing the consistency level configured for the account for read queries. The other indexing mode one could choose is None, which disables indexing on the container. Usually this mode is used when your container acts as a pure key-value store, and you do not need indexes for any of the other properties. It is possible to dynamically change the consistency mode prior to executing bulk operations, then changing the mode back to Consistent afterwards, if the potential performance increase warrants the temporary change.
 
-### Task 3: Create a Logic App workflow for email alerts
+### Task 2: Authenticate the Office 365 API Connection for sending email alerts
 
-In this task, you will create a new Logic App workflow and configure it to send email alerts through its HTTP trigger. This trigger will be called by one of your Azure functions that gets triggered by the Cosmos DB change feed, any time a notification event occurs, such as completing a trip. You will need to have an Office 365 or Outlook.com account to send the emails.
+In this task, you will open the deployed Logic App workflow and configure it to send email alerts through its HTTP trigger. This trigger will be called by one of your Azure functions that gets triggered by the Cosmos DB change feed, any time a notification event occurs, such as completing a trip. You will need to have an Office 365 or Outlook.com account to send the emails.
 
-1. In the [Azure portal](https://portal.azure.com), select **+ Create a resource**, then enter **logic app** into the search box on top. Select **Logic App** from the results.
+1. In the [Azure portal](https://portal.azure.com), navigate to your resource group for this demo and open the **Logic App**.
 
-   ![The Create a resource button and search box are highlighted in the Azure portal.](media/portal-new-logic-app.png 'Azure portal')
+2. Select **API connections** in the left-hand menu, then select the **office365** API connection.
 
-2. Select the **Create** button on the **Logic App overview** blade.
+    ![API connections lists the office365 connection in its blade.](media/logic-app-connections.png "API connections")
 
-3. On the **Create Logic App** blade, specify the following configuration options:
+3. Select **Edit API connection** in the left-hand menu. Enter your email in the **Display Name** field, then select **Authorize** and authenticate your Office 365 account.
 
-   1. **Name**: Unique value for the name, such as `Cosmos-IoT-Logic` (ensure the green check mark appears).
-   2. **Subscription**: Select the Azure subscription you are using for this lab.
-   3. **Resource group**: Select your lab resource group. The name should start with `cosmos-db-iot`.
-   4. **Location**: Select the same location as your resource group.
-   5. **Log Analytics**: Select **Off**.
+    ![Edit API connection](media/logic-app-office365-api-connection-edit.png 'Edit API connection')
 
-   ![The form is displayed with the previously described values.](media/portal-new-logic-app-form.png 'New Logic App')
+4. Select **Save**.
 
-4. Select **Create**.
+#### About the Logic App
 
-5. After the Logic App is created, navigate to it by opening your resource group and selecting the new Logic App.
-
-6. In the Logic App Designer, scroll through the page until you locate the Start with a common trigger section. Select the **When a HTTP request is received** trigger.
-
-   ![The HTTP common trigger option is highlighted.](media/logic-app-http-trigger.png 'Logic App Designer')
-
-7. Paste the following JSON into the **Request Body JSON Schema** field. This defines the shape of the data the Azure function will send in the body of the HTTP request when an alert needs to be sent:
-
-   ```json
-   {
-        "properties": {
-           "consignmentId": {
-             "type": "string"
-           },
-           "customer": {
-             "type": "string"
-           },
-           "deliveryDueDate": {
-             "type": "string"
-           },
-           "distanceDriven": {
-             "type": "number"
-           },
-           "hasHighValuePackages": {
-             "type": "boolean"
-           },
-           "id": {
-             "type": "string"
-           },
-           "lastRefrigerationUnitTemperatureReading": {
-             "type": "integer"
-           },
-           "location": {
-             "type": "string"
-           },
-           "lowestPackageStorageTemperature": {
-             "type": "integer"
-           },
-           "odometerBegin": {
-             "type": "integer"
-           },
-           "odometerEnd": {
-             "type": "number"
-           },
-           "plannedTripDistance": {
-             "type": "number"
-           },
-           "recipientEmail": {
-             "type": "string"
-           },
-           "status": {
-             "type": "string"
-           },
-           "temperatureSetting": {
-             "type": "integer"
-           },
-           "tripEnded": {
-             "type": "string"
-           },
-           "tripStarted": {
-             "type": "string"
-           },
-           "vin": {
-             "type": "string"
-           }
-        },
-        "type": "object"
-   }
-   ```
-
-   ![The Request Body JSON Schema is displayed.](media/logic-app-schema.png 'Request Body JSON Schema')
-
-8. Select **+ New step** underneath the HTTP trigger.
-
-   ![The new step button is highlighted.](media/logic-app-new-step.png 'New step')
-
-9. Within the new action box, type `send email` in the search box, then select **Send an email - Office 365 Outlook** from the list of actions below. **Note**: If you do not have an Office 365 Outlook account, you may try one of the other email service options.
-
-   ![Send email is typed in the search box and Send an email - Office 365 Outlook is highlighted below.](media/logic-app-send-email.png 'Choose an action')
-
-10. Select the **Sign in** button. Sign in to your account in the window that appears.
-
-    ![The Sign in button is highlighted.](media/logic-app-sign-in-button.png 'Office 365 Outlook')
-
-11. After signing in, the action box will display as the **Send an email** action form. Select the **To** field. The **Dynamic content** box will display after selecting To. To see the full list of dynamic values from the HTTP request trigger, select **See more** next to "When a HTTP request is received".
-
-    ![The To field is selected, and the See more link is highlighted in the Dynamic content window.](media/logic-app-dynamic-content-see-more.png 'Dynamic content')
-
-12. In the list of dynamic content, select **recipientEmail**. This will add the dynamic value to the **To** field.
-
-    ![The recipientEmail dynamic value is added to the To field.](media/logic-app-recipientemail.png 'Dynamic content - recipientEmail')
-
-13. In the **Subject** field, enter the following: `Contoso Auto trip status update:`, making sure you add a space at the end. Select the **status** dynamic content to append the trip status to the end of the subject.
-
-    ![The Subject field is filled in with the status dynamic content appended to the end.](media/logic-app-status.png 'Dynamic content - status')
-
-14. Paste the following into the **Body** field. The dynamic content will automatically be added:
+Paste the following into the **Body** field. The dynamic content will automatically be added:
 
     ```text
     Here are the details of the trip and consignment:
@@ -462,13 +361,13 @@ In this task, you will create a new Logic App workflow and configure it to send 
     Contoso Auto Bot
     ```
 
-15. Your Logic App workflow should now look like the following:
+6.  Your Logic App workflow should now look like the following:
 
     ![The Logic App workflow is complete.](media/logic-app-completed-workflow.png 'Logic App')
 
-16. Select **Save** at the top of the designer to save your workflow.
+7.  Select **Save** at the top of the designer to save your workflow.
 
-17. After saving, the URL for the HTTP trigger will generate. Expand the HTTP trigger in the workflow, then copy the **HTTP POST URL** value and save it to Notepad or similar text application for a later step.
+8.  After saving, the URL for the HTTP trigger will generate. Expand the HTTP trigger in the workflow, then copy the **HTTP POST URL** value and save it to Notepad or similar text application for a later step.
 
     ![The http post URL is highlighted.](media/logic-app-url.png 'Logic App')
 
