@@ -326,7 +326,79 @@ The Azure Logic Apps service works as a powerful workflow orchestrator that nati
 
 The logic app that is deployed in the solution accelerator sends email notifications to recipients when certain event milestones occur, such as when a package delivery is running behind schedule, or when an oil pump encounters an anomaly.
 
-Paste the following into the **Body** field. The dynamic content will automatically be added:
+To view the logic app, select **Logic app designer** in the left-hand menu. This will display the current workflow in the visual designer. There are currently two activities:
+
+1. **HTTP trigger**: This is the entry point for the logic app. When you post a request to the URL provided by this activity, the logic app is triggered and it receives a payload of data from the request body in JSON format. This is the shape of the JSON document that the Azure Function sends to the logic app through this HTTP trigger:
+
+    ```json
+    {
+        "properties": {
+            "consignmentId": {
+                "type": "string"
+            },
+            "customer": {
+                "type": "string"
+            },
+            "deliveryDueDate": {
+                "type": "string"
+            },
+            "distanceDriven": {
+                "type": "number"
+            },
+            "hasHighValuePackages": {
+                "type": "boolean"
+            },
+            "id": {
+                "type": "string"
+            },
+            "lastRefrigerationUnitTemperatureReading": {
+                "type": "integer"
+            },
+            "location": {
+                "type": "string"
+            },
+            "lowestPackageStorageTemperature": {
+                "type": "integer"
+            },
+            "odometerBegin": {
+                "type": "integer"
+            },
+            "odometerEnd": {
+                "type": "number"
+            },
+            "plannedTripDistance": {
+                "type": "number"
+            },
+            "recipientEmail": {
+                "type": "string"
+            },
+            "status": {
+                "type": "string"
+            },
+            "temperatureSetting": {
+                "type": "integer"
+            },
+            "tripEnded": {
+                "type": "string"
+            },
+            "tripStarted": {
+                "type": "string"
+            },
+            "vin": {
+                "type": "string"
+            }
+        },
+        "type": "object"
+    }
+    ```
+
+    Defining this payload allows subsequent activities to reference the fields to dynamically add the values, as you can see below.
+
+2. **Send an email**: This activity uses Office 365 to send an email to the defined email recipient (`recipientEmail` field). Office 365 is only one of many connections for sending emails. You can use Outlook, Gmail, SendGrid, and other email services. You can also use on of the [hundreds of service connectors](https://docs.microsoft.com/azure/connectors/apis-list) to send notifications or create multi-step workflows. Notice in the screenshot below that we are using dynamic field references in the email activity from the payload sent to the HTTP trigger:
+
+    ![The email activity within the logic app's designer is displayed.](media/logic-app-email-activity.png "Logic app email activity")
+
+    You can use a dialog within the designer to add the dynamic fields from a list, or you can use a special dynamic field reference syntax (`@{source()?['field']}`) instead. When you paste the following into the email body, for instance, the dynamic fields will appear in the same way as the screenshot above:
 
     ```text
     Here are the details of the trip and consignment:
@@ -364,16 +436,6 @@ Paste the following into the **Body** field. The dynamic content will automatica
     Regards,
     Contoso Auto Bot
     ```
-
-6.  Your Logic App workflow should now look like the following:
-
-    ![The Logic App workflow is complete.](media/logic-app-completed-workflow.png 'Logic App')
-
-7.  Select **Save** at the top of the designer to save your workflow.
-
-8.  After saving, the URL for the HTTP trigger will generate. Expand the HTTP trigger in the workflow, then copy the **HTTP POST URL** value and save it to Notepad or similar text application for a later step.
-
-    ![The http post URL is highlighted.](media/logic-app-url.png 'Logic App')
 
 ### Task 4: Create system-assigned managed identities for your Function Apps and Web App to connect to Key Vault
 
