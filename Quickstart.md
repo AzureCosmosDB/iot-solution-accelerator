@@ -191,7 +191,7 @@ Among the Azure resources the deployment script created, is a Cosmos DB database
 - **metadata**: Stores vehicle, consignment, package, trip, and aggregate event data.
 - **maintenance**: The batch battery failure predictions are stored here for reporting purposes.
 
-These containers are used for the demo solution used as a reference for this accelerator. In this document, as well as the companion accelerator guide (TODO: Add link here), we provide detailed information about design decisions and database configuration that you can use to adapt the solution to your scenario.
+These containers are used for the demo solution used as a reference for this accelerator. In this document, as well as the [companion accelerator guide](Microsoft_Cosmos_DB_IoT_Solution_Accelerator.docx), we provide detailed information about design decisions and database configuration that you can use to adapt the solution to your scenario.
 
 To view the Cosmos DB containers, perform the following steps:
 
@@ -321,6 +321,10 @@ In this task, you will open the deployed Logic App workflow and configure it to 
 4. Select **Save**.
 
 #### About the Logic App
+
+The Azure Logic Apps service works as a powerful workflow orchestrator that natively [integrates with hundreds](https://docs.microsoft.com/azure/connectors/apis-list) of Azure and 3rd-party services. Users usually build logic apps with the Logic Apps Designer, which provides a simple web-based, drag-and-drop interface. Alternately, logic apps can be built using JavaScript Object Notation (JSON) for scripting, Azure PowerShell commands, and Azure Resource Manager (ARM) templates.
+
+The logic app that is deployed in the solution accelerator sends email notifications to recipients when certain event milestones occur, such as when a package delivery is running behind schedule, or when an oil pump encounters an anomaly.
 
 Paste the following into the **Body** field. The dynamic content will automatically be added:
 
