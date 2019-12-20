@@ -59,11 +59,19 @@
     - [Task 2: Update report data sources](#task-2-update-report-data-sources)
     - [Task 3: Explore report](#task-3-explore-report)
   - [Exercise 10: Run the predictive maintenance batch scoring](#exercise-10-run-the-predictive-maintenance-batch-scoring)
+    - [About Azure Machine Learning](#about-azure-machine-learning)
     - [Task 1: Import lab notebooks into Azure Databricks](#task-1-import-lab-notebooks-into-azure-databricks)
     - [Task 2: Run batch scoring notebook](#task-2-run-batch-scoring-notebook)
   - [Exercise 11: Deploy the predictive maintenance web service](#exercise-11-deploy-the-predictive-maintenance-web-service)
     - [Task 1: Run deployment notebook](#task-1-run-deployment-notebook)
     - [Task 2: Call the deployed scoring web service from the Web App](#task-2-call-the-deployed-scoring-web-service-from-the-web-app)
+    - [About Azure Machine Learning workspace and model deployments](#about-azure-machine-learning-workspace-and-model-deployments)
+      - [High-level model workflow](#high-level-model-workflow)
+        - [1 - Train](#1---train)
+        - [2 - Package](#2---package)
+        - [3 - Validate](#3---validate)
+        - [4 - Deploy](#4---deploy)
+        - [5 - Monitor](#5---monitor)
   - [Exercise 12: Refresh the Power BI report and view maintenance data](#exercise-12-refresh-the-power-bi-report-and-view-maintenance-data)
     - [Task 1: Open and refresh the report in Power BI Desktop](#task-1-open-and-refresh-the-report-in-power-bi-desktop)
   - [Environment clean-up](#environment-clean-up)
@@ -1903,6 +1911,14 @@ In this exercise, you will import Databricks notebooks into your Azure Databrick
 
 Next, you will run the Batch Scoring notebook to make battery failure predictions on vehicles, using vehicle and trip data stored in Cosmos DB.
 
+### About Azure Machine Learning
+
+Within the Databricks notebooks you are about to import and run, we use [Azure Machine Learning](https://docs.microsoft.com/azure/machine-learning/service/overview-what-is-azure-ml) to manage, train, and deploy a custom machine learning (ML) model. Azure Machine Learning is a fully managed cloud service used to train, deploy, and manage machine learning models at scale. Given the variety of services within Azure that you can choose from to create AI solutions, Azure Machine Learning is the one platform in Azure that "glues" together the entire custom AI/ML development story. When you couple the rich set of tools with the service, you have everything you need to get started with experimenting and creating AI solutions on the right-hand side of the AI spectrum.
+
+Azure Machine Learning fully supports open-source technologies so that you can use tens of thousands of open-source Python packages such as TensorFlow, PyTorch, MXNet, and scikit-learn. All you need is a Python-enabled environment to get started with setting up and using Azure Machine Learning through its [Python SDK](https://docs.microsoft.com/python/api/overview/azure/ml/intro?view=azure-ml-py). Powerful tools are also available, such as [notebook VMs](https://docs.microsoft.com/azure/machine-learning/service/how-to-configure-environment#notebookvm), [Azure notebooks](https://notebooks.azure.com/), [Jupyter notebooks](http://jupyter.org), or the [Azure Machine Learning for Visual Studio Code](https://aka.ms/vscodetoolsforai) extension to make it easy to explore and transform data, and then train and deploy models. Azure Machine Learning includes features that automate model generation and tuning with ease, efficiency, and accuracy.
+
+Use Azure Machine Learning to train, deploy, and manage machine learning models using Python and CLI at cloud scale. For a low-code or no-code option, use the interactive, [visual interface](https://docs.microsoft.com/azure/machine-learning/service/ui-quickstart-run-experiment) to easily and quickly build, test, and deploy models using pre-built machine learning algorithms.
+
 ### Task 1: Import lab notebooks into Azure Databricks
 
 In this task, you will import the Databricks notebooks into your workspace.
@@ -1927,7 +1943,7 @@ In this task, you will import the Databricks notebooks into your workspace.
 
     ![The imported notebooks are displayed.](media/databricks-notebooks.png 'Imported notebooks')
 
-6. Open the **Shared-Configuration** notebook located in the `Includes` sub-folder and provide values for your Machine Learning service workspace. You can find these values within the Overview blade of your Machine Learning service workspace that is located in your lab resource group.
+6. Open the **Shared-Configuration** notebook located in the `Includes` sub-folder and provide values for your Machine Learning workspace. You can find these values within the Overview blade of your Machine Learning workspace that is located in your lab resource group.
 
     The values highlighted in the screenshot below are for the following variables in the notebooks:
 
@@ -1943,7 +1959,7 @@ In this task, you will import the Databricks notebooks into your workspace.
 In this task, you will run the `Batch Scoring` notebook, using a pre-trained machine learning (ML) model to determine if the battery needs to be replaced on several vehicles within the next 30 days. The notebook performs the following actions:
 
 1. Installs required Python libraries.
-2. Connects to Azure Machine Learning service (Azure ML).
+2. Connects to Azure Machine Learning (Azure ML).
 3. Downloads a pre-trained ML model, saves it to Azure ML, then uses that model for batch scoring.
 4. Uses the Cosmos DB Spark connector to retrieve completed Trips and Vehicle metadata from the `metadata` Cosmos DB container, prepares the data using SQL queries, then surfaces the data as temporary views.
 5. Applies predictions against the data, using the pre-trained model.
@@ -1963,7 +1979,7 @@ To run this notebook, perform the following steps:
 
 4. You may use keyboard shortcuts to execute the cells, such as **Ctrl+Enter** to execute a single cell, or **Shift+Enter** to execute a cell and move to the next one below.
 
-In both notebooks, you will be required to provide values for your Machine Learning service workspace. You can find these values within the Overview blade of your Machine Learning service workspace that is located in your lab resource group.
+In both notebooks, you will be required to provide values for your Machine Learning workspace. You can find these values within the Overview blade of your Machine Learning workspace that is located in your lab resource group.
 
 The values highlighted in the screenshot below are for the following variables in the notebooks:
 
@@ -2039,6 +2055,47 @@ Now that the web service is deployed to ACI, we can call it to make predictions 
     ![The prediction results show that the battery is is predicted to fail in the next 30 days.](media/web-prediction-yes.png "Vehicle details with prediction")
 
     This vehicle has a high number of **Lifetime cycles used**, which is closer to the battery's rated 200 cycle lifespan. The model predicted that the battery will fail within the next 30 days.
+
+### About Azure Machine Learning workspace and model deployments
+
+The top-level component of the Azure Machine Learning (AML) is the [workspace](https://docs.microsoft.com/azure/machine-learning/service/concept-workspace). Your first step to using AML is to create a workspace within an Azure region and resource group (a logical grouping of Azure services). When you do this, the script creates all services alongside your workspace. When you deployed the environment for this solution accelerator at the beginning of the Quickstart guide, the AML workspace was created.
+
+Beyond the workspace, there are a few related Azure resources that are used to manage, monitor, and secure the workspace components. These are created for you automatically when you create a new workspace. However, you can choose to use existing Azure services in place of creating new versions.
+
+- [Azure Container Registry](https://azure.microsoft.com/services/container-registry/): Registers docker containers that you use during training and when you deploy a model. To minimize costs, ACR is lazy-loaded until deployment images are created. This means that the ACR service is provisioned when you first register a model in your workspace.
+- [Azure Storage account](https://azure.microsoft.com/services/storage/): Is used as the default data store for the workspace. Jupyter notebooks that are used with your notebook VMs are stored here as well.
+- [Azure Application Insights](https://azure.microsoft.com/services/application-insights/): Allows you to monitor your models and view metrics on their usage.
+- [Azure Key Vault](https://azure.microsoft.com/services/key-vault/): Securely stores secrets and other sensitive information used by your workspace and any compute targets.
+
+#### High-level model workflow
+
+![The stages shown are Train, Package, Validate, Deploy, and Monitor. An arrow labeled Retrain goes back to Train from Monitor.](media/aml-model-workflow.png 'Azure Machine Learning model workflow')
+
+##### 1 - Train
+
+At the core of the modern data science process is training, evaluating, and selecting machine learning models. Leading up to this point, you have collected and prepared the data for training. The next step is to select an algorithm for your model then train it with data that has been evaluated and prepared with the transformations and features required for training. At a very high level, training a model with Azure Machine Learning service involves the following steps:
+
+- Using your favorite Python environment, create a machine learning training script along with any associated files. Specify the directory that contains these files, as well as an experiment name. Alternately, use visual interface for a code-free experience.
+- Create and configure a compute target for executing the training. During training, the complete directory copies to the compute target before the training script executes.
+- Submit the training scripts to the configured compute target. Afterward, the script starts running within the environment and has access to read from and write to datastores. Each execution saves a record of the run within the workspace, grouped under experiments.
+
+Use the automated machine learning feature to select the best model during training automatically. This feature automates experimenting with multiple combinations of parameter values, also referred to as hyperparameter tuning, to accelerate the model training process and keeps a record of the outcomes to help identify potential areas of improvement more quickly.
+
+##### 2 - Package
+
+After you have trained your model and have identified the best version, you package it along with all the components you need to use the model, into an image. The image can be either a Docker image or an FPGA image used to deploy your model to a field-programmable gate array. The image saves to the image registry in your workspace. The registry provides a centralized place to store your models so they can be easily copied to new deployment targets, as well as versioned.
+
+##### 3 - Validate
+
+Model validation is used to calculate the accuracy of a model. Validation happens during the training process to make sure your chosen algorithm is performing as expected. It is also conducted periodically to ensure your model is still performing well over time with new data. Azure Machine Learning service allows you to query your experiments for logged metrics from current and past runs. Use the metrics to determine whether the run had the desired outcome. If not, begin the retraining process by starting over at step one.
+
+##### 4 - Deploy
+
+When you want your model to be available for on-demand access over the web or on an IoT device, you use the Azure Machine Learning SDK to deploy it as a web service in Azure, an FPGA, or to an IoT Edge device. The image that you created when you packaged the model is used to copy instances of the model, scoring script, and any dependencies to your deployment target. Your options for deploying the model as a web service are Azure Container Instance (ACI) and Azure Kubernetes Service (AKS).
+
+##### 5 - Monitor
+
+Monitor for changes in the distribution of data between the training dataset and inference data of your deployed model. These changes are sometimes called [data drift](https://docs.microsoft.com/azure/machine-learning/service/concept-data-drift) and indicate degraded prediction performance over time due to how the input data changes during this period. When you detect degraded model performance, the next step is to retrain your model with new data, thus creating a new version of the model. If your model is deployed to a web service or IoT devices, then you would use the new version of the model to redeploy it to those endpoints. The Azure Machine Learning SDK provides tools you can use to redeploy with minimal interruption of these services and endpoints.
 
 ## Exercise 12: Refresh the Power BI report and view maintenance data
 
