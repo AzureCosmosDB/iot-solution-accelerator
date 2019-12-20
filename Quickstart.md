@@ -19,15 +19,29 @@
       - [About the Cosmos DB indexing policies](#about-the-cosmos-db-indexing-policies)
     - [Task 2: Authenticate the Office 365 API Connection for sending email alerts](#task-2-authenticate-the-office-365-api-connection-for-sending-email-alerts)
       - [About the Logic App](#about-the-logic-app)
-    - [Task 4: Create system-assigned managed identities for your Function Apps and Web App to connect to Key Vault](#task-4-create-system-assigned-managed-identities-for-your-function-apps-and-web-app-to-connect-to-key-vault)
-    - [Task 5: Add Function Apps and Web App to Key Vault access policy](#task-5-add-function-apps-and-web-app-to-key-vault-access-policy)
-    - [Task 6: Add your user account to Key Vault access policy](#task-6-add-your-user-account-to-key-vault-access-policy)
-    - [Task 7: Add Key Vault secrets](#task-7-add-key-vault-secrets)
-    - [Task 8: Create Azure Databricks cluster](#task-8-create-azure-databricks-cluster)
-    - [Task 9: Configure Key Vault-backed Databricks secret store](#task-9-configure-key-vault-backed-databricks-secret-store)
-  - [Exercise 2: Configure windowed queries in Stream Analytics](#exercise-2-configure-windowed-queries-in-stream-analytics)
-    - [Task 1: Add Stream Analytics Event Hubs input](#task-1-add-stream-analytics-event-hubs-input)
-    - [Task 2: Add Stream Analytics outputs](#task-2-add-stream-analytics-outputs)
+    - [Task 3: Add Stream Analytics Event Hubs input](#task-3-add-stream-analytics-event-hubs-input)
+    - [Task 4: Add Stream Analytics outputs](#task-4-add-stream-analytics-outputs)
+    - [Task 5: Create Stream Analytics query](#task-5-create-stream-analytics-query)
+    - [Task 6: Run Stream Analytics job](#task-6-run-stream-analytics-job)
+  - [Exercise 2: Deploying Function Apps and Web App](#exercise-2-deploying-function-apps-and-web-app)
+    - [Task 1: Open solution](#task-1-open-solution)
+    - [Task 1: Deploy Cosmos DB Processing Function App](#task-1-deploy-cosmos-db-processing-function-app)
+      - [Cosmos DB Processing Function App code walk-through](#cosmos-db-processing-function-app-code-walk-through)
+    - [Task 2: Deploy Stream Processing Function App](#task-2-deploy-stream-processing-function-app)
+      - [Stream Processing Function App code walk-through](#stream-processing-function-app-code-walk-through)
+    - [Task 3: Deploy Web App](#task-3-deploy-web-app)
+      - [Web App code walk-through](#web-app-code-walk-through)
+  - [Exercise 3: Configuring Azure Databricks](#exercise-3-configuring-azure-databricks)
+    - [Task 10: Create Azure Databricks cluster](#task-10-create-azure-databricks-cluster)
+    - [Task 11: Configure Key Vault-backed Databricks secret store](#task-11-configure-key-vault-backed-databricks-secret-store)
+    - [Task 12: Import lab notebooks into Azure Databricks](#task-12-import-lab-notebooks-into-azure-databricks)
+    - [Task 13: View Cosmos DB processing Function App in the portal and copy the Health Check URL](#task-13-view-cosmos-db-processing-function-app-in-the-portal-and-copy-the-health-check-url)
+    - [Task 14: View stream processing Function App in the portal and copy the Health Check URL](#task-14-view-stream-processing-function-app-in-the-portal-and-copy-the-health-check-url)
+    - [Task 15: Open the data generator project](#task-15-open-the-data-generator-project)
+    - [Task 16: Update application configuration](#task-16-update-application-configuration)
+    - [Task 17: Run generator](#task-17-run-generator)
+    - [Task 18: Log in to Power BI online and create real-time dashboard](#task-18-log-in-to-power-bi-online-and-create-real-time-dashboard)
+    - [Task 19: Import report in Power BI Desktop and update report data sources](#task-19-import-report-in-power-bi-desktop-and-update-report-data-sources)
     - [Task 3: Create Stream Analytics query](#task-3-create-stream-analytics-query)
     - [Task 4: Run Stream Analytics job](#task-4-run-stream-analytics-job)
   - [Exercise 3: Deploy Azure functions and Web App](#exercise-3-deploy-azure-functions-and-web-app)
@@ -133,7 +147,8 @@ Below is a diagram of the solution architecture you will build in this guide. Pl
 2. Install [Power BI Desktop](https://powerbi.microsoft.com/desktop/)
 3. [Azure CLI](https://docs.microsoft.com/cli/azure/install-azure-cli?view=azure-cli-latest) - version 2.0.68 or later
 4. Install [Visual Studio 2019 Community](https://visualstudio.microsoft.com/vs/) (v16.4) or greater
-5. Install [.NET Core SDK 3.1](https://dotnet.microsoft.com/download/dotnet-core/3.1) or greater
+5. Install [.NET Core SDK 2.2](https://dotnet.microsoft.com/download/dotnet-core/2.2) or greater
+   - If you are running Visual Studio 2017, install SDK 2.2.109
 
 ### Task 0: Download the starter files
 
@@ -149,7 +164,9 @@ Download a starter project that includes a vehicle simulator, Azure Function App
 
 4. Unzip the contents to your root hard drive (i.e. `C:\`). This will create a folder on your root drive named `cosmos-db-iot-solution-accelerator-master`.
 
-5. Navigate to the [.NET Core 3.1 SDK download page](https://dotnet.microsoft.com/download/dotnet-core/3.1), then download the SDK for your environment, such as Windows .NET Core Installer x64.
+5. Navigate to the [.NET Core 2.2 download page](https://dotnet.microsoft.com/download/dotnet-core/2.2), then download the SDK for your environment, such as Windows .NET Core Installer x64.
+
+   ![The webpage is displayed with the SDK download section highlighted.](media/dotnet-sdk-2-2.png 'Download .NET Core 2.2')
 
 ## Exercise 1: Configure environment
 
@@ -437,177 +454,591 @@ To view the logic app, select **Logic app designer** in the left-hand menu. This
     Contoso Auto Bot
     ```
 
-### Task 4: Create system-assigned managed identities for your Function Apps and Web App to connect to Key Vault
+### Task 3: Add Stream Analytics Event Hubs input
 
-In order for your Function Apps and Web App to be able to access Key Vault to read the secrets, you must [create a system-assigned managed identity](https://docs.microsoft.com/azure/app-service/overview-managed-identity#adding-a-system-assigned-identity) for each, and [create an access policy in Key Vault](https://docs.microsoft.com/azure/key-vault/key-vault-secure-your-key-vault#key-vault-access-policies) for the application identities.
+In this task, you will configure the [Azure Stream Analytics](https://docs.microsoft.com/azure/stream-analytics/stream-analytics-introduction) service that is deployed as part of the solution accelerator. This service provides real-time analytics through its event-processing engine that can work with high volumes of fast streaming data from multiple sources in parallel. Stream Analytics connects to inputs, such as IoT Hub and Event Hubs, and several outputs it can use as data sinks, including Cosmos DB, Power BI, and several other Azure services. It provides a SQL-like query language used to query over the incoming data, where you can easily adjust the event ordering options and duration of time windows when performing aggregation operations through simple language constructs or configurations. We use Stream Analytics in this solution accelerator to aggregate data over time windows of varying sizes. We use these aggregates to populate materialized views in Cosmos DB and to send small aggregates of data directly to Power BI to update a near real-time dashboard.
 
-1. Open the Azure Function App whose name begins with **IoT-CosmosDBProcessing** and navigate to **Platform features**.
+If you examine the right-hand side of the solution architecture diagram, you will see a flow of event data that feeds into Event Hubs from a Cosmos DB change feed-triggered function. Stream Analytics uses the event hub as an input source for a set of time window queries that create aggregates for individual vehicle telemetry, and overall vehicle telemetry that flows through the architecture from the vehicle IoT devices. Stream Analytics has two output data sinks:
 
-2. Select **Identity**.
+1. Cosmos DB: Individual vehicle telemetry (grouped by VIN) is aggregated over a 30-second `TumblingWindow` and saved to the `metadata` container. This information is used in a Power BI report you will create in Power BI Desktop in a later task to display individual vehicle and multiple vehicle statistics.
+2. Power BI: All vehicle telemetry is aggregated over a 10-second `TumblingWindow` and output to a Power BI data set. This near real-time data is displayed in a live Power BI dashboard to show in 10 second snapshots how many events were processed, whether there are engine temperature, oil, or refrigeration unit warnings, whether aggressive driving was detected during the period, and the average speed, engine temperature, and refrigeration unit readings.
 
-   ![Identity is highlighted in the platform features tab.](media/function-app-platform-features-identity.png 'Platform features')
+![The stream processing components of the solution architecture are displayed.](media/solution-architecture-stream-processing.png 'Solution Architecture - Stream Processing')
 
-3. Within the **System assigned** tab, switch **Status** to **On**. Select **Save**.
+1. In the [Azure portal](https://portal.azure.com), open your lab resource group, then open your **Stream Analytics job**.
 
-   ![The Function App Identity value is set to On.](media/function-app-identity.png 'Identity')
+   ![The Stream Analytics job is highlighted in the resource group.](media/resource-group-stream-analytics.png 'Resource Group')
 
-4. Open the Azure Function App whose name begins with **IoT-StreamProcessing** and navigate to **Platform features**.
+2. Select **Inputs** in the left-hand menu. In the Inputs blade, select **+ Add stream input**, then select **Event Hub** from the list.
 
-5. Select **Identity**.
+   ![The Event Hub input is selected in the Add Stream Input menu.](media/stream-analytics-inputs-add-event-hub.png 'Inputs')
 
-   ![Identity is highlighted in the platform features tab.](media/function-app-platform-features-identity.png 'Platform features')
+3. In the **New input** form, specify the following configuration options:
 
-6. Within the **System assigned** tab, switch **Status** to **On**. Select **Save**.
+   1. **Input alias**: Enter **events**.
+   2. Select the **Select Event Hub from your subscriptions** option beneath.
+   3. **Subscription**: Choose your Azure subscription for this lab.
+   4. **Event Hub namespace**: Find and select your Event Hub namespace (eg. `iot-namespace`).
+   5. **Event Hub name**: Select **Use existing**, then **reporting**.
+   6. **Event Hub policy name**: Choose the default `RootManageSharedAccessKey` policy.
+
+   ![The New Input form is displayed with the previously described values.](media/stream-analytics-new-input.png 'New input')
+
+4. Select **Save**.
 
-   ![The Function App Identity value is set to On.](media/function-app-identity.png 'Identity')
+You should now see your Event Hubs input listed.
 
-7. Open the Web App (App Service) whose name begins with **IoTWebApp**.
+![The Event Hubs input is listed.](media/stream-analytics-inputs.png 'Inputs')
 
-8. Select **Identity** in the left-hand menu.
+### Task 4: Add Stream Analytics outputs
 
-9. Within the **System assigned** tab, switch **Status** to **On**. Select **Save**.
+1. **If you have never signed in to Power BI with this account**, open a new browser tab and navigate to <https://powerbi.com> and sign in. Confirm any messages if they appear and continue to the next step after the home page appears. This will help the connection authorization step from Stream Analytics succeed and find the group workspace.
 
-   ![The Web App Identity value is set to On.](media/web-app-identity.png 'Identity')
+2. While remaining in the Outputs blade, select **+ Add** once again, then select **Power BI** from the list.
 
-### Task 5: Add Function Apps and Web App to Key Vault access policy
+   ![The Power BI output is selected in the Add menu.](media/stream-analytics-outputs-add-power-bi.png 'Outputs')
 
-> We recommend that you open two browser tabs for this and the following Key Vault tasks. One tab will be used to copy secrets from each Azure service, and the other to add the secrets to Key Vault.
+3. In the **New output** form, look toward the bottom to find the **Authorize connection** section, then select **Authorize** to sign in to your Power BI account. If you do not have a Power BI account, select the _Sign up_ option first.
 
-Perform these steps to create an access policy that enables the "Get" secret permission:
+   ![The Authorize connection section is displayed.](media/stream-analytics-authorize-power-bi.png 'Authorize connection')
 
-1. Using a new tab or instance of your browser, navigate to the Azure portal, <https://portal.azure.com>.
+4. After authorizing the connection to Power BI, specify the following configuration options in the form:
+   1. **Output alias**: Enter **powerbi**.
+   2. **Group workspace**: Select **My workspace**.
+   3. **Dataset name**: Enter **Contoso Auto IoT Events**.
+   4. **Table name**: Enter **FleetEvents**.
 
-2. Select **Resource groups** from the left-hand menu, then search for your resource group by typing in `cosmos-db-iot`. Select your resource group that you are using for this lab.
+   ![The New Output form is displayed with the previously described values.](media/stream-analytics-new-output-power-bi.png 'New output')
 
-3. Open the your **Key Vault**. The name should begin with `iot-vault`.
+5. Select **Save**.
 
-   ![The Key Vault is highlighted in the resource group.](media/resource-group-keyvault.png 'Resource group')
+You should now have two outputs listed.
 
-4. Select **Access policies** in the left-hand menu.
+![The two added outputs are listed.](media/stream-analytics-outputs.png 'Outputs')
 
-5. Select **+ Add Access Policy**.
+### Task 5: Create Stream Analytics query
 
-   ![The Add Access Policy link is highlighted.](media/key-vault-add-access-policy.png 'Access policies')
+The Query is Stream Analytics' work horse. This is where we process streaming inputs and write data to our outputs. The Stream Analytics query language is SQL-like, allowing you to use familiar syntax to explore and transform the streaming data, create aggregates, and create materialized views that can be used to help shape your data structure before writing to the output sinks. Stream Analytics jobs can only have one Query, but you can write to multiple outputs in a single Query, as you will do in the steps that follow.
 
-6. Select the **Select principal** section on the Add access policy form.
+Please take a moment to analyze the query below. Notice how we are using the `events` input name for the Event Hubs input you created, and the `powerbi` and `cosmosDB` outputs, respectively. Also see where we use the `TumblingWindow` in durations of 30 seconds for `VehicleData`, and 10 seconds for `VehicleDataAll`. The `TumblingWindow` helps us evaluate events that occurred during the past X seconds and, in our case, create averages over those time periods for reporting.
 
-   ![Select principal is highlighted.](media/key-vault-add-access-policy-select-principal.png 'Add access policy')
+1. Select **Query** in the left-hand menu. Replace the contents of the query window with the script below:
 
-7. In the Principal blade, search for your `IoT-CosmosDBProcessing` Function App's service principal, select it, then select the **Select** button.
+    ```sql
+    WITH
+    VehicleData AS (
+        select
+            vin,
+            AVG(engineTemperature) AS engineTemperature,
+            AVG(speed) AS speed,
+            AVG(refrigerationUnitKw) AS refrigerationUnitKw,
+            AVG(refrigerationUnitTemp) AS refrigerationUnitTemp,
+            (case when AVG(engineTemperature) >= 400 OR AVG(engineTemperature) <= 15 then 1 else 0 end) as engineTempAnomaly,
+            (case when AVG(engineoil) <= 18 then 1 else 0 end) as oilAnomaly,
+            (case when AVG(transmission_gear_position) <= 3.5 AND
+                AVG(accelerator_pedal_position) >= 50 AND
+                AVG(speed) >= 55 then 1 else 0 end) as aggressiveDriving,
+            (case when AVG(refrigerationUnitTemp) >= 30 then 1 else 0 end) as refrigerationTempAnomaly,
+            System.TimeStamp() as snapshot
+        from events TIMESTAMP BY [timestamp]
+        GROUP BY
+            vin,
+            TumblingWindow(Duration(second, 30))
+    ),
+    VehicleDataAll AS (
+        select
+            AVG(engineTemperature) AS engineTemperature,
+            AVG(speed) AS speed,
+            AVG(refrigerationUnitKw) AS refrigerationUnitKw,
+            AVG(refrigerationUnitTemp) AS refrigerationUnitTemp,
+            COUNT(*) AS eventCount,
+            (case when AVG(engineTemperature) >= 318 OR AVG(engineTemperature) <= 15 then 1 else 0 end) as engineTempAnomaly,
+            (case when AVG(engineoil) <= 20 then 1 else 0 end) as oilAnomaly,
+            (case when AVG(transmission_gear_position) <= 4 AND
+                AVG(accelerator_pedal_position) >= 50 AND
+                AVG(speed) >= 55 then 1 else 0 end) as aggressiveDriving,
+            (case when AVG(refrigerationUnitTemp) >= 22.5 then 1 else 0 end) as refrigerationTempAnomaly,
+            System.TimeStamp() as snapshot
+        from events t TIMESTAMP BY [timestamp]
+        GROUP BY
+            TumblingWindow(Duration(second, 10))
+    )
+    -- INSERT INTO POWER BI
+    SELECT
+        *
+    INTO
+        powerbi
+    FROM
+        VehicleDataAll
+    -- INSERT INTO COSMOS DB
+    SELECT
+        *,
+        entityType = 'VehicleAverage',
+        partitionKey = vin
+    INTO
+        cosmosdb
+    FROM
+        VehicleData
+    ```
 
-   ![The Function App's principal is selected.](media/key-vault-principal-function1.png 'Principal')
+   ![The Stream Analytics job Query is displayed.](media/stream-analytics-query.png 'Query')
 
-   > **Note**: It may take a while before your managed identities appear after adding them in the previous step. If you cannot find this or the other identities, try refreshing the page or wait a minute or two.
+2. Select **Save query**.
 
-8. Expand the **Secret permissions** and check **Get** under Secret Management Operations.
+### Task 6: Run Stream Analytics job
 
-   ![The Get checkbox is checked under the Secret permissions dropdown.](media/key-vault-get-secret-policy.png 'Add access policy')
+1. In the [Azure portal](https://portal.azure.com), open your lab resource group, then open your **Stream Analytics job**.
 
-9. Select **Add** to add the new access policy.
+   ![The Stream Analytics job is highlighted in the resource group.](media/resource-group-stream-analytics.png 'Resource Group')
 
-10. When you are done, you should have an access policy for the Function App's managed identity. Select **+ Add Access Policy** to add another access policy.
+2. Select **Overview**.
 
-    ![Key Vault access policies.](media/key-vault-access-policies-function1.png 'Access policies')
+3. In the Overview blade, select **Start** and select **Now** for the job output start time.
 
-11. Select the **Select principal** section on the Add access policy form.
+4. Select **Start** to beginning running the Stream Analytics job.
 
-    ![Select principal is highlighted.](media/key-vault-add-access-policy-select-principal.png 'Add access policy')
+   ![The steps to start the job as described are displayed.](media/stream-analytics-start-job.png 'Start job')
 
-12. In the Principal blade, search for your `IoT-StreamProcessing` Function App's service principal, select it, then select the **Select** button.
+## Exercise 2: Deploying Function Apps and Web App
 
-    ![The Function App's principal is selected.](media/key-vault-principal-function2.png 'Principal')
+In the architecture for this scenario, Azure functions play a major role in event processing. These functions execute within an Azure Function App, Microsoft's serverless solution for easily running small pieces of code, or "functions," in the cloud. You can write just the code you need for the problem at hand, without worrying about a whole application or the infrastructure to run it. Functions can make development even more productive, and you can use your development language of choice, such as C#, F#, Node.js, Java, or PHP.
 
-13. Expand the **Secret permissions** and check **Get** under Secret Management Operations.
+Before we dive into this exercise, let's go over how the functions and Web App fit into our architecture.
 
-    ![The Get checkbox is checked under the Secret permissions dropdown.](media/key-vault-get-secret-policy.png 'Add access policy')
+There are three Function Apps and one Web App in the solution. The Function Apps handle event processing within two stages of the data pipeline, and the Web App is used to perform CRUD operations against data stored in Cosmos DB.
 
-14. Select **Add** to add the new access policy.
+![The two Function Apps and Web App are highlighted.](media/solution-diagram-function-apps-web-app.png 'Solution diagram')
 
-15. When you are done, you should have an access policy for the Function App's managed identity. Select **+ Add Access Policy** to add another access policy.
+You may wonder, if a Function App contains several functions within, _why do we need two Function Apps instead of one_? The primary reason for using two Function Apps is due to how functions scale to meet demand. When you use the Azure Functions consumption plan, you only pay for the time your code runs. More importantly, Azure automatically handles scaling your functions to meet demand. It scales using an internal scale controller that evaluates the type of trigger the functions are using, and applies heuristics to determine when to scale out to multiple instances. The important thing to know is that functions scale at the Function App level. Meaning, if you have one very busy function and the rest are mostly idle, that one busy function causes the entire Function App to scale. Think about this when designing your solution. It is a good idea to **divide extremely high-load functions into separate Function Apps**.
 
-    ![Key Vault access policies.](media/key-vault-access-policies-function2.png 'Access policies')
+Now let's introduce the Function Apps and Web App and how they contribute to the architecture.
 
-16. Select the **Select principal** section on the Add access policy form.
+- **IoT-StreamProcessing Function App**: This is the Stream Processing Function App, and it contains a two functions:
 
-    ![Select principal is highlighted.](media/key-vault-add-access-policy-select-principal.png 'Add access policy')
+  - **IoTHubTrigger**: This function is automatically triggered by the IoT Hub's Event Hub endpoint as vehicle telemetry is sent by the data generator. The function performs some light processing to the data by defining the partition key value, the document's TTL, adds a timestamp value, then saves the information to Cosmos DB.
+  - **HealthCheck**: This function has an Http trigger that enables users to verify that the Function App is up and running, and that each configuration setting exists and has a value. More thorough checks would validate each value against an expected format or by connecting to each service as required. The function will return an HTTP status of `200` (OK) if all values contain non-zero strings. If any are null or empty, the function will return an error (`400`), indicating which values are missing. The data generator calls this function before running.
 
-17. In the Principal blade, search for your `IoTWebApp` Web App's service principal, select it, then select the **Select** button.
+  ![The Event Processing function is shown.](media/solution-architecture-function1.png 'Solution architecture')
 
-    ![The Web App's principal is selected.](media/key-vault-principal-webapp.png 'Principal')
+- **IoT-CosmosDBProcessing Function App**: This is the Trip Processing Function App. It contains three functions that are triggered by the Cosmos DB Change Feed on the `telemetry` container. Because the Cosmos DB Change Feed supports multiple consumers, these three functions can run in parallel, processing the same information simultaneously without conflicting with one another. When we define the `CosmosDBTrigger` for each of these functions, we configure the trigger settings to connect to a Cosmos DB collection named `leases` to keep track of which change feed events they have processed. We also set the `LeaseCollectionPrefix` value for each function with a unique prefix so one function does not attempt to retrieve or update the lease information for another. The following functions are in this Function App:
 
-18. Expand the **Secret permissions** and check **Get** under Secret Management Operations.
+  - **TripProcessor**: This function groups vehicle telemetry data by VIN, retrieves the associated Trip record from the `metadata` container, updates the Trip record with a trip start timestamp, an end timestamp if completed, and a status showing whether the trip has started, is delayed, or has completed. It also updates the associated Consignment record with the status, and triggers the Logic App with the trip information if an alert needs to be emailed to the recipient defined in the Function App's app settings (`RecipientEmail`).
+  - **ColdStorage**: This function connects to the Azure Storage account (`ColdStorageAccount`) and writes the raw vehicle telemetry data for cold storage in the following time-sliced path format: `telemetry/custom/scenario1/yyyy/MM/dd/HH/mm/ss-fffffff.json`.
+  - **SendToEventHubsForReporting**: This function simply sends the vehicle telemetry data straight to Event Hubs, allowing Stream Analytics to apply windowed aggregates and save those aggregates in batches to Power BI and to the Cosmos DB `metadata` container.
+  - **HealthCheck**: As with the function of the same name within the Stream Processing Function App, this function has an Http trigger that enables users to verify that the Function App is up and running, and that each configuration setting exists and has a value. The data generator calls this function before running.
 
-    ![The Get checkbox is checked under the Secret permissions dropdown.](media/key-vault-get-secret-policy.png 'Add access policy')
+  ![The Trip Processing function is shown.](media/solution-architecture-function2.png 'Solution architecture')
 
-19. Select **Add** to add the new access policy.
+- **IoTWebApp**: The Web App provides a Fleet Management portal, allowing users to perform CRUD operations on vehicle data, make real-time battery failure predictions for a vehicle against the deployed machine learning model, and view consignments, packages, and trips. It connects to the Cosmos DB `metadata` container, using the [.NET SDK for Cosmos DB v3](https://github.com/Azure/azure-cosmos-dotnet-v3/).
 
-20. When you are done, you should have an access policy for the Web App's managed identity. Select **Save** to save your new access policies.
+  ![The Web App is shown.](media/solution-architecture-webapp.png 'Solution architecture')
 
-    ![Key Vault access policies.](media/key-vault-access-policies-webapp.png 'Access policies')
+### Task 1: Open solution
 
-### Task 6: Add your user account to Key Vault access policy
+In this task, you will open the Visual Studio solution for this lab. It contains projects for both Function Apps, the Web App, and the data generator.
 
-Perform these steps to create an access policy for your user account so you can manage secrets. Since we created Key Vault with a template, your account was not automatically added to the access policies.
+1. Open Windows Explorer and navigate to the location you extracted the solution ZIP file, as instructed at the beginning of this Quickstart guide. If you extracted the ZIP file directly to `C:\`, you need to open the following folder: `C:\cosmos-db-iot-solution-accelerator-master\Solution`. Open the Visual Studio solution file: **CosmosDbIoTScenario.sln**.
 
-1. Within Key Vault, select **Access policies** in the left-hand menu.
+    > If Visual Studio prompts you to sign in when it first launches, use the account provided to you for this lab (if applicable), or an existing Microsoft account.
 
-2. Select **+ Add Access Policy**.
+2. After opening the solution, observe the included projects in the **Solution Explorer**:
 
-   ![The Add Access Policy link is highlighted.](media/key-vault-add-access-policy.png 'Access policies')
+    1. **Functions.CosmosDB**: Project for the **IoT-CosmosDBProcessing** Function App.
+    2. **Functions.StreamProcessing**: Project for the **IoT-StreamProcessing** Function App.
+    3. **CosmosDbIoTScenario.Common**: Contains entity models, extensions, and helpers used by the other projects.
+    4. **FleetDataGenerator**: The data generator seeds the Cosmos DB `metadata` container with data and simulates vehicles, connects them to IoT Hub, then sends generated telemetry data.
+    5. **FleetManagementWebApp**: Project for the **IoTWebApp** Web App.
 
-3. Select the **Select principal** section on the Add access policy form.
+    ![The Visual Studio Solution Explorer is displayed.](media/vs-solution-explorer.png "Solution Explorer")
 
-   ![Select principal is highlighted.](media/key-vault-add-access-policy-select-principal.png 'Add access policy')
+3. Right-click on the `CosmosDbIoTScenario` solution in Solution Explorer, then select **Restore NuGet Packages**. The packages may have already been restored upon opening the solution.
 
-4. In the Principal blade, search for your Azure account you are using for this lab, select it, then select the **Select** button.
+### Task 1: Deploy Cosmos DB Processing Function App
 
-   ![The user principal is selected.](media/key-vault-principal-user.png 'Principal')
+1. Open the Visual Studio solution file **CosmosDbIoTScenario.sln** within the `C:\cosmos-db-iot-solution-accelerator-master\Solution` folder.
 
-5. Expand the **Secret permissions** and check **Select all** under Secret Management Operations. All 8 should be selected.
+2. In the Visual Studio Solution Explorer, right-click on the **Functions.CosmosDB** project, then select **Publish...**.
 
-   ![The Select all checkbox is checked under the Secret permissions dropdown.](media/key-vault-all-secret-policy.png 'Add access policy')
+    ![The context menu is displayed and the Publish menu item is highlighted.](media/vs-publish.png "Publish")
 
-6. Select **Add** to add the new access policy.. When you are done, you should have an access policy for your user account. Select **Save** to save your new access policy.
+3. In the publish dialog, select the **Azure Functions Consumption Plan** publish target. Next, select the **Select Existing** radio and make sure **Run from package file (recommended)** is checked. Select **Publish** on the bottom of the form.
 
-    ![Key Vault access policies.](media/key-vault-access-policies-user.png 'Access policies')
+    ![The publish dialog is displayed.](media/vs-publish-target-functions.png "Pick a publish target")
 
-### Task 7: Add Key Vault secrets
+4. In the App Service pane, select your Azure Subscription you are using for this lab, and make sure View is set to **Resource group**. Find and expand your Resource Group in the results below. The name should start with **cosmos-db-iot**. Select the Function App whose name starts with **IoT-CosmosDBProcessing**, then select **OK**.
 
-Azure Key Vault is used to Securely store and tightly control access to tokens, passwords, certificates, API keys, and other secrets. In addition, secrets that are stored in Azure Key Vault are centralized, giving the added benefits of only needing to update secrets in one place, such as an application key value after recycling the key for security purposes. In this task, we will store application secrets in Azure Key Vault, then configure the Function Apps and Web App to securely connect to Azure Key Vault by performing the following steps:
+    ![The App Service blade of the publish dialog is displayed.](media/vs-publish-app-service-function-cosmos.png "App Service")
 
-- Add secrets to the provisioned Key Vault.
-- Create a system-assigned managed identity for each Azure Function App and the Web App to read from the vault.
-- Create an access policy in Key Vault with the "Get" secret permission, assigned to each of these application identities.
+5. Click **Publish** to begin.
 
-1. Within Key Vault, select **Secrets** in the left-hand menu, then select **+ Generate/Import** to create a new secret.
+    After the publish completes, you should see the following in the Output window: `========== Publish: 1 succeeded, 0 failed, 0 skipped ==========` to indicate a successful publish.
 
-   ![The Secrets menu item is highlighted, and the Generate/Import button is selected.](media/key-vault-secrets-generate.png 'Key Vault Secrets')
+#### Cosmos DB Processing Function App code walk-through
 
-2. Use the table below for the Name / Value pairs to use when creating the secrets. You only need to populate the **Name** and **Value** fields for each secret, and can leave the other fields at their default values.
+This Function App contains a group of Azure Functions that are triggered by the Cosmos DB Change Feed on the `telemetry` container. The Function App is written in C# and uses the version 2.0 function runtime on the .NET Core platform. The following are some highlights within the source code, which are areas you can adapt for your solution.
 
-   | **Name**            |                                                                          **Value**                                                                          |
-   | ------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------: |
-   | CosmosDBConnection  |                            Your Cosmos DB connection string found here: **Cosmos DB account > Keys > Primary Connection String**                            |
-   | CosmosDBEndpoint    |                                           Your Cosmos DB endpoint found here: **Cosmos DB account > Keys > URI**                                            |
-   | CosmosDBPrimaryKey  |                                      Your Cosmos DB primary key found here: **Cosmos DB account > Keys > Primary Key**                                      |
-   | IoTHubConnection    |                         Your IoT Hub connection string found here: **IoT Hub > Built-in endpoints > Event Hub-compatible endpoint**                         |
-   | ColdStorageAccount  |  Connection string to the Azure Storage account whose name starts with `iotstore`, found here: **Storage account > Access keys > key1 Connection string**   |
-   | EventHubsConnection | Your Event Hubs connection string found here: **Event Hubs namespace > Shared access policies > RootManageSharedAccessKey > Connection string-primary key** |
-   | LogicAppUrl         |                         Your Logic App's HTTP Post URL found here: **Logic App Designer > Select the HTTP trigger > HTTP POST URL**                         |
+1. Open **Startup.cs** within the **Functions.CosmosDB** project and locate the following block of code:
 
-3. You can locate most of your secrets by viewing the outputs of your deployment. To do this, open your resource group then select **Deployments** in the left-hand menu. Select the **Microsoft.Template** deployment.
+    ```csharp
+    builder.Services.AddSingleton((s) => {
+        var connectionString = configuration["CosmosDBConnection"];
+        var cosmosDbConnectionString = new CosmosDbConnectionString(connectionString);
 
-    ![The resource group deployments blade is shown.](media/resource-group-deployments.png "Deployments")
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            throw new ArgumentNullException("Please specify a value for CosmosDBConnection in the local.settings.json file or your Azure Functions Settings.");
+        }
 
-4. Select **Outputs** in the left-hand menu. You can find most of the values above and simply copy them.
+        CosmosClientBuilder configurationBuilder = new CosmosClientBuilder(cosmosDbConnectionString.ServiceEndpoint.OriginalString, cosmosDbConnectionString.AuthKey);
+        return configurationBuilder
+            .Build();
+    });
+    ```
 
-    ![The outputs are displayed.](media/resource-group-deployment-outputs.png "Outputs")
+    Since we are using the [.NET SDK for Cosmos DB v3](https://github.com/Azure/azure-cosmos-dotnet-v3/), and dependency injection is supported starting with Function Apps v2, we are using a [singleton Azure Cosmos DB client for the lifetime of the application](https://docs.microsoft.com/azure/cosmos-db/performance-tips#sdk-usage). This is injected into the `Functions` class through its constructor, as you will see in the next code block.
 
-5. When you are finished creating the secrets, your list should look similar to the following:
+2. Open **Functions.cs** within the **Functions.CosmosDB** project and locate the following block of code for the constructor at the top of the file:
 
-   ![The list of secrets is displayed.](media/key-vault-keys.png 'Key Vault Secrets')
+    ```csharp
+    public Functions(IHttpClientFactory httpClientFactory, CosmosClient cosmosClient)
+    {
+        _httpClientFactory = httpClientFactory;
+        _cosmosClient = cosmosClient;
+    }
+    ```
 
-### Task 8: Create Azure Databricks cluster
+    This code allows the `HttpClientFactory` and the `CosmosClient` to be injected into the function code, which allows these services to manage their own connections and lifecycle to improve performance and prevent thread starvation and other issues caused by incorrectly creating too many instances of expensive objects. The `HttpClientFactory` is configured in `Startup.cs`, above the code block we detailed previously. It is used to send alerts to the Logic App endpoint, and uses [Polly](https://github.com/App-vNext/Polly) to employ a gradual back-off wait and retry policy in case the Logic App is overloaded or has other issues causing calls to the HTTP endpoint to fail.
+
+3. Look at the first function code below the constructor:
+
+    ```csharp
+    [FunctionName("TripProcessor")]
+    public async Task TripProcessor([CosmosDBTrigger(
+        databaseName: "ContosoAuto",
+        collectionName: "telemetry",
+        ConnectionStringSetting = "CosmosDBConnection",
+        LeaseCollectionName = "leases",
+        LeaseCollectionPrefix = "trips",
+        CreateLeaseCollectionIfNotExists = true,
+        StartFromBeginning = true)]IReadOnlyList<Document> vehicleEvents,
+        ILogger log)
+    {
+    ```
+
+    The `FunctionName` attribute defines how the function name appears within the Function App, and can be different from the C# method name. This `TripProcessor` function uses the `CosmosDBTrigger` to fire on every Cosmos DB change feed event. The events arrive in batches, whose size depends on factors such as how many Insert, Update, or Delete events there are for the container. The `databaseName` and `collectionName` properties define which container's change feed triggers the function. The `ConnectionStringSetting` indicates the name of the Function App's application setting from which to pull the Cosmos DB connection string. In our case, the connection string value will draw from the Key Vault secret you created. The `LeaseCollection` properties define the name of the lease container and the prefix applied to lease data for this function, and whether to create the lease container if it does not exist. `StartFromBeginning` is set to `true`, ensuring that all events since the function last run are processed. The function outputs the change feed documents into an `IReadOnlyList` collection.
+
+4. Scroll down a little further in the function to view the following code block:
+
+    ```csharp
+    var vin = group.Key;
+    var odometerHigh = group.Max(item => item.GetPropertyValue<double>("odometer"));
+    var averageRefrigerationUnitTemp =
+        group.Average(item => item.GetPropertyValue<double>("refrigerationUnitTemp"));
+    ```
+
+    We have grouped the events by vehicle VIN, so we assign a local `vin` variable to hold the group key (VIN). Next, we use the `group.Max` aggregate function to calculate the max odometer value, and use the `group.Average` function to calculate the average refrigeration unit temperature. We will use the `odometerHigh` value to calculate the trip distance and determine whether the trip is completed, based on the planned trip distance from the `Trip` record in the Cosmos DB `metadata` container. The `averageRefrigerationUnitTemp` is added in the alert that gets sent to the Logic App, if needed.
+
+5. Review the code that is just below this code block:
+
+    ```csharp
+    // First, retrieve the metadata Cosmos DB container reference:
+    var container = _cosmosClient.GetContainer(database, metadataContainer);
+
+    // Create a query, defining the partition key so we don't execute a fan-out query (saving RUs), where the entity type is a Trip and the status is not Completed, Canceled, or Inactive.
+    var query = container.GetItemLinqQueryable<Trip>(requestOptions: new QueryRequestOptions { PartitionKey = new Microsoft.Azure.Cosmos.PartitionKey(vin) })
+        .Where(p => p.status != WellKnown.Status.Completed
+                    && p.status != WellKnown.Status.Canceled
+                    && p.status != WellKnown.Status.Inactive
+                    && p.entityType == WellKnown.EntityTypes.Trip)
+        .ToFeedIterator();
+
+    if (query.HasMoreResults)
+    {
+        // Only retrieve the first result.
+        var trip = (await query.ReadNextAsync()).FirstOrDefault();
+
+        if (trip != null)
+        {
+            var tripHelper = new TripHelper(trip, container, _httpClientFactory);
+
+            var sendTripAlert = await tripHelper.UpdateTripProgress(odometerHigh);
+    ```
+
+    Here we are using the [.NET SDK for Cosmos DB v3](https://github.com/Azure/azure-cosmos-dotnet-v3/) by retrieving a Cosmos DB container reference with the CosmosClient (`_cosmosClient`) that was injected into the class. We use the container's `GetItemLinqQueryable` with the `Trip` class type to query the container using LINQ syntax and binding the results to a new collection of type `Trip`. Note how we are passing the **partition key**, in this case the VIN, to prevent executing a cross-partion, fan-out query, saving RU/s. We also define the type of document we want to retrieve by setting the `entityType` document property in the query to Trip, since other entity types can also have the same partition key, such as the Vehicle type.
+
+    Once we have retrieved the trip (`var trip = (await query.ReadNextAsync()).FirstOrDefault();`), we instantiate a new instance of the `TripHelper` class, passing in the trip, container reference, and `HTTPClientFactory` instance that was injected into the constructor. We pass the `odometerHigh` value into the `UpdateTripProgress` method of the `TripHelper` class to determine whether we need to send an alert.
+
+6. Expand the `Helpers` folder, then open the **TripHelper.cs** file. Review the following code block for the `UpdateTripProgress` method:
+
+    ```csharp
+    /// <summary>
+    /// Uses a Trip record and the aggregate odometer reading (<see cref="odometerHigh"/>)
+    /// to retrieve a Consignment record from Cosmos DB and calculate the vehicle's trip
+    /// progress, based on miles driven compared to the planned trip distance. If the number
+    /// of miles driven are greater than or equal to the planned distance, the trip and
+    /// consignment records are marked as complete. Otherwise, if the trip has not been
+    /// completed and we are past the delivery due date, the trip and consignment are marked
+    /// as delayed. Finally, if the trip record's start date (tripStarted) is null, the
+    /// date/time is set to now and the trip and consignment records are marked as started.
+    ///
+    /// The trip and consignment records in the Cosmos DB container are updated as needed,
+    /// and if any of the three conditions are met (completed, delayed, or started), a
+    /// boolean value of true is returned, indicating a trip alert should be sent.
+    /// </summary>
+    /// <param name="odometerHigh">The max aggregate odometer reading in the telemetry
+    /// batch.</param>
+    /// <returns>True if an alert needs to be sent.</returns>
+    public async Task<bool> UpdateTripProgress(double odometerHigh)
+    {
+        var sendTripAlert = false;
+
+        // Retrieve the Consignment record.
+        var document = await _container.ReadItemAsync<Consignment>(_trip.consignmentId,
+            new PartitionKey(_trip.consignmentId));
+        var consignment = document.Resource;
+    ```
+
+    Since we have the Consignment ID, we can use the `ReadItemAsync` method to retrieve a single Consignment record. Here we also pass the partition key to minimize fan-out. Within a Cosmos DB container, a document's unique ID is a combination of the `id` field and the partition key value.
+
+7. Scroll down a little further in the same method to find the following code block:
+
+    ```csharp
+    if (updateTrip)
+    {
+        await container.ReplaceItemAsync(trip, trip.id, new Microsoft.Azure.Cosmos.PartitionKey(trip.partitionKey));
+    }
+
+    if (updateConsignment)
+    {
+        await container.ReplaceItemAsync(consignment, consignment.id, new Microsoft.Azure.Cosmos.PartitionKey(consignment.partitionKey));
+    }
+    ```
+
+    The `ReplaceItemAsync` method updates the Cosmos DB document with the passed in object with the associated `id` and partition key value.
+
+8. Scroll down to the `SendTripAlert` method to find the following code block at the bottom of the file:
+
+    ```csharp
+    await httpClient.PostAsync(Environment.GetEnvironmentVariable("LogicAppUrl"), new StringContent(postBody, Encoding.UTF8, "application/json"));
+    ```
+
+    Here we are using the `HttpClient` created by the injected `HttpClientFactory` to post the serialized `LogicAppAlert` object to the Logic App. The `Environment.GetEnvironmentVariable("LogicAppUrl")` method extracts the Logic App URL from the Function App's application settings and, using the special Key Vault access string the deployment script added to the app setting, extracts the encrypted value from the Key Vault secret.
+
+9. Return to the **Functions.cs** file and find the following **SendToEventHubsForReporting** function:
+
+    ```csharp
+    [FunctionName("SendToEventHubsForReporting")]
+    public async Task SendToEventHubsForReporting([CosmosDBTrigger(
+        databaseName: "ContosoAuto",
+        collectionName: "telemetry",
+        ConnectionStringSetting = "CosmosDBConnection",
+        LeaseCollectionName = "leases",
+        LeaseCollectionPrefix = "reporting",
+        CreateLeaseCollectionIfNotExists = true,
+        StartFromBeginning = true)]IReadOnlyList<Document> vehicleEvents,
+        [EventHub("reporting", Connection = "EventHubsConnection")] IAsyncCollector<EventData> vehicleEventsOut,
+        ILogger log)
+    {
+        log.LogInformation($"Sending {vehicleEvents.Count} Cosmos DB records to Event Hubs for reporting.");
+
+        if (vehicleEvents.Count > 0)
+        {
+            foreach (var vehicleEvent in vehicleEvents)
+            {
+                // Convert to a VehicleEvent class.
+                var vehicleEventOut = await vehicleEvent.ReadAsAsync<VehicleEvent>();
+                // Add to the Event Hub output collection.
+                await vehicleEventsOut.AddAsync(new EventData(
+                    Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(vehicleEventOut))));
+            }
+        }
+    }
+    ``` 
+
+    Notice that this function is also triggered by the Cosmos DB Change Feed. We use a different `LeaseCollectionPrefix` value so this function keeps track of its own checkpointing when processing events from the Change Feed. This prefix allows functions to work from the Change Feed on the same container without conflicting with one another.
+
+    The `ReadAsAsync` method is an extension method located in `CosmosDbIoTScenario.Common.ExtensionMethods` that converts a Cosmos DB Document to a class; in this case, a `VehicleEvent` class. Currently, the `CosmosDBTrigger` on a function only supports returning an `IReadOnlyList` of `Documents`, requiring a conversion to another class if you want to work with your customer classes instead of a Document for now. This extension method automates the process.
+
+    The `AddAsync` method asynchronously adds to the `IAsyncCollector<EventData>` collection defined in the function attributes, which takes care of sending the collection items to the defined Event Hub endpoint.
+
+### Task 2: Deploy Stream Processing Function App
+
+1. In the Visual Studio Solution Explorer, right-click on the **Functions.StreamProcessing** project, then select **Publish...**.
+
+    ![The context menu is displayed and the Publish menu item is highlighted.](media/vs-publish.png "Publish")
+
+2. In the publish dialog, select the **Azure Functions Consumption Plan** publish target. Next, select the **Select Existing** radio and make sure **Run from package file (recommended)** is checked. Select **Publish** on the bottom of the form.
+
+    ![The publish dialog is displayed.](media/vs-publish-target-functions.png "Pick a publish target")
+
+3. In the App Service pane, select your Azure Subscription you are using for this lab, and make sure View is set to **Resource group**. Find and expand your Resource Group in the results below. The name should start with **cosmos-db-iot**. Select the Function App whose name starts with **IoT-StreamProcessing**, then select **OK**.
+
+    ![The App Service blade of the publish dialog is displayed.](media/vs-publish-app-service-function-stream.png "App Service")
+
+4. Click **Publish** to begin.
+
+    After the publish completes, you should see the following in the Output window: `========== Publish: 1 succeeded, 0 failed, 0 skipped ==========` to indicate a successful publish.
+
+#### Stream Processing Function App code walk-through
+
+This Function App provides initial stream processing from the IoT Hub instance and saves the processed data to the Cosmos DB `telemetry` container.
+
+1. Open **Functions.cs** within the **Functions.StreamProcessing** project. Let us first review the function parameters:
+
+    ```csharp
+    [FunctionName("IoTHubTrigger")]
+    public static async Task IoTHubTrigger([IoTHubTrigger("messages/events", Connection = "IoTHubConnection")] EventData[] vehicleEventData,
+        [CosmosDB(
+            databaseName: "ContosoAuto",
+            collectionName: "telemetry",
+            ConnectionStringSetting = "CosmosDBConnection")]
+        IAsyncCollector<VehicleEvent> vehicleTelemetryOut,
+        ILogger log)
+    {
+    ```
+
+    This function is defined with the `IoTHubTrigger`. Each time the IoT devices send data to IoT Hub, this function gets triggered and sent the event data in batches (`EventData[] vehicleEventData`). The `CosmosDB` attribute is an output attribute, simplifying writing Cosmos DB documents to the defined database and container; in our case, the `ContosoAuto` database and `telemetry` container, respectively.
+
+2. Scroll down in the function code to find the following code block:
+
+    ```csharp
+    vehicleEvent.partitionKey = $"{vehicleEvent.vin}-{DateTime.UtcNow:yyyy-MM}";
+    // Set the TTL to expire the document after 60 days.
+    vehicleEvent.ttl = 60 * 60 * 24 * 60;
+    vehicleEvent.timestamp = DateTime.UtcNow;
+
+    await vehicleTelemetryOut.AddAsync(vehicleEvent);
+    ```
+
+    The `partitionKey` property represents a synthetic composite partition key for the Cosmos DB container, consisting of the VIN + current year/month. Using a composite key instead of simply the VIN provides us with the following benefits:
+
+    1. Distributing the write workload at any given point in time over a high cardinality of partition keys.
+    2. Ensuring efficient routing on queries on a given VIN - you can spread these across time, e.g. `SELECT * FROM c WHERE c.partitionKey IN ("VIN123-2019-01", "VIN123-2019-02", …)`
+    3. Scale beyond the 10GB quota for a single partition key value.
+
+    The `ttl` property sets the time-to-live for the document to 60 days, after which Cosmos DB will delete the document, since the `telemetry` container is our hot path storage.
+
+    When we asynchronously add the class to the `vehicleTelemetryOut` collection, the Cosmos DB output binding on the function automatically handles writing the data to the defined Cosmos DB database and container, managing the implementation details for us.
+
+### Task 3: Deploy Web App
+
+1. In the Visual Studio Solution Explorer, right-click on the **FleetManagementWebApp** project, then select **Publish...**.
+
+    ![The context menu is displayed and the Publish menu item is highlighted.](media/vs-publish.png "Publish")
+
+2. In the publish dialog, select the **App Service** publish target. Next, select the **Select Existing** radio, then select **Publish** on the bottom of the form.
+
+    ![The publish dialog is displayed.](media/vs-publish-target-webapp.png "Pick a publish target")
+
+3. In the App Service pane, select your Azure Subscription you are using for this lab, and make sure View is set to **Resource group**. Find and expand your Resource Group in the results below. The name should start with **cosmos-db-iot**. Select the Web App whose name starts with **IoTWebApp**, then select **OK**.
+
+    ![The App Service blade of the publish dialog is displayed.](media/vs-publish-app-service-webapp.png "App Service")
+
+4. Click **Publish** to begin.
+
+    After the publish completes, you should see the following in the Output window: `========== Publish: 1 succeeded, 0 failed, 0 skipped ==========` to indicate a successful publish. Also, the web app should open in a new browser window. If you try to navigate through the site, you will notice there is no data. We will seed the Cosmos DB `metadata` container with data in the next exercise.
+
+    ![The Fleet Management web app home page is displayed.](media/webapp-home-page.png "Fleet Management home page")
+
+    If the web app does not automatically open, you can copy its URL on the publish dialog:
+
+    ![The site URL value is highlighted on the publish dialog.](media/vs-publish-site-url.png "Publish dialog")
+
+> **NOTE:** If the web application displays an error, then go into the Azure Portal for the **IoTWebApp** and click **Restart**. When the Azure Web App is created from the ARM Template and configured for .NET Core, it may need to be restarted for the .NET Core configuration to be fully installed and ready for the application to run. Once restarted, the web application will run as expected.
+> ![App Service blade with Restart button highlighted](media/IoTWebApp-App-Service-Restart-Button.png "App Service blade with Restart button highlighted")
+
+> **Further troubleshooting:** If, after restarting the web application more than once, you still encounter a _500_ error, there may be a problem with the system identity for the web app. To check if this is the issue, open the web application's Configuration and view its Application Settings. Open the **CosmosDBConnection** setting and look at the **Key Vault Reference Details** underneath the setting. You should see an output similar to the following, which displays the secret details and indicates that it is using the _System assigned managed identity_:
+
+![The application setting shows the Key Vault reference details underneath.](media/webapp-app-setting-key-vault-reference.png "Key Vault reference details")
+
+> If you see an error in the Key Vault Reference Details, go to Key Vault and delete the access policy for the web app's system identity. Then go back to the web app, turn off the System Identity, turn it back on (which creates a new one), then re-add it to Key Vault's access policies.
+
+#### Web App code walk-through
+
+The Web App provides a web-based management interface for vehicle, package, trip, and consignment operational data for the sample scenario. You can adapt this web application as you deem necessary for your own scenario. This ASP.NET MVC Core web app demonstrates how to use the Cosmos DB SDK v3.0 to directly communicate with Cosmos DB, highlighting capabilities such as injecting the Cosmos DB client into controllers, performing CRUD operations against the database, and implementing paging of large data sets.
+
+1. Open **Startup.cs** within the **FleetManagementWebApp** project. Scroll down to the bottom of the file to find and complete **TODO 8** with the following code:
+
+    ```csharp
+    CosmosClientBuilder clientBuilder = new CosmosClientBuilder(cosmosDbConnectionString.ServiceEndpoint.OriginalString, cosmosDbConnectionString.AuthKey);
+    CosmosClient client = clientBuilder
+        .WithConnectionModeDirect()
+        .Build();
+    CosmosDbService cosmosDbService = new CosmosDbService(client, databaseName, containerName);
+    ```
+
+    This code uses the [.NET SDK for Cosmos DB v3](https://github.com/Azure/azure-cosmos-dotnet-v3/) to initialize the `CosmosClient` instance that is added to the `IServiceCollection` as a singleton for dependency injection and object lifetime management.
+
+2. Open **CosmosDBService.cs** under the **Services** folder of the **FleetManagementWebApp** project to find the following code block:
+
+    ```csharp
+    var setIterator = query.Where(predicate).Skip(itemIndex).Take(pageSize).ToFeedIterator();
+    ```
+
+    Here we are using the newly added `Skip` and `Take` methods on the `IOrderedQueryable` object (`query`) to retrieve just the records for the requested page. The `predicate` represents the LINQ expression passed in to the `GetItemsWithPagingAsync` method to apply filtering.
+
+3. Scroll down a little further to the following code:
+
+    ```csharp
+    var count = this._container.GetItemLinqQueryable<T>(allowSynchronousQueryExecution: true, requestOptions: !string.IsNullOrWhiteSpace(partitionKey) ? new QueryRequestOptions { PartitionKey = new PartitionKey(partitionKey) } : null)
+        .Where(predicate).Count();
+    ```
+
+    In order to know how many pages we need to navigate, we must know the total item count with the current filter applied. To do this, we retrieve a new `IOrderedQueryable` results from the `Container`, pass the filter predicate to the `Where` method, and return the `Count` to the `count` variable. For this to work, you must set `allowSynchronousQueryExecution` to true, which we do with our first parameter to the `GetItemLinqQueryable` method.
+
+4. Open **VehiclesController.cs** under the **Controllers** folder of the **FleetManagementWebApp** project to review the following code:
+
+    ```csharp
+    private readonly ICosmosDbService _cosmosDbService;
+    private readonly IHttpClientFactory _clientFactory;
+    private readonly IConfiguration _configuration;
+    private readonly Random _random = new Random();
+
+    public VehiclesController(ICosmosDbService cosmosDbService, IHttpClientFactory clientFactory, IConfiguration configuration)
+    {
+        _cosmosDbService = cosmosDbService;
+        _clientFactory = clientFactory;
+        _configuration = configuration;
+    }
+
+    public async Task<IActionResult> Index(int page = 1, string search = "")
+    {
+        if (search == null) search = "";
+        //var query = new QueryDefinition("SELECT TOP @limit * FROM c WHERE c.entityType = @entityType")
+        //    .WithParameter("@limit", 100)
+        //    .WithParameter("@entityType", WellKnown.EntityTypes.Vehicle);
+        // await _cosmosDbService.GetItemsAsync<Vehicle>(query);
+
+        var vm = new VehicleIndexViewModel
+        {
+            Search = search,
+            Vehicles = await _cosmosDbService.GetItemsWithPagingAsync<Vehicle>(
+                x => x.entityType == WellKnown.EntityTypes.Vehicle &&
+                      (string.IsNullOrWhiteSpace(search) ||
+                      (x.vin.ToLower().Contains(search.ToLower()) || x.stateVehicleRegistered.ToLower() == search.ToLower())), page, 10)
+        };
+
+        return View(vm);
+    }
+    ```
+
+    We are using dependency injection with this controller, just as we did with one of our Function Apps earlier. The `ICosmosDbService`, `IHttpClientFactory`, and `IConfiguration` services are injected into the controller through the controller's constructor. The `CosmosDbService` is the class whose code you updated in the previous step. The `CosmosClient` is injected into it through its constructor.
+
+    The `Index` controller action method uses paging, which it implements by calling the `ICosmosDbService.GetItemsWithPagingAsync` method you updated in the previous step. Using this service in the controller helps abstract the Cosmos DB query implementation details and business rules from the code in the action methods, keeping the controller lightweight and the code in the service reusable across all the controllers.
+
+    Notice that the paging query does not include a partition key, making the Cosmos DB query cross-partition, which is needed to be able to query across all the documents. If this query ends up being used a lot with the passed in `search` value, causing a higher than desired RU usage on the container per execution, then you might want to consider alternate strategies for the partition key, such as a combination of `vin` and `stateVehicleRegistered`. However, since most of our access patterns for vehicles in this container use the VIN, we are using it as the partition key right now. You will see code further down in the method that explicitly pass the partition key value.
+
+5. Scroll down in the `VehiclesController.cs` file to find the following code:
+
+    ```csharp
+    await _cosmosDbService.DeleteItemAsync<Vehicle>(item.id, item.partitionKey);
+    ```
+
+    Here we are doing a hard delete by completely removing the item. In a real-world scenario, we would most likely perform a soft delete, which means updating the document with a `deleted` property and ensuring all filters exclude items with this property. Plus, we'd soft delete related records, such as trips. Soft deletions make it much easier to recover a deleted item if needed in the future. This is an enhancement you should consider adding to your solution.
+
+## Exercise 3: Configuring Azure Databricks
+
+### Task 10: Create Azure Databricks cluster
 
 Contoso Auto wants to use the valuable data they are collecting from their vehicles to make predictions about the health of their fleet to reduce downtime due to maintenance-related issues. One of the predictions they would like to make is whether a vehicle's battery is likely to fail within the next 30 days, based on historical data. They would like to run a nightly batch process to identify vehicles that should be serviced, based on these predictions. They also want to have a way to make a prediction in real time when viewing a vehicle on their fleet management website.
 
@@ -632,15 +1063,13 @@ In this task, you will create a new cluster on which data exploration and model 
    1. **Cluster Name**: Enter **lab**.
    2. **Cluster Mode**: Select **Standard**.
    3. **Pool**: Select **None**.
-   4. **Databricks Runtime Version**: Select **Runtime 5.5 LTS (Scala 2.11, Spark 2.4.3)**.
-   5. **Python Version**: Enter **3**.
-   6. **Autopilot Options**: Uncheck **Enable autoscaling** and check **Terminate after...**, with a value of **120** minutes.
-   7. **Worker Type**: Select **Standard_DS3_v2**.
-   8. **Driver Type**: Select **Same as worker**.
-   9. **Workers**: Enter **1**.
+   4. **Databricks Runtime Version**: Select **Runtime 6.1 (Scala 2.11, Spark 2.4.4)**.
+   5. **Autopilot Options**: Uncheck **Enable autoscaling** and **Terminate after...**, with a value of **120** minutes.
+   6. **Worker Type**: Select **Standard_DS3_v2**.
+   7. **Driver Type**: Select **Same as worker**.
+   8. **Workers**: Enter **1**.
 
    ![The New Cluster form is displayed with the previously described values.](media/databricks-new-cluster.png 'New Cluster')
-   **Note** If you failed to create a cluster, try to change the worker type from Standard_DS3_v2 to other VM sizes.
 
 5. Select **Create Cluster**.
 
@@ -666,7 +1095,7 @@ In this task, you will create a new cluster on which data exploration and model 
 
 12. **Wait** until the library's status shows as **Installed** before continuing.
 
-### Task 9: Configure Key Vault-backed Databricks secret store
+### Task 11: Configure Key Vault-backed Databricks secret store
 
 In an earlier task, you added application secrets to Key Vault, such as the Cosmos DB connection string. In this task, you will configure the Key Vault-backed Databricks secret store to securely access these secrets.
 
@@ -698,89 +1127,412 @@ Azure Databricks has two types of secret scopes: Key Vault-backed and Databricks
 
 After a moment, you will see a dialog verifying that the secret scope has been created.
 
-## Exercise 2: Configure windowed queries in Stream Analytics
+### Task 12: Import lab notebooks into Azure Databricks
 
-**Duration**: 15 minutes
+In this task, you will import the Databricks notebooks into your workspace.
 
-If you examine the right-hand side of the solution architecture diagram, you will see a flow of event data that feeds into Event Hubs from a Cosmos DB change feed-triggered function. Stream Analytics uses the event hub as an input source for a set of time window queries that create aggregates for individual vehicle telemetry, and overall vehicle telemetry that flows through the architecture from the vehicle IoT devices. Stream Analytics has two output data sinks:
+1. In the [Azure portal](https://portal.azure.com), open your lab resource group, then open your **Azure Databricks Service**. The name should start with `iot-databricks`.
 
-1. Cosmos DB: Individual vehicle telemetry (grouped by VIN) is aggregated over a 30-second `TumblingWindow` and saved to the `metadata` container. This information is used in a Power BI report you will create in Power BI Desktop in a later task to display individual vehicle and multiple vehicle statistics.
-2. Power BI: All vehicle telemetry is aggregated over a 10-second `TumblingWindow` and output to a Power BI data set. This near real-time data is displayed in a live Power BI dashboard to show in 10 second snapshots how many events were processed, whether there are engine temperature, oil, or refrigeration unit warnings, whether aggressive driving was detected during the period, and the average speed, engine temperature, and refrigeration unit readings.
+   ![The Azure Databricks Service is highlighted in the resource group.](media/resource-group-databricks.png 'Resource Group')
 
-![The stream processing components of the solution architecture are displayed.](media/solution-architecture-stream-processing.png 'Solution Architecture - Stream Processing')
+2. Select **Launch Workspace**. Azure Databricks will automatically sign you in through its Azure Active Directory integration.
 
-In this exercise, you will configure Stream Analytics for stream processing as described above.
+   ![Launch Workspace](media/databricks-launch-workspace.png 'Launch Workspace')
 
-### Task 1: Add Stream Analytics Event Hubs input
+3. Select **Workspace**, select **Users**, select the dropdown to the right of your username, then select **Import**.
 
-1. In the [Azure portal](https://portal.azure.com), open your lab resource group, then open your **Stream Analytics job**.
+   ![The Import link is highlighted in the Workspace.](media/databricks-import-link.png 'Workspace')
 
-   ![The Stream Analytics job is highlighted in the resource group.](media/resource-group-stream-analytics.png 'Resource Group')
+4. Select **URL** next to **Import from**, paste the following into the text box: `https://github.com/AzureCosmosDB/scenario-based-labs/blob/master/IoT/Notebooks/01%20IoT.dbc`, then select **Import**.
 
-2. Select **Inputs** in the left-hand menu. In the Inputs blade, select **+ Add stream input**, then select **Event Hub** from the list.
+   ![The URL has been entered in the import form.](media/databricks-import.png 'Import Notebooks')
 
-   ![The Event Hub input is selected in the Add Stream Input menu.](media/stream-analytics-inputs-add-event-hub.png 'Inputs')
+5. After importing, select your username. You will see a new folder named `01 IoT`, which contains two notebooks, and a sub-folder named `Includes`, which contains one notebook.
 
-3. In the **New input** form, specify the following configuration options:
+    ![The imported notebooks are displayed.](media/databricks-notebooks.png 'Imported notebooks')
 
-   1. **Input alias**: Enter **events**.
-   2. Select the **Select Event Hub from your subscriptions** option beneath.
-   3. **Subscription**: Choose your Azure subscription for this lab.
-   4. **Event Hub namespace**: Find and select your Event Hub namespace (eg. `iot-namespace`).
-   5. **Event Hub name**: Select **Use existing**, then **reporting**.
-   6. **Event Hub policy name**: Choose the default `RootManageSharedAccessKey` policy.
+6. Open the **Shared-Configuration** notebook located in the `Includes` sub-folder and provide values for your Machine Learning service workspace. You can find these values within the Overview blade of your Machine Learning service workspace that is located in your lab resource group.
 
-   ![The New Input form is displayed with the previously described values.](media/stream-analytics-new-input.png 'New input')
+    The values highlighted in the screenshot below are for the following variables in the notebooks:
 
-4. Select **Save**.
+    1. `subscription_id`
+    2. `resource_group`
+    3. `workspace_name`
+    4. `workspace_region`
 
-You should now see your Event Hubs input listed.
+    ![The required values are highlighted.](media/machine-learning-workspace-values.png "Machine Learning service workspace values")
 
-![The Event Hubs input is listed.](media/stream-analytics-inputs.png 'Inputs')
+7. Complete the **Batch Scoring** notebook to download the trained model. **Note**: Since we've not loaded any data in Cosmos DB at this point, you can stop at **cell 17** (*Load the data from Cosmos DB to batch score it*).
 
-### Task 2: Add Stream Analytics outputs
+8. Complete the **Model Deployment** notebook to deploy the model to ACI. **Note**: You can continue with the rest of the tasks below while the last cell runs (deploying the web service).
 
-1. Select **Outputs** in the left-hand menu. In the Outputs blade, select **+ Add**, then select **Cosmos DB** from the list.
+### Task 13: View Cosmos DB processing Function App in the portal and copy the Health Check URL
 
-   ![The Cosmos DB output is selected in the Add menu.](media/stream-analytics-outputs-add-cosmos-db.png 'Outputs')
+1. In the Azure portal (<https://portal.azure.com>), open the Azure Function App whose name begins with **IoT-CosmosDBProcessing**.
 
-2. In the **New output** form, specify the following configuration options:
+2. Expand the **Functions** list in the left-hand menu, then select **TripProcessor**.
 
-   1. **Output alias**: Enter **cosmosdb**.
-   2. Select the **Select Cosmos DB from your subscriptions** option beneath.
-   3. **Subscription**: Choose your Azure subscription for this lab.
-   4. **Account id**: Find and select your Cosmos DB account (eg. `cosmos-db-iot`).
-   5. **Database**: Select **Use existing**, then **ContosoAuto**.
-   6. **Container name**: Enter **metadata**.
+    ![The TripProcessor function is displayed.](media/portal-tripprocessor-function.png "TripProcessor")
 
-   ![The New Output form is displayed with the previously described values.](media/stream-analytics-new-output-cosmos.png 'New output')
+3. View the **function.json** file to the right. This file was generated when you published the Function App in Visual Studio. The bindings are the same as you saw in the project code for the function. When new instances of the Function App are created, the generated `function.json` file and a ZIP file containing the compiled application are copied to these instances, and these instances run in parallel to share the load as data flows through the architecture. The `function.json` file instructs each instance how to bind attributes to the functions, where to find application settings, and information about the compiled application (`scriptFile` and `entryPoint`).
 
-3. Select **Save**.
+4. Select the **HealthCheck** function. This function has an Http trigger that enables users to verify that the Function App is up and running, and that each configuration setting exists and has a value. The data generator calls this function before running.
 
-4. **If you have never signed in to Power BI with this account**, open a new browser tab and navigate to <https://powerbi.com> and sign in. Confirm any messages if they appear and continue to the next step after the home page appears. This will help the connection authorization step from Stream Analytics succeed and find the group workspace.
+5. Select **Get function URL**.
 
-5. While remaining in the Outputs blade, select **+ Add** once again, then select **Power BI** from the list.
+    ![The HealthCheck function is selected and the Get function URL link is highlighted.](media/portal-cosmos-function-healthcheck.png "HealthCheck function")
 
-   ![The Power BI output is selected in the Add menu.](media/stream-analytics-outputs-add-power-bi.png 'Outputs')
+6. **Copy the URL** and save it to Notepad or similar text editor for the exercise that follows.
 
-6. In the **New output** form, look toward the bottom to find the **Authorize connection** section, then select **Authorize** to sign in to your Power BI account. If you do not have a Power BI account, select the _Sign up_ option first.
+    ![The HealthCheck URL is highlighted.](media/portal-cosmos-function-healthcheck-url.png "Get function URL")
 
-   ![The Authorize connection section is displayed.](media/stream-analytics-authorize-power-bi.png 'Authorize connection')
+### Task 14: View stream processing Function App in the portal and copy the Health Check URL
 
-7. After authorizing the connection to Power BI, specify the following configuration options in the form:
+1. In the Azure portal (<https://portal.azure.com>), open the Azure Function App whose name begins with **IoT-StreamProcessing**.
 
-   1. **Output alias**: Enter **powerbi**.
-   2. **Group workspace**: Select **My workspace**.
-   3. **Dataset name**: Enter **Contoso Auto IoT Events**.
-   4. **Table name**: Enter **FleetEvents**.
+2. Expand the **Functions** list in the left-hand menu, then select the **HealthCheck** function. Next, select **Get function URL**.
 
-   ![The New Output form is displayed with the previously described values.](media/stream-analytics-new-output-power-bi.png 'New output')
+    ![The HealthCheck function is selected and the Get function URL link is highlighted.](media/portal-stream-function-healthcheck.png "HealthCheck")
 
-8. Select **Save**.
+3. **Copy the URL** and save it to Notepad or similar text editor for the exercise that follows.
 
-You should now have two outputs listed.
+    ![The HealthCheck URL is highlighted.](media/portal-stream-function-healthcheck-url.png "Get function URL")
 
-![The two added outputs are listed.](media/stream-analytics-outputs.png 'Outputs')
+> **Hint**: You can paste the Health Check URLs into a web browser to check the status at any time. The data generator programmatically accesses these URLs each time it runs, then reports whether the Function Apps are in a failed state or missing important application settings.
+
+### Task 15: Open the data generator project
+
+1. If the Visual Studio solution is not already open, navigate to `C:\cosmos-db-iot-solution-accelerator-master\Solution` and open the Visual Studio solution file: **CosmosDbIoTScenario.sln**.
+
+2. Expand the **FleetDataGenerator** project and open **Program.cs** in the Solution Explore
+
+   ![The Program.cs file is highlighted in the Solution Explorer.](media/vs-data-generator-program.png 'Solution Explorer')
+
+### Task 16: Update application configuration
+
+The data generator needs two connection strings before it can successfully run; the IoT Hub connection string, and the Cosmos DB connection string. The IoT Hub connection string can be found by selecting **Shared access policies** in IoT Hub, selecting the **iothubowner** policy, then copying the **Connection string--primary key** value. This is different from the Event Hub-compatible endpoint connection string you copied earlier.
+
+![The iothubowner shared access policy is displayed.](media/iot-hub-connection-string.png "IoT Hub shared access policy")
+
+1. Open **appsettings.json** within the **FleetDataGenerator** project.
+
+2. Paste the IoT Hub connection string value in quotes next to the **IOT_HUB_CONNECTION_STRING** key. Paste the Cosmos DB connection string value in quotes next to the **COSMOS_DB_CONNECTION_STRING** key.
+
+3. The data generator also requires the Health Check URLs you copied in the previous exercise for the `HealthCheck` functions located in both Function Apps. Paste the Cosmos DB Processing Function App's `HealthCheck` function's URL in quotes next to the **COSMOS_PROCESSING_FUNCTION_HEALTHCHECK_URL** key. Paste the Stream Processing Function App's `HealthCheck` function's URL in quotes next to the **STREAM_PROCESSING_FUNCTION_HEALTHCHECK_URL** key.
+
+    ![The appsettings.json file is highlighted in the Solution Explorer, and the connection strings and health check URLs are highlighted within the file.](media/vs-appsettings.png "appsettings.json")
+
+    The NUMBER_SIMULATED_TRUCKS value is used when you select option 5 when you run the generator. This gives you the flexibility to simulate between 1 and 1,000 trucks at a time. SECONDS_TO_LEAD specifies how many seconds to wait until the generator starts generating simulated data. The default value is 0. SECONDS_TO_RUN forces the simulated trucks to stop sending generated data to IoT Hub. The default value is 14400. Otherwise, the generator stops sending tasks when all the trips complete or you cancel by entering `Ctrl+C` or `Ctrl+Break` in the console window.
+
+3. **Save** the `appsettings.json` file.
+
+> As an alternative, you may save these settings as environment variables on your machine, or through the FleetDataGenerator properties. Doing this will remove the risk of accidentally saving your secrets to source control.
+
+### Task 17: Run generator
+
+In this exercise, we will explore the data generator project, **FleetDataGenerator**, update the application configuration, and run it in order to seed the metadata database with data and simulate a single vehicle.
+
+There are several tasks that the data generator performs, depending on the state of your environment. The first task is that the generator will create the Cosmos DB database and containers with the optimal configuration for this lab if these elements do not exist in your Cosmos DB account. When you run the generator in a few moments, this step will be skipped because you already created them at the beginning of the lab. The second task the generator performs is to seed your Cosmos DB `metadata` container with data if no data exists. This includes vehicle, consignment, package, and trip data. Before seeding the container with data, the generator temporarily increases the requested RU/s for the container to 50,000 for optimal data ingestion speed. After the seeding process completes, the RU/s are scaled back down to 15,000.
+
+After the generator ensures the metadata exists, it begins simulating the specified number of vehicles. You are prompted to enter a number between 1 and 5, simulating 1, 10, 50, 100, or the number of vehicles specified in your configuration settings, respectively. For each simulated vehicle, the following tasks take place:
+
+1. An IoT device is registered for the vehicle, using the IoT Hub connection string and setting the device ID to the vehicle's VIN. This returns a generated device key.
+2. A new simulated vehicle instance (`SimulatedVehicle`) is added to a collection of simulated vehicles, each acting as an AMQP device and assigned a Trip record to simulate the delivery of packages for a consignment. These vehicles are randomly selected to have their refrigeration units fail and, out of those, some will randomly fail immediately while the others fail gradually.
+3. The simulated vehicle creates its own AMQP device instance, connecting to IoT Hub with its unique device ID (VIN) and generated device key.
+4. The simulated vehicle asynchronously sends vehicle telemetry information through its connection to IoT Hub continuously until it either completes the trip by reaching the distance in miles established by the Trip record, or receiving a cancellation token.
+
+In this task, you will run the generator and have it generate events for 50 trucks. The reason we are generating events for so many vehicles is two-fold:
+
+- In the next exercise, we will observe the function triggers and event activities with Application Insights.
+- We need to have completed trips prior to performing batch predictions in a later exercise.
+
+In this task, you will run the generator and have it generate events for 50 trucks. The reason we are generating events for so many vehicles is two-fold:
+
+   - In the next exercise, we will observe the function triggers and event activities with Application Insights.
+   - We need to have completed trips prior to performing batch predictions in a later exercise.
+
+> **Warning**: You will receive a lot of emails when the generator starts sending vehicle telemetry. If you do not wish to receive emails, simply disable the Logic App you created.
+
+1. Within Visual Studio, right-click on the **FleetDataGenerator** project in the Solution Explorer and select **Set as Startup Project**. This will automatically run the data generator each time you debug.
+
+    ![Set as Startup Project is highlighted in the Solution Explorer.](media/vs-set-startup-project.png "Solution Explorer")
+
+2. Select the Debug button at the top of the Visual Studio window or hit **F5** to run the data generator.
+
+    ![The debug button is highlighted.](media/vs-debug.png "Debug")
+
+3. When the console window appears, enter **3** to simulate 50 vehicles. The generator will perform the Function App health checks, resize the requested throughput for the `metadata` container, use the bulk importer to seed the container, and resize the throughput back to 15,000 RU/s.
+
+    ![3 has been entered in the console window.](media/cmd-run.png "Generator")
+
+4. After the seeding is completed the generator will retrieve 50 trips from the database, sorted by shortest trip distance first so we can have completed trip data appear faster. You will see a message output for every 50 events sent, per vehicle with their VIN, the message count, and the number of miles remaining for the trip. For example: `Vehicle 19: C1OVHZ8ILU8TGGPD8 Message count: 3650 -- 3.22 miles remaining`. **Let the generator run in the background and continue to the next exercise**.
+
+    ![Vehicle simulation begins.](media/cmd-simulated-vehicles.png "Generator")
+
+5. As the vehicles complete their trips, you will see a message such as `Vehicle 37 has completed its trip`.
+
+    ![A completed messages is displayed in the generator console.](media/cmd-vehicle-completed.png "Generator")
+
+6. When the generator completes, you will see a message to this effect.
+
+    ![A generation complete message is displayed in the generator console.](media/cmd-generator-completed.png "Generator")
+
+If the health checks fail for the Function Apps, the data generator will display a warning, oftentimes telling you which application settings are missing. The data generator will not run until the health checks pass.
+
+![The failed health checks are highlighted.](media/cmd-healthchecks-failed.png "Generator")
+
+### Task 18: Log in to Power BI online and create real-time dashboard
+
+1. Browse to <https://powerbi.microsoft.com> and sign in with the same account you used when you created the Power BI output in Stream Analytics.
+
+2. Select **My workspace**, then select the **Datasets** tab. You should see the **Contoso Auto IoT Events** dataset. This is the dataset you defined in the Stream Analytics Power BI output.
+
+   ![The Contoso Auto IoT dataset is displayed.](media/powerbi-datasets.png 'Power BI Datasets')
+
+3. Select **+ Create** at the top of the page, then select **Dashboard**.
+
+   ![The Create button is highlighted at the top of the page, and the Dashboard menu item is highlighted underneath.](media/powerbi-create-dashboard.png 'Create Dashboard')
+
+4. Provide a name for the dashboard, such as `Contoso Auto IoT Live Dashboard`, then select **Create**.
+
+   ![The create dashboard dialog is displayed.](media/powerbi-create-dashboard-dialog.png 'Create dashboard dialog')
+
+5. Above the new dashboard, select **+ Add tile**, then select **Custom Streaming Data** in the dialog, then select **Next**.
+
+   ![The add tile dialog is displayed.](media/power-bi-dashboard-add-tile.png 'Add tile')
+
+6. Select your **Contoso Auto IoT Events** dataset, then select **Next**.
+
+   ![The Contoso Auto IoT Events dataset is selected.](media/power-bi-dashboard-add-tile-dataset.png 'Your datasets')
+
+7. Select the **Card** Visualization Type. Under fields, select **+ Add value**, then select **oilAnomaly** from the dropdown. Select **Next**.
+
+   ![The oilAnomaly field is added.](media/power-bi-dashboard-add-tile-oilanomaly.png 'Add a custom streaming data tile')
+
+8. Leave the values at their defaults for the tile details form, then select **Apply**.
+
+   ![The apply button is highlighted on the tile details form.](media/power-bi-dashboard-tile-details.png 'Tile details')
+
+9. Above the new dashboard, select **+ Add tile**, then select **Custom Streaming Data** in the dialog, then select **Next**.
+
+   ![The add tile dialog is displayed.](media/power-bi-dashboard-add-tile.png 'Add tile')
+
+10. Select your **Contoso Auto IoT Events** dataset, then select **Next**.
+
+    ![The Contoso Auto IoT Events dataset is selected.](media/power-bi-dashboard-add-tile-dataset.png 'Your datasets')
+
+11. Select the **Card** Visualization Type. Under fields, select **+ Add value**, then select **engineTempAnomaly** from the dropdown. Select **Next**.
+
+    ![The engineTempAnomaly field is added.](media/power-bi-dashboard-add-tile-enginetempanomaly.png 'Add a custom streaming data tile')
+
+12. Leave the values at their defaults for the tile details form, then select **Apply**.
+
+    ![The apply button is highlighted on the tile details form.](media/power-bi-dashboard-tile-details.png 'Tile details')
+
+13. Above the new dashboard, select **+ Add tile**, then select **Custom Streaming Data** in the dialog, then select **Next**.
+
+    ![The add tile dialog is displayed.](media/power-bi-dashboard-add-tile.png 'Add tile')
+
+14. Select your **Contoso Auto IoT Events** dataset, then select **Next**.
+
+    ![The Contoso Auto IoT Events dataset is selected.](media/power-bi-dashboard-add-tile-dataset.png 'Your datasets')
+
+15. Select the **Card** Visualization Type. Under fields, select **+ Add value**, then select **aggressiveDriving** from the dropdown. Select **Next**.
+
+    ![The aggressiveDriving field is added.](media/power-bi-dashboard-add-tile-aggressivedriving.png 'Add a custom streaming data tile')
+
+16. Leave the values at their defaults for the tile details form, then select **Apply**.
+
+    ![The apply button is highlighted on the tile details form.](media/power-bi-dashboard-tile-details.png 'Tile details')
+
+17. Above the new dashboard, select **+ Add tile**, then select **Custom Streaming Data** in the dialog, then select **Next**.
+
+    ![The add tile dialog is displayed.](media/power-bi-dashboard-add-tile.png 'Add tile')
+
+18. Select your **Contoso Auto IoT Events** dataset, then select **Next**.
+
+    ![The Contoso Auto IoT Events dataset is selected.](media/power-bi-dashboard-add-tile-dataset.png 'Your datasets')
+
+19. Select the **Card** Visualization Type. Under fields, select **+ Add value**, then select **refrigerationTempAnomaly** from the dropdown. Select **Next**.
+
+    ![The refrigerationTempAnomaly field is added.](media/power-bi-dashboard-add-tile-refrigerationtempanomaly.png 'Add a custom streaming data tile')
+
+20. Leave the values at their defaults for the tile details form, then select **Apply**.
+
+    ![The apply button is highlighted on the tile details form.](media/power-bi-dashboard-tile-details.png 'Tile details')
+
+21. Above the new dashboard, select **+ Add tile**, then select **Custom Streaming Data** in the dialog, then select **Next**.
+
+    ![The add tile dialog is displayed.](media/power-bi-dashboard-add-tile.png 'Add tile')
+
+22. Select your **Contoso Auto IoT Events** dataset, then select **Next**.
+
+    ![The Contoso Auto IoT Events dataset is selected.](media/power-bi-dashboard-add-tile-dataset.png 'Your datasets')
+
+23. Select the **Card** Visualization Type. Under fields, select **+ Add value**, then select **eventCount** from the dropdown. Select **Next**.
+
+    ![The eventCount field is added.](media/power-bi-dashboard-add-tile-eventcount.png 'Add a custom streaming data tile')
+
+24. Leave the values at their defaults for the tile details form, then select **Apply**.
+
+    ![The apply button is highlighted on the tile details form.](media/power-bi-dashboard-tile-details.png 'Tile details')
+
+25. Above the new dashboard, select **+ Add tile**, then select **Custom Streaming Data** in the dialog, then select **Next**.
+
+    ![The add tile dialog is displayed.](media/power-bi-dashboard-add-tile.png 'Add tile')
+
+26. Select your **Contoso Auto IoT Events** dataset, then select **Next**.
+
+    ![The Contoso Auto IoT Events dataset is selected.](media/power-bi-dashboard-add-tile-dataset.png 'Your datasets')
+
+27. Select the **Line chart** Visualization Type. Under Axis, select **+ Add value**, then select **snapshot** from the dropdown. Under Values, select **+Add value**, then select **engineTemperature**. Leave the time window to display at 1 minute. Select **Next**.
+
+    ![The engineTemperature field is added.](media/power-bi-dashboard-add-tile-enginetemperature.png 'Add a custom streaming data tile')
+
+28. Leave the values at their defaults for the tile details form, then select **Apply**.
+
+    ![The apply button is highlighted on the tile details form.](media/power-bi-dashboard-tile-details.png 'Tile details')
+
+29. Above the new dashboard, select **+ Add tile**, then select **Custom Streaming Data** in the dialog, then select **Next**.
+
+    ![The add tile dialog is displayed.](media/power-bi-dashboard-add-tile.png 'Add tile')
+
+30. Select your **Contoso Auto IoT Events** dataset, then select **Next**.
+
+    ![The Contoso Auto IoT Events dataset is selected.](media/power-bi-dashboard-add-tile-dataset.png 'Your datasets')
+
+31. Select the **Line chart** Visualization Type. Under Axis, select **+ Add value**, then select **snapshot** from the dropdown. Under Values, select **+Add value**, then select **refrigerationUnitTemp**. Leave the time window to display at 1 minute. Select **Next**.
+
+    ![The refrigerationUnitTemp field is added.](media/power-bi-dashboard-add-tile-refrigerationunittemp.png 'Add a custom streaming data tile')
+
+32. Leave the values at their defaults for the tile details form, then select **Apply**.
+
+    ![The apply button is highlighted on the tile details form.](media/power-bi-dashboard-tile-details.png 'Tile details')
+
+33. Above the new dashboard, select **+ Add tile**, then select **Custom Streaming Data** in the dialog, then select **Next**.
+
+    ![The add tile dialog is displayed.](media/power-bi-dashboard-add-tile.png 'Add tile')
+
+34. Select your **Contoso Auto IoT Events** dataset, then select **Next**.
+
+    ![The Contoso Auto IoT Events dataset is selected.](media/power-bi-dashboard-add-tile-dataset.png 'Your datasets')
+
+35. Select the **Line chart** Visualization Type. Under Axis, select **+ Add value**, then select **snapshot** from the dropdown. Under Values, select **+Add value**, then select **speed**. Leave the time window to display at 1 minute. Select **Next**.
+
+    ![The speed field is added.](media/power-bi-dashboard-add-tile-speed.png 'Add a custom streaming data tile')
+
+36. Leave the values at their defaults for the tile details form, then select **Apply**.
+
+    ![The apply button is highlighted on the tile details form.](media/power-bi-dashboard-tile-details.png 'Tile details')
+
+37. When you are done, rearrange the tiles as shown:
+
+    ![The tiles have been rearranged.](media/power-bi-dashboard-rearranged.png 'Power BI dashboard')
+
+### Task 19: Import report in Power BI Desktop and update report data sources
+
+In this task, you will import a Power BI report that has been created for you. After opening it, you will update the data source to point to your Power BI instance.
+
+1. Open **Power BI Desktop**, then select **Open other reports**.
+
+   ![The Open other reports link is highlighted.](media/pbi-splash-screen.png 'Power BI Desktop')
+
+2. In the Open report dialog, browse to `C:\cosmos-db-iot-solution-accelerator-master\Reports`, then select **FleetReport.pbix**. Click **Open**.
+
+   ![The FleetReport.pbix file is selected in the dialog.](media/pbi-open-report.png 'Open report dialog')
+
+3. After the report opens, click on **Edit Queries** in the ribbon bar within the Home tab.
+
+   ![The Edit Queries button is highlighted.](media/pbi-edit-queries-button.png 'Edit Queries')
+
+4. Select **Trips** in the Queries list on the left, then select **Source** under Applied Steps. Click the gear icon next to Source.
+
+   ![The Trip query is selected and the source configuration icon is highlighted.](media/pbi-queries-trips-source.png 'Edit Queries')
+
+5. In the source dialog, update the Cosmos DB **URL** value with your Cosmos DB URI you copied earlier in the lab, then click **OK**. If you need to find this value, navigate to your Cosmos DB account in the portal, select Keys in the left-hand menu, then copy the URI value.
+
+   ![The Trips source dialog is displayed.](media/pbi-queries-trips-source-dialog.png 'Trips source dialog')
+
+   The Trips data source has a SQL statement defined that returns only the fields we need, and applies some aggregates:
+
+   ```sql
+   SELECT c.id, c.vin, c.consignmentId, c.plannedTripDistance,
+   c.location, c.odometerBegin, c.odometerEnd, c.temperatureSetting,
+   c.tripStarted, c.tripEnded, c.status,
+   (
+       SELECT VALUE Count(1)
+       FROM n IN c.packages
+   ) AS numPackages,
+   (
+       SELECT VALUE MIN(n.storageTemperature)
+       FROM n IN c.packages
+   ) AS packagesStorageTemp,
+   (
+       SELECT VALUE Count(1)
+       FROM n IN c.packages
+       WHERE n.highValue = true
+   ) AS highValuePackages,
+   c.consignment.customer,
+   c.consignment.deliveryDueDate
+   FROM c where c.entityType = 'Trip'
+   and c.status in ('Active', 'Delayed', 'Completed')
+   ```
+
+6. When prompted, enter the Cosmos DB **Account key** value, then click **Connect**. If you need to find this value, navigate to your Cosmos DB account in the portal, select Keys in the left-hand menu, then copy the Primary Key value.
+
+   ![The Cosmos DB account key dialog is displayed.](media/pbi-queries-trips-source-dialog-account-key.png 'Cosmos DB account key dialog')
+
+7. In a moment, you will see a table named **Document** that has several rows whose value is Record. This is because Power BI doesn't know how to display the JSON document. The document has to be expanded. After expanding the document, you want to change the data type of the numeric and date fields from the default string types, so you can perform aggregate functions in the report. These steps have already been applied for you. Select the **Changed Type** step under Applied Steps to see the columns and changed data types.
+
+   ![The Trips table shows Record in each row.](media/pbi-queries-trips-updated.png 'Queries')
+
+   The screenshot below shows the Trips document columns with the data types applied:
+
+   ![The Trips document columns are displayed with the changed data types.](media/pbi-queries-trips-changed-type.png 'Trips with changed types')
+
+8. Select **VehicleAverages** in the Queries list on the left, then select **Source** under Applied Steps. Click the gear icon next to Source.
+
+   ![The VehicleAverages query is selected and the source configuration icon is highlighted.](media/pbi-queries-vehicleaverages-source.png 'Edit Queries')
+
+9. In the source dialog, update the Cosmos DB **URL** value with your Cosmos DB URI, then click **OK**.
+
+   ![The VehicleAverages source dialog is displayed.](media/pbi-queries-vehicleaverages-source-dialog.png 'Trips source dialog')
+
+   The VehicleAverages data source has the following SQL statement defined:
+
+   ```sql
+   SELECT c.vin, c.engineTemperature, c.speed,
+   c.refrigerationUnitKw, c.refrigerationUnitTemp,
+   c.engineTempAnomaly, c.oilAnomaly, c.aggressiveDriving,
+   c.refrigerationTempAnomaly, c.snapshot
+   FROM c WHERE c.entityType = 'VehicleAverage'
+   ```
+
+10. If prompted, enter the Cosmos DB **Account key** value, then click **Connect**. You may not be prompted since you entered the key in an earlier step.
+
+    ![The Cosmos DB account key dialog is displayed.](media/pbi-queries-trips-source-dialog-account-key.png 'Cosmos DB account key dialog')
+
+11. Select **VehicleMaintenance** in the Queries list on the left, then select **Source** under Applied Steps. Click the gear icon next to Source.
+
+    ![The VehicleMaintenance query is selected and the source configuration icon is highlighted.](media/pbi-queries-vehiclemaintenance-source.png 'Edit Queries')
+
+12. In the source dialog, update the Cosmos DB **URL** value with your Cosmos DB URI, then click **OK**.
+
+    ![The VehicleMaintenance source dialog is displayed.](media/pbi-queries-vehiclemaintenance-source-dialog.png 'Trips source dialog')
+
+    The VehicleMaintenance data source has the following SQL statement defined, which is simpler than the other two since there are no other entity types in the `maintenance` container, and no aggregates are needed:
+
+    ```sql
+    SELECT c.vin, c.serviceRequired FROM c
+    ```
+
+13. If prompted, enter the Cosmos DB **Account key** value, then click **Connect**. You may not be prompted since you entered the key in an earlier step.
+
+    ![The Cosmos DB account key dialog is displayed.](media/pbi-queries-trips-source-dialog-account-key.png 'Cosmos DB account key dialog')
+
+14. If you are prompted, click **Close & Apply**.
+
+    ![The Close & Apply button is highlighted.](media/pbi-close-apply.png 'Close & Apply')
 
 ### Task 3: Create Stream Analytics query
 
@@ -996,7 +1748,7 @@ When you set the App Settings for the Function Apps and Web App in the next task
 
 In this task, you will open the Visual Studio solution for this lab. It contains projects for both Function Apps, the Web App, and the data generator.
 
-1. Open Windows Explorer and navigate to the location you extracted the solution ZIP file in the _Before the HOL_ guide. If you extracted the ZIP file directly to `C:\`, you need to open the following folder: `C:\scenario-based-labs-master\IoT\Starter`. Open the Visual Studio solution file: **CosmosDbIoTScenario.sln**.
+1. Open Windows Explorer and navigate to the location you extracted the solution ZIP file in the _Before the HOL_ guide. If you extracted the ZIP file directly to `C:\`, you need to open the following folder: `C:\cosmos-db-iot-solution-accelerator-master\Solution`. Open the Visual Studio solution file: **CosmosDbIoTScenario.sln**.
 
     > If Visual Studio prompts you to sign in when it first launches, use the account provided to you for this lab (if applicable), or an existing Microsoft account.
 
@@ -1409,7 +2161,7 @@ After the generator ensures the metadata exists, it begins simulating the specif
 
 ### Task 1: Open the data generator project
 
-1. If the Visual Studio solution is not already open, navigate to `C:\scenario-based-labs-master\IoT\Starter` and open the Visual Studio solution file: **CosmosDbIoTScenario.sln**.
+1. If the Visual Studio solution is not already open, navigate to `C:\cosmos-db-iot-solution-accelerator-master\Solution` and open the Visual Studio solution file: **CosmosDbIoTScenario.sln**.
 
 2. Expand the **FleetDataGenerator** project and open **Program.cs** in the Solution Explorer.
 
@@ -1966,7 +2718,7 @@ In this lab, you will import a Power BI report that has been created for you. Af
 
     ![The Open other reports link is highlighted.](media/pbi-splash-screen.png "Power BI Desktop")
 
-2. In the Open report dialog, browse to `C:\scenario-based-labs-master\IoT\Reports`, then select **FleetReport.pbix**. Click **Open**.
+2. In the Open report dialog, browse to `C:\cosmos-db-iot-solution-accelerator-master\Reports`, then select **FleetReport.pbix**. Click **Open**.
 
     ![The FleetReport.pbix file is selected in the dialog.](media/pbi-open-report.png "Open report dialog")
 
