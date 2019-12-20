@@ -32,15 +32,27 @@
     - [Task 3: Deploy Web App](#task-3-deploy-web-app)
       - [Web App code walk-through](#web-app-code-walk-through)
   - [Exercise 3: Configuring Azure Databricks](#exercise-3-configuring-azure-databricks)
-    - [Task 10: Create Azure Databricks cluster](#task-10-create-azure-databricks-cluster)
-    - [Task 11: Configure Key Vault-backed Databricks secret store](#task-11-configure-key-vault-backed-databricks-secret-store)
-    - [Task 12: Import lab notebooks into Azure Databricks](#task-12-import-lab-notebooks-into-azure-databricks)
-    - [Task 13: View Cosmos DB processing Function App in the portal and copy the Health Check URL](#task-13-view-cosmos-db-processing-function-app-in-the-portal-and-copy-the-health-check-url)
-    - [Task 14: View stream processing Function App in the portal and copy the Health Check URL](#task-14-view-stream-processing-function-app-in-the-portal-and-copy-the-health-check-url)
-    - [Task 15: Open the data generator project](#task-15-open-the-data-generator-project)
-    - [Task 16: Update application configuration](#task-16-update-application-configuration)
-    - [Task 17: Run generator](#task-17-run-generator)
-    - [Task 18: Log in to Power BI online and create real-time dashboard](#task-18-log-in-to-power-bi-online-and-create-real-time-dashboard)
+    - [Task 1: Create Azure Databricks cluster](#task-1-create-azure-databricks-cluster)
+    - [Task 2: Configure Key Vault-backed Databricks secret store](#task-2-configure-key-vault-backed-databricks-secret-store)
+  - [Exercise 4: Explore and execute the data generator](#exercise-4-explore-and-execute-the-data-generator)
+    - [How to provision your own devices](#how-to-provision-your-own-devices)
+    - [Task 1: View Cosmos DB processing Function App in the portal and copy the Health Check URL](#task-1-view-cosmos-db-processing-function-app-in-the-portal-and-copy-the-health-check-url)
+    - [Task 2: View stream processing Function App in the portal and copy the Health Check URL](#task-2-view-stream-processing-function-app-in-the-portal-and-copy-the-health-check-url)
+    - [Task 3: Open the data generator project](#task-3-open-the-data-generator-project)
+      - [Code walk-through](#code-walk-through)
+    - [Task 4: Update application configuration](#task-4-update-application-configuration)
+    - [Task 5: Run generator](#task-5-run-generator)
+    - [Task 6: View devices in IoT Hub](#task-6-view-devices-in-iot-hub)
+  - [Exercise 5: Observe Change Feed using Azure Functions and App Insights](#exercise-5-observe-change-feed-using-azure-functions-and-app-insights)
+    - [Task 1: Open App Insights Live Metrics Stream](#task-1-open-app-insights-live-metrics-stream)
+  - [Exercise 6: Observe data using Cosmos DB Data Explorer and Web App](#exercise-6-observe-data-using-cosmos-db-data-explorer-and-web-app)
+    - [Task 1: View data in Cosmos DB Data Explorer](#task-1-view-data-in-cosmos-db-data-explorer)
+    - [Task 2: Search and view data in Web App](#task-2-search-and-view-data-in-web-app)
+  - [Exercise 7: Perform CRUD operations using the Web App](#exercise-7-perform-crud-operations-using-the-web-app)
+    - [Task 1: Create a new vehicle](#task-1-create-a-new-vehicle)
+    - [Task 2: View and edit the vehicle](#task-2-view-and-edit-the-vehicle)
+    - [Task 3: Delete the vehicle](#task-3-delete-the-vehicle)
+  - [Exercise 8: Create the Fleet status real-time dashboard in Power BI](#exercise-8-create-the-fleet-status-real-time-dashboard-in-power-bi)
     - [Task 19: Import report in Power BI Desktop and update report data sources](#task-19-import-report-in-power-bi-desktop-and-update-report-data-sources)
     - [Task 3: Create Stream Analytics query](#task-3-create-stream-analytics-query)
     - [Task 4: Run Stream Analytics job](#task-4-run-stream-analytics-job)
@@ -60,16 +72,16 @@
     - [Task 3: Update application configuration](#task-3-update-application-configuration)
     - [Task 4: Run generator](#task-4-run-generator)
     - [Task 5: View devices in IoT Hub](#task-5-view-devices-in-iot-hub)
-  - [Exercise 5: Observe Change Feed using Azure Functions and App Insights](#exercise-5-observe-change-feed-using-azure-functions-and-app-insights)
-    - [Task 1: Open App Insights Live Metrics Stream](#task-1-open-app-insights-live-metrics-stream)
-  - [Exercise 6: Observe data using Cosmos DB Data Explorer and Web App](#exercise-6-observe-data-using-cosmos-db-data-explorer-and-web-app)
-    - [Task 1: View data in Cosmos DB Data Explorer](#task-1-view-data-in-cosmos-db-data-explorer)
-    - [Task 2: Search and view data in Web App](#task-2-search-and-view-data-in-web-app)
-  - [Exercise 7: Perform CRUD operations using the Web App](#exercise-7-perform-crud-operations-using-the-web-app)
-    - [Task 1: Create a new vehicle](#task-1-create-a-new-vehicle)
-    - [Task 2: View and edit the vehicle](#task-2-view-and-edit-the-vehicle)
-    - [Task 3: Delete the vehicle](#task-3-delete-the-vehicle)
-  - [Exercise 8: Create the Fleet status real-time dashboard in Power BI](#exercise-8-create-the-fleet-status-real-time-dashboard-in-power-bi)
+  - [Exercise 5: Observe Change Feed using Azure Functions and App Insights](#exercise-5-observe-change-feed-using-azure-functions-and-app-insights-1)
+    - [Task 1: Open App Insights Live Metrics Stream](#task-1-open-app-insights-live-metrics-stream-1)
+  - [Exercise 6: Observe data using Cosmos DB Data Explorer and Web App](#exercise-6-observe-data-using-cosmos-db-data-explorer-and-web-app-1)
+    - [Task 1: View data in Cosmos DB Data Explorer](#task-1-view-data-in-cosmos-db-data-explorer-1)
+    - [Task 2: Search and view data in Web App](#task-2-search-and-view-data-in-web-app-1)
+  - [Exercise 7: Perform CRUD operations using the Web App](#exercise-7-perform-crud-operations-using-the-web-app-1)
+    - [Task 1: Create a new vehicle](#task-1-create-a-new-vehicle-1)
+    - [Task 2: View and edit the vehicle](#task-2-view-and-edit-the-vehicle-1)
+    - [Task 3: Delete the vehicle](#task-3-delete-the-vehicle-1)
+  - [Exercise 8: Create the Fleet status real-time dashboard in Power BI](#exercise-8-create-the-fleet-status-real-time-dashboard-in-power-bi-1)
     - [Task 1: Log in to Power BI online and create real-time dashboard](#task-1-log-in-to-power-bi-online-and-create-real-time-dashboard)
   - [Exercise 9: Create the Trip/Consignment Status reports in Power BI](#exercise-9-create-the-tripconsignment-status-reports-in-power-bi)
     - [Task 1: Import report in Power BI Desktop](#task-1-import-report-in-power-bi-desktop)
@@ -1038,7 +1050,11 @@ The Web App provides a web-based management interface for vehicle, package, trip
 
 ## Exercise 3: Configuring Azure Databricks
 
-### Task 10: Create Azure Databricks cluster
+[Azure Databricks](https://azure.microsoft.com/services/databricks/) is a fully-managed, cloud-based Big Data and Machine Learning platform, which empowers developers to accelerate AI and innovation by simplifying the process of building enterprise-grade production data applications. Built as a joint effort by the team that started Apache Spark and Microsoft, Azure Databricks provides data science and engineering teams with a single platform for Big Data processing and Machine Learning.
+
+By combining the power of Databricks, an end-to-end, managed Apache Spark platform optimized for the cloud, with the enterprise scale and security of Microsoft's Azure platform, Azure Databricks makes it simple to run large-scale Spark workloads.
+
+### Task 1: Create Azure Databricks cluster
 
 Contoso Auto wants to use the valuable data they are collecting from their vehicles to make predictions about the health of their fleet to reduce downtime due to maintenance-related issues. One of the predictions they would like to make is whether a vehicle's battery is likely to fail within the next 30 days, based on historical data. They would like to run a nightly batch process to identify vehicles that should be serviced, based on these predictions. They also want to have a way to make a prediction in real time when viewing a vehicle on their fleet management website.
 
@@ -1070,6 +1086,7 @@ In this task, you will create a new cluster on which data exploration and model 
    8. **Workers**: Enter **1**.
 
    ![The New Cluster form is displayed with the previously described values.](media/databricks-new-cluster.png 'New Cluster')
+   **Note** If you failed to create a cluster, try to change the worker type from Standard_DS3_v2 to other VM sizes.
 
 5. Select **Create Cluster**.
 
@@ -1095,9 +1112,17 @@ In this task, you will create a new cluster on which data exploration and model 
 
 12. **Wait** until the library's status shows as **Installed** before continuing.
 
-### Task 11: Configure Key Vault-backed Databricks secret store
+### Task 2: Configure Key Vault-backed Databricks secret store
 
-In an earlier task, you added application secrets to Key Vault, such as the Cosmos DB connection string. In this task, you will configure the Key Vault-backed Databricks secret store to securely access these secrets.
+Azure Key Vault is used to Securely store and tightly control access to tokens, passwords, certificates, API keys, and other secrets. In addition, secrets that are stored in Azure Key Vault are centralized, giving the added benefits of only needing to update secrets in one place, such as an application key value after recycling the key for security purposes.
+
+When you executed the deployment template at the beginning of this Quickstart guide, a new Azure Key Vault was provisioned. The template went on to store application secrets in Azure Key Vault, then configured the Function Apps and Web App to securely connect to Azure Key Vault by performing the following steps:
+
+- Add secrets to the provisioned Key Vault.
+- Create a system-assigned managed identity for each Azure Function App and the Web App to read from the vault.
+- Create an access policy in Key Vault with the "Get" secret permission, assigned to each of these application identities.
+
+In this task, you will configure the Key Vault-backed Databricks secret store to securely access these secrets.
 
 Azure Databricks has two types of secret scopes: Key Vault-backed and Databricks-backed. These secret scopes allow you to store secrets, such as database connection strings, securely. If someone tries to output a secret to a notebook, it is replaced by `[REDACTED]`. This helps prevent someone from viewing the secret or accidentally leaking it when displaying or sharing the notebook.
 
@@ -1127,46 +1152,110 @@ Azure Databricks has two types of secret scopes: Key Vault-backed and Databricks
 
 After a moment, you will see a dialog verifying that the secret scope has been created.
 
-### Task 12: Import lab notebooks into Azure Databricks
+## Exercise 4: Explore and execute the data generator
 
-In this task, you will import the Databricks notebooks into your workspace.
+In this exercise, we will explore the data generator project, **FleetDataGenerator**, update the application configuration, and run it in order to seed the metadata database with data and simulate vehicles.
 
-1. In the [Azure portal](https://portal.azure.com), open your lab resource group, then open your **Azure Databricks Service**. The name should start with `iot-databricks`.
+There are several tasks that the data generator performs, depending on the state of your environment. The first task is that the generator will create the Cosmos DB database and containers with the optimal configuration for this lab if these elements do not exist in your Cosmos DB account. When you run the generator in a few moments, this step will be skipped because you already created them at the beginning of the lab. The second task the generator performs is to seed your Cosmos DB `metadata` container with data if no data exists. This includes vehicle, consignment, package, and trip data. Before seeding the container with data, the generator temporarily increases the requested RU/s for the container to 50,000 for optimal data ingestion speed. After the seeding process completes, the RU/s are scaled back down to 15,000.
 
-   ![The Azure Databricks Service is highlighted in the resource group.](media/resource-group-databricks.png 'Resource Group')
+After the generator ensures the metadata exists, it begins simulating the specified number of vehicles. You are prompted to enter a number between 1 and 5, simulating 1, 10, 50, 100, or the number of vehicles specified in your configuration settings, respectively. For each simulated vehicle, the following tasks take place:
 
-2. Select **Launch Workspace**. Azure Databricks will automatically sign you in through its Azure Active Directory integration.
+1. An IoT device is registered for the vehicle, using the IoT Hub connection string and setting the device ID to the vehicle's VIN. This returns a generated device key.
+2. A new simulated vehicle instance (`SimulatedVehicle`) is added to a collection of simulated vehicles, each acting as an AMQP device and assigned a Trip record to simulate the delivery of packages for a consignment. These vehicles are randomly selected to have their refrigeration units fail and, out of those, some will randomly fail immediately while the others fail gradually.
+3. The simulated vehicle creates its own AMQP device instance, connecting to IoT Hub with its unique device ID (VIN) and generated device key.
+4. The simulated vehicle asynchronously sends vehicle telemetry information through its connection to IoT Hub continuously until it either completes the trip by reaching the distance in miles established by the Trip record, or receiving a cancellation token.
 
-   ![Launch Workspace](media/databricks-launch-workspace.png 'Launch Workspace')
+### How to provision your own devices
 
-3. Select **Workspace**, select **Users**, select the dropdown to the right of your username, then select **Import**.
+Within the data generator, we use the [Azure IoT Hub SDK for .NET](https://www.nuget.org/packages/Microsoft.Azure.Devices.Client/) to directly register and manage devices in Azure IoT Hub. There are also [SDKs available](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-sdks#azure-iot-hub-device-sdks) for C, Java, Node.js, Python, and iOS.
 
-   ![The Import link is highlighted in the Workspace.](media/databricks-import-link.png 'Workspace')
+The **DeviceManager.cs** file within the data generator project shows how to use the `Microsoft.Azure.Devices.RegistryManager` to perform create, remove, update, and delete operations on devices. First, we instantiate a new instance of `RegistryManager` from the IoT Hub connection string:
 
-4. Select **URL** next to **Import from**, paste the following into the text box: `https://github.com/AzureCosmosDB/scenario-based-labs/blob/master/IoT/Notebooks/01%20IoT.dbc`, then select **Import**.
+```csharp
+// Create an instance of the RegistryManager from the IoT Hub connection string.
+registryManager = RegistryManager.CreateFromConnectionString(connectionString);
+```
 
-   ![The URL has been entered in the import form.](media/databricks-import.png 'Import Notebooks')
+The `RegisterDevicesAsync` method in the `DeviceManager` helper class demonstrates how to register a single device with IoT Hub. First, it creates a new device and sets its state to `Enabled`. Then, it attempts to register the new device. If an exception is returned that a device already exists, we retrieve the registered device, set the status to `Enabled`, and update the device state in IoT Hub with the status change:
 
-5. After importing, select your username. You will see a new folder named `01 IoT`, which contains two notebooks, and a sub-folder named `Includes`, which contains one notebook.
+```csharp
+/// <summary>
+/// Register a single device with IoT Hub.
+/// </summary>
+/// <param name="connectionString"></param>
+/// <param name="deviceId"></param>
+/// <returns></returns>
+public static async Task<string> RegisterDevicesAsync(string connectionString, string deviceId)
+{
+    //Make sure we're connected
+    if (registryManager == null)
+        IotHubConnect(connectionString);
 
-    ![The imported notebooks are displayed.](media/databricks-notebooks.png 'Imported notebooks')
+    // Create a new device.
+    var device = new Device(deviceId) {Status = DeviceStatus.Enabled};
 
-6. Open the **Shared-Configuration** notebook located in the `Includes` sub-folder and provide values for your Machine Learning service workspace. You can find these values within the Overview blade of your Machine Learning service workspace that is located in your lab resource group.
+    try
+    {
+        // Register the new device.
+        device = await registryManager.AddDeviceAsync(device);
+    }
+    catch (Exception ex)
+    {
+        if (ex is DeviceAlreadyExistsException ||
+            ex.Message.Contains("DeviceAlreadyExists"))
+        {
+            // Device already exists, get the registered device.
+            device = await registryManager.GetDeviceAsync(deviceId);
 
-    The values highlighted in the screenshot below are for the following variables in the notebooks:
+            // Ensure the device is activated.
+            device.Status = DeviceStatus.Enabled;
 
-    1. `subscription_id`
-    2. `resource_group`
-    3. `workspace_name`
-    4. `workspace_region`
+            // Update IoT Hub with the device status change.
+            await registryManager.UpdateDeviceAsync(device);
+        }
+        else
+        {
+            Program.WriteLineInColor($"An error occurred while registering IoT device '{deviceId}':\r\n{ex.Message}", ConsoleColor.Red);
+        }
+    }
 
-    ![The required values are highlighted.](media/machine-learning-workspace-values.png "Machine Learning service workspace values")
+    // Return the device key.
+    return device.Authentication.SymmetricKey.PrimaryKey;
+}
+```
 
-7. Complete the **Batch Scoring** notebook to download the trained model. **Note**: Since we've not loaded any data in Cosmos DB at this point, you can stop at **cell 17** (*Load the data from Cosmos DB to batch score it*).
+The `RegisterDevicesAsync` method returns a symmetric key that the registered device uses to authenticate when connecting to IoT Hub. The `deviceId` value is the vehicle's VIN in this case. You can use whatever string value you want for your devices, as long as the values are unique. The `RegisterDevicesAsync` method is called from the `SetupVehicleTelemetryRunTasks` method in the data generator:
 
-8. Complete the **Model Deployment** notebook to deploy the model to ACI. **Note**: You can continue with the rest of the tasks below while the last cell runs (deploying the web service).
+```csharp
+// Register vehicle IoT device, using its VIN as the device ID, then return the device key.
+var deviceKey = await DeviceManager.RegisterDevicesAsync(iotHubConnectionString, trip.vin);
+```
 
-### Task 13: View Cosmos DB processing Function App in the portal and copy the Health Check URL
+Each vehicle IoT device is simulated by the data generator. The simulated device is represented by the `SimulatedVehicle` class (**SimulatedVehicle.cs**). When a new simulated device is instantiated, the device ID (the vehicle's VIN) and the device's symmetric key are passed into the constructor and used when creating a new `MIcrosoft.Azure.Devices.Client.DeviceClient` instance:
+
+```csharp
+public SimulatedVehicle(Trip trip, bool causeRefrigerationUnitFailure,
+    bool immediateRefrigerationUnitFailure, int vehicleNumber,
+    string iotHubUri, string deviceId, string deviceKey)
+{
+    _vehicleNumber = vehicleNumber;
+    _trip = trip;
+    _tripId = trip.id;
+    _distanceRemaining = trip.plannedTripDistance + 3; // Pad a little bit extra distance to ensure all events captured.
+    _causeRefrigerationUnitFailure = causeRefrigerationUnitFailure;
+    _immediateRefrigerationUnitFailure = immediateRefrigerationUnitFailure;
+    _IotHubUri = iotHubUri;
+    DeviceId = deviceId;
+    DeviceKey = deviceKey;
+    _DeviceClient = DeviceClient.Create(_IotHubUri, new DeviceAuthenticationWithRegistrySymmetricKey(DeviceId, DeviceKey));
+}
+```
+
+You can update this code to simulate your own IoT devices. When you are ready to **use physical devices**, follow the [tutorials found in the IoT Hub documentation](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-get-started-physical).
+
+The best way to provision multiple IoT devices in a secure and scalable manner is to use the [Azure IoT Hub Device Provisioning Service](https://docs.microsoft.com/azure/iot-dps/about-iot-dps) (DPS). Use the [Microsoft Azure Provisioning SDKs](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-sdks#microsoft-azure-provisioning-sdks) for the best experience with using DPS.
+
+### Task 1: View Cosmos DB processing Function App in the portal and copy the Health Check URL
 
 1. In the Azure portal (<https://portal.azure.com>), open the Azure Function App whose name begins with **IoT-CosmosDBProcessing**.
 
@@ -1186,7 +1275,7 @@ In this task, you will import the Databricks notebooks into your workspace.
 
     ![The HealthCheck URL is highlighted.](media/portal-cosmos-function-healthcheck-url.png "Get function URL")
 
-### Task 14: View stream processing Function App in the portal and copy the Health Check URL
+### Task 2: View stream processing Function App in the portal and copy the Health Check URL
 
 1. In the Azure portal (<https://portal.azure.com>), open the Azure Function App whose name begins with **IoT-StreamProcessing**.
 
@@ -1200,7 +1289,7 @@ In this task, you will import the Databricks notebooks into your workspace.
 
 > **Hint**: You can paste the Health Check URLs into a web browser to check the status at any time. The data generator programmatically accesses these URLs each time it runs, then reports whether the Function Apps are in a failed state or missing important application settings.
 
-### Task 15: Open the data generator project
+### Task 3: Open the data generator project
 
 1. If the Visual Studio solution is not already open, navigate to `C:\cosmos-db-iot-solution-accelerator-master\Solution` and open the Visual Studio solution file: **CosmosDbIoTScenario.sln**.
 
@@ -1208,7 +1297,129 @@ In this task, you will import the Databricks notebooks into your workspace.
 
    ![The Program.cs file is highlighted in the Solution Explorer.](media/vs-data-generator-program.png 'Solution Explorer')
 
-### Task 16: Update application configuration
+#### Code walk-through
+
+There is a lot of code within the data generator project, so we'll just touch on the highlights. The code we do not cover is commented and should be easy to follow if you so desire.
+
+1. Within the **Main** method of **Program.cs**, the core workflow of the data generator is executed by the following code block:
+
+    ```csharp
+    // Instantiate Cosmos DB client and start sending messages:
+    using (_cosmosDbClient = new CosmosClient(cosmosDbConnectionString.ServiceEndpoint.OriginalString,
+        cosmosDbConnectionString.AuthKey, connectionPolicy))
+    {
+        await InitializeCosmosDb();
+
+        // Find and output the container details, including # of RU/s.
+        var container = _database.GetContainer(MetadataContainerName);
+
+        var offer = await container.ReadThroughputAsync(cancellationToken);
+
+        if (offer != null)
+        {
+            var currentCollectionThroughput = offer ?? 0;
+            WriteLineInColor(
+                $"Found collection `{MetadataContainerName}` with {currentCollectionThroughput} RU/s.",
+                ConsoleColor.Green);
+        }
+
+        // Initially seed the Cosmos DB database with metadata if empty.
+        await SeedDatabase(cosmosDbConnectionString, cancellationToken);
+        trips = await GetTripsFromDatabase(numberSimulatedTrucks, container);
+    }
+
+    try
+    {
+        // Start sending telemetry from simulated vehicles to Event Hubs:
+        _runningVehicleTasks = await SetupVehicleTelemetryRunTasks(numberSimulatedTrucks,
+            trips, arguments.IoTHubConnectionString);
+        var tasks = _runningVehicleTasks.Select(t => t.Value).ToList();
+        while (tasks.Count > 0)
+        {
+            try
+            {
+                Task.WhenAll(tasks).Wait(cancellationToken);
+            }
+            catch (TaskCanceledException)
+            {
+                //expected
+            }
+
+            tasks = _runningVehicleTasks.Where(t => !t.Value.IsCompleted).Select(t => t.Value).ToList();
+
+        }
+    }
+    catch (OperationCanceledException)
+    {
+        Console.WriteLine("The vehicle telemetry operation was canceled.");
+        // No need to throw, as this was expected.
+    }
+    ```
+
+    The top section of the code instantiates a new `CosmosClient`, using the connection string defined in either `appsettings.json` or the environment variables. The first call within the block is to `InitializeCosmosDb()`. We'll dig into this method in a moment, but it is responsible for creating the Cosmos DB database and containers if they do not exist in the Cosmos DB account. Next, we create a new `Container` instance, which the v3 version of the .NET Cosmos DB SDK uses for operations against a container, such as CRUD and maintenance information. For example, we call `ReadThroughputAsync` on the container to retrieve the current throughput (RU/s), and we pass it to `GetTripsFromDatabase` to read Trip documents from the container, based on the number of vehicles we are simulating. In this method, we also call the `SeedDatabase` method, which checks whether data currently exists and, if not, calls methods in the `DataGenerator` class (`DataGenerator.cs` file) to generate vehicles, consignments, packages, and trips, then writes the data in bulk using the `BulkImporter` class (`BulkImporter.cs` file). This `SeedDatabase` method executes the following on the `Container` instance to adjust the throughput (RU/s) to 50,000 before the bulk import, and back to 15,000 after the data seeding is complete: `await container.ReplaceThroughputAsync(desiredThroughput);`.
+
+    The `try/catch` block calls `SetupVehicleTelemetryRunTasks` to register IoT device instances for each simulated vehicle and load up the tasks from each `SimulatedVehicle` instance it creates. It uses `Task.WhenAll` to ensure all pending tasks (simulated vehicle trips) are complete, removing completed tasks from the `_runningvehicleTasks` list as they finish. The cancellation token is used to cancel all running tasks if you issue the cancel command (`Ctrl+C` or `Ctrl+Break`) in the console.
+
+2. Scroll down the `Program.cs` file until you find the `InitializeCosmosDb()` method. Here is the code for your reference:
+
+    ```csharp
+    private static async Task InitializeCosmosDb()
+    {
+        _database = await _cosmosDbClient.CreateDatabaseIfNotExistsAsync(DatabaseName);
+
+        #region Telemetry container
+        // Define a new container.
+        var telemetryContainerDefinition =
+            new ContainerProperties(id: TelemetryContainerName, partitionKeyPath: $"/{PartitionKey}")
+            {
+                IndexingPolicy = { IndexingMode = IndexingMode.Consistent }
+            };
+
+        // Tune the indexing policy for write-heavy workloads by only including regularly queried paths.
+        // Be careful when using an opt-in policy as we are below. Excluding all and only including certain paths removes
+        // Cosmos DB's ability to proactively add new properties to the index.
+        telemetryContainerDefinition.IndexingPolicy.ExcludedPaths.Clear();
+        telemetryContainerDefinition.IndexingPolicy.ExcludedPaths.Add(new ExcludedPath { Path = "/*" }); // Exclude all paths.
+        telemetryContainerDefinition.IndexingPolicy.IncludedPaths.Clear();
+        telemetryContainerDefinition.IndexingPolicy.IncludedPaths.Add(new IncludedPath { Path = "/vin/?" });
+        telemetryContainerDefinition.IndexingPolicy.IncludedPaths.Add(new IncludedPath { Path = "/state/?" });
+        telemetryContainerDefinition.IndexingPolicy.IncludedPaths.Add(new IncludedPath { Path = "/partitionKey/?" });
+
+        // Create the container with a throughput of 15000 RU/s.
+        await _database.CreateContainerIfNotExistsAsync(telemetryContainerDefinition, throughput: 15000);
+        #endregion
+
+        #region Metadata container
+        // Define a new container (collection).
+        var metadataContainerDefinition =
+            new ContainerProperties(id: MetadataContainerName, partitionKeyPath: $"/{PartitionKey}")
+            {
+                // Set the indexing policy to consistent and use the default settings because we expect read-heavy workloads in this container (includes all paths (/*) with all range indexes).
+                // Indexing all paths when you have write-heavy workloads may impact performance and cost more RU/s than desired.
+                IndexingPolicy = { IndexingMode = IndexingMode.Consistent }
+            };
+
+        // Set initial performance to 50,000 RU/s for bulk import performance.
+        await _database.CreateContainerIfNotExistsAsync(metadataContainerDefinition, throughput: 50000);
+        #endregion
+
+        #region Maintenance container
+        // Define a new container (collection).
+        var maintenanceContainerDefinition =
+            new ContainerProperties(id: MaintenanceContainerName, partitionKeyPath: $"/vin")
+            {
+                IndexingPolicy = { IndexingMode = IndexingMode.Consistent }
+            };
+
+        // Set initial performance to 400 RU/s due to light workloads.
+        await _database.CreateContainerIfNotExistsAsync(maintenanceContainerDefinition, throughput: 400);
+        #endregion
+    }
+    ```
+
+    This method creates a Cosmos DB database if it does not already exist, otherwise it retrieves a reference to it (`await _cosmosDbClient.CreateDatabaseIfNotExistsAsync(DatabaseName);`). Then it creates `ContainerProperties` for the `telemetry`, `metadata`, and `maintenance` containers. The `ContainerProperties` object lets us specify the container's indexing policy. We use the default indexing policy for `metadata` and `maintenance` since they are read-heavy and benefit from a greater number of paths, but we exclude all paths in the `telemetry` index policy, and add paths only to those properties we need to query, due to the container's write-heavy workload. The `telemetry` container is assigned a throughput of 15,000 RU/s, 50,000 for `metadata` for the initial bulk import, then it is scaled down to 15,000, and 400 for `maintenance`.
+
+### Task 4: Update application configuration
 
 The data generator needs two connection strings before it can successfully run; the IoT Hub connection string, and the Cosmos DB connection string. The IoT Hub connection string can be found by selecting **Shared access policies** in IoT Hub, selecting the **iothubowner** policy, then copying the **Connection string--primary key** value. This is different from the Event Hub-compatible endpoint connection string you copied earlier.
 
@@ -1228,18 +1439,7 @@ The data generator needs two connection strings before it can successfully run; 
 
 > As an alternative, you may save these settings as environment variables on your machine, or through the FleetDataGenerator properties. Doing this will remove the risk of accidentally saving your secrets to source control.
 
-### Task 17: Run generator
-
-In this exercise, we will explore the data generator project, **FleetDataGenerator**, update the application configuration, and run it in order to seed the metadata database with data and simulate a single vehicle.
-
-There are several tasks that the data generator performs, depending on the state of your environment. The first task is that the generator will create the Cosmos DB database and containers with the optimal configuration for this lab if these elements do not exist in your Cosmos DB account. When you run the generator in a few moments, this step will be skipped because you already created them at the beginning of the lab. The second task the generator performs is to seed your Cosmos DB `metadata` container with data if no data exists. This includes vehicle, consignment, package, and trip data. Before seeding the container with data, the generator temporarily increases the requested RU/s for the container to 50,000 for optimal data ingestion speed. After the seeding process completes, the RU/s are scaled back down to 15,000.
-
-After the generator ensures the metadata exists, it begins simulating the specified number of vehicles. You are prompted to enter a number between 1 and 5, simulating 1, 10, 50, 100, or the number of vehicles specified in your configuration settings, respectively. For each simulated vehicle, the following tasks take place:
-
-1. An IoT device is registered for the vehicle, using the IoT Hub connection string and setting the device ID to the vehicle's VIN. This returns a generated device key.
-2. A new simulated vehicle instance (`SimulatedVehicle`) is added to a collection of simulated vehicles, each acting as an AMQP device and assigned a Trip record to simulate the delivery of packages for a consignment. These vehicles are randomly selected to have their refrigeration units fail and, out of those, some will randomly fail immediately while the others fail gradually.
-3. The simulated vehicle creates its own AMQP device instance, connecting to IoT Hub with its unique device ID (VIN) and generated device key.
-4. The simulated vehicle asynchronously sends vehicle telemetry information through its connection to IoT Hub continuously until it either completes the trip by reaching the distance in miles established by the Trip record, or receiving a cancellation token.
+### Task 5: Run generator
 
 In this task, you will run the generator and have it generate events for 50 trucks. The reason we are generating events for so many vehicles is two-fold:
 
@@ -1281,7 +1481,211 @@ If the health checks fail for the Function Apps, the data generator will display
 
 ![The failed health checks are highlighted.](media/cmd-healthchecks-failed.png "Generator")
 
-### Task 18: Log in to Power BI online and create real-time dashboard
+### Task 6: View devices in IoT Hub
+
+The data generator registered and activated each simulated vehicle in IoT Hub as a device. In this task, you will open IoT Hub and view these registered devices.
+
+1. In the Azure portal (<https://portal.azure.com>), open the IoT Hub instance within your **cosmos-db-iot** resource group.
+
+    ![The IoT Hub resource is displayed in the resource group.](media/portal-resource-group-iot-hub.png "IoT Hub")
+
+2. Select **IoT devices** in the left-hand menu. You will see all 50 IoT devices listed in the IoT devices pane to the right, with the VIN specified as the device ID. When we simulate more vehicles, we will see additional IoT devices registered here.
+
+    ![The IoT devices pane is displayed.](media/iot-hub-iot-devices.png "IoT devices")
+
+## Exercise 5: Observe Change Feed using Azure Functions and App Insights
+
+In this exercise, we use the Live Metrics Stream feature of Application Insights to view the incoming requests, outgoing requests, overall health, allocated server information, and sample telemetry in near-real time. This will help you observe how your functions scale under load and allow you to spot any potential bottlenecks or problematic components, through a single interactive interface.
+
+[Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview), a feature of Azure Monitor, is an extensible Application Performance Management (APM) service for developers and DevOps professionals. Use it to monitor your live applications. It will automatically detect performance anomalies, and includes powerful analytics tools to help you diagnose issues and to understand what users actually do with your app. It's designed to help you continuously improve performance and usability. It works for apps on a wide variety of platforms including .NET, Node.js and Java EE, hosted on-premises, hybrid, or any public cloud. It integrates with your DevOps process, and has connection points to a variety of development tools. It can monitor and analyze telemetry from mobile apps by integrating with Visual Studio App Center.
+
+### Task 1: Open App Insights Live Metrics Stream
+
+1. In the Azure portal (<https://portal.azure.com>), open the Application Insights instance within your **cosmos-db-iot** resource group.
+
+    ![The App Insights resource is displayed in the resource group.](media/portal-resource-group-app-insights.png "Application Insights")
+
+2. Select **Live Metrics Stream** in the left-hand menu.
+
+    ![The Live Metrics Stream link is displayed in the left-hand menu.](media/app-insights-live-metrics-stream-link.png "Application Insights")
+
+3. Observe the metrics within the Live Metrics Stream as data flows through the system.
+
+    ![The Live Metrics Stream page is displayed.](media/app-insights-live-metrics-stream.png "Live Metrics Stream")
+
+    At the top of the page, you will see a server count. This shows how many instances of the Function Apps there are, and one server is allocated to the Web App. As the Function App server instances exceed computational, memory, or request duration thresholds, and as the IoT Hub and Change Feed queues grow and age, new instances are automatically allocated to scale out the Function Apps. You can view the server list at the bottom of the page. On the right-hand side you will see sample telemetry, including messages sent to the logger within the functions. Here we highlighted a message stating that the Cosmos DB Processing function is sending 100 Cosmos DB records to Event Hubs.
+
+    You will notice many dependency call failures (404). These can be safely ignored. They are caused by the Azure Storage binding for the **ColdStorage** function within the Cosmos DB Processing Function App. This binding checks if the file exists before writing to the specified container. Since we are writing new files, you will see a `404` message for every file that is written since it does not exist. Currently, the binding engine does not know the difference between "good" 404 messages such as these, and "bad" ones.
+
+## Exercise 6: Observe data using Cosmos DB Data Explorer and Web App
+
+The Cosmos DB Data Explorer is a web-based interface that allows you to view and manage the data stored in Cosmos DB. Alternately, you can use the [Azure Cosmos DB explorer](https://docs.microsoft.com/azure/cosmos-db/data-explorer) stand-alone interface to perform the same tasks.
+
+### Task 1: View data in Cosmos DB Data Explorer
+
+1. In the Azure portal (<https://portal.azure.com>), open the Cosmos DB instance within your **cosmos-db-iot** resource group.
+
+2. Select **Data Explorer** in the left-hand menu.
+
+3. Expand the **ContosoAuto** database, then expand the **metadata** container. Select **Items** to view a list of documents stored in the container. Select one of the items to view the data.
+
+    ![The data explorer is displayed with a selected item in the metadata container's items list.](media/cosmos-data-explorer-metadata-items.png "Data Explorer")
+
+4. Select the ellipses (...) to the right of the **metadata** container name, then select **New SQL Query**.
+
+    ![The New SQL Query menu item is highlighted.](media/cosmos-data-explorer-metadata-new-sql-query.png "New SQL Query")
+
+5. Replace the query with the following:
+
+    ```sql
+    SELECT * FROM c WHERE c.entityType = 'Vehicle'
+    ```
+
+6. Execute the query to view the first 100 vehicle records.
+
+    ![The query editor is displayed with the vehicle results.](media/cosmos-vehicle-query.png "Vehicle query")
+
+7. Update the query to find trip records where the trip is completed.
+
+    ```sql
+    SELECT * FROM c WHERE c.entityType = 'Trip' AND c.status = 'Completed'
+    ```
+
+    ![The query editor is displayed with the trip results.](media/cosmos-trip-completed-query.png "Trip query")
+
+    Please note, you may not have any trips that have completed yet. Try querying where the `status` = **Active** instead. Active trips are those that are currently running.
+
+    Here is an example completed trip record (several packages removed for brevity):
+
+    ```json
+    {
+        "partitionKey": "DK6JW0RNF0G9PO2FJ",
+        "id": "eb96c44e-4c1d-4f54-bdea-e7d2f927009c",
+        "entityType": "Trip",
+        "vin": "DK6JW0RNF0G9PO2FJ",
+        "consignmentId": "e1da2e74-bf37-4773-a5bf-483fc08533ac",
+        "plannedTripDistance": 18.33,
+        "location": "AR",
+        "odometerBegin": 106841,
+        "odometerEnd": 106859.36,
+        "temperatureSetting": 19,
+        "tripStarted": "2019-09-20T14:39:24.1855725Z",
+        "tripEnded": "2019-09-20T14:54:53.7558481Z",
+        "status": "Completed",
+        "timestamp": "0001-01-01T00:00:00",
+        "packages": [
+            {
+                "packageId": "a5651f48-67d5-4c1b-b7d9-80d678aabe9b",
+                "storageTemperature": 30,
+                "highValue": false
+            },
+            {
+                "packageId": "b2185628-eb0e-49b9-8b7d-685fcdcb5a36",
+                "storageTemperature": 22,
+                "highValue": false
+            },
+            {
+                "packageId": "25ac4bd1-5aad-4030-91f7-9539cc15b441",
+                "storageTemperature": 31,
+                "highValue": true
+            }
+        ],
+        "consignment": {
+            "consignmentId": "e1da2e74-bf37-4773-a5bf-483fc08533ac",
+            "customer": "Fabrikam, Inc.",
+            "deliveryDueDate": "2019-09-20T17:50:40.3291024Z"
+        },
+        "_rid": "hM5HAOavCggb5QAAAAAAAA==",
+        "_self": "dbs/hM5HAA==/colls/hM5HAOavCgg=/docs/hM5HAOavCggb5QAAAAAAAA==/",
+        "_etag": "\"2d0364cc-0000-0700-0000-5d84e83d0000\"",
+        "_attachments": "attachments/",
+        "_ts": 1568991293
+    }
+    ```
+
+    Portions of the package and consignment records are included since they are often used in trip queries and reports.
+
+### Task 2: Search and view data in Web App
+
+1. Navigate to your deployed Fleet Management web app. If you closed it earlier, you can find the deployment URL in the Overview blade of your Web App (**IoTWebApp**) in the portal.
+
+    ![The web app's URL is highlighted.](media/webapp-url.png "Web App overview")
+
+2. Select **Vehicles**. Here you will see the paging capabilities at work.
+
+    ![The vehicles page is displayed.](media/webapp-vehicles.png "Vehicles")
+
+3. Select one of the vehicles to view the details. On the right-hand side of the details page are the trips assigned to the vehicle. This view provides the customer name from the associated consignment record, aggregate information for the packages, and the trip details.
+
+    ![The vehicle details are displayed.](media/webapp-vehicle-details.png "Vehicle details")
+
+4. Go back to the vehicles list and enter a search term, such as **MT**. This will search both the state registered, and the VIN, including partial matches. Feel free to search for both states and VINs. In the screenshot below, we searched for `MT` and received results for Montana state registrations, and had a record where `MT` was included in the VIN.
+
+    ![The search results are displayed.](media/webapp-vehicle-search.png "Vehicle search")
+
+5. Select **Consignments** in the left-hand menu, then enter **alpine ski** in the search box and execute. You should see several consignments for the `Alpine Ski House` customer. You can also search by Consignment ID. In our results, one of the consignments has a status of Completed.
+
+    ![The search results are displayed.](media/webapp-consignments-search.png "Consignments")
+
+6. Select a consignment to view the details. The record shows the customer, delivery due date, status, and package details. The package statistics contains aggregates to calculate the total number of packages, the required storage temperature, based on the package with the lowest storage temperature setting, the total cubic feet and combined gross weight of the packages, and whether any of the packages are considered high value.
+
+    ![The consignment details page is displayed.](media/webapp-consignment-details.png "Consignment details")
+
+7. Select **Trips** in the left-hand menu. Use the filter at the top of the page to filter trips by status, such as Pending, Active, Delayed, and Completed. Trips are delayed if the status is not Completed prior to the delivery due date. You may not see any delayed at this point, but you may have some that become delayed when you re-run the data generator later. You can view the Vehicle or related Consignment record from this page.
+
+    ![The search results are displayed.](media/webapp-trips-search.png "Trips")
+
+## Exercise 7: Perform CRUD operations using the Web App
+
+In this exercise, you will insert, update, and delete a vehicle record.
+
+### Task 1: Create a new vehicle
+
+1. In the web app, navigate to the **Vehicles** page, then select **Create New Vehicle**.
+
+    ![The Create New Vehicle button is highlighted on the vehicles page.](media/webapp-vehicles-new-button.png "Vehicles")
+
+2. Complete the Create Vehicle form with the following VIN: **ISO4MF7SLBXYY9OZ3**. When finished filling out the form, select **Create**.
+
+    ![The Create Vehicle form is displayed.](media/webapp-create-vehicle.png "Create Vehicle")
+
+### Task 2: View and edit the vehicle
+
+1. Search for your new vehicle in the Vehicles page by pasting the VIN in the search box: **ISO4MF7SLBXYY9OZ3**.
+
+    ![The VIN is pasted in the search box and the vehicle result is displayed.](media/webapp-vehicles-search-vin.png "Vehicles")
+
+2. Select the vehicle in the search results. Select **Edit Vehicle** in the vehicle details page.
+
+    ![Details for the new vehicle are displayed and the edit vehicle button is highlighted.](media/webapp-vehicles-details-new.png "Vehicle details")
+
+3. Update the record by changing the state registered and any other field, then select **Update**.
+
+    ![The Edit Vehicle form is displayed.](media/webapp-vehicles-edit.png "Edit Vehicle")
+
+### Task 3: Delete the vehicle
+
+1. Search for your new vehicle in the Vehicles page by pasting the VIN in the search box: **ISO4MF7SLBXYY9OZ3**. You should see the registered state any any other fields you updated have changed.
+
+    ![The VIN is pasted in the search box and the vehicle result is displayed.](media/webapp-vehicles-search-vin-updated.png "Vehicles")
+
+2. Select the vehicle in the search results. Select **Delete** in the vehicle details page.
+
+    ![Details for the new vehicle are displayed and the delete button is highlighted.](media/webapp-vehiclde-details-updated.png "Vehicle details")
+
+3. In the Delete Vehicle confirmation page, select **Delete** to confirm.
+
+    ![The Delete Vehicle confirmation page is displayed.](media/webapp-vehicles-delete-confirmation.png "Delete Vehicle")
+
+4. Search for your new vehicle in the Vehicles page by pasting the VIN in the search box: **ISO4MF7SLBXYY9OZ3**. You should see that no vehicles are found.
+
+    ![The vehicle was not found.](media/webapp-vehicles-search-deleted.png "Vehicles")
+
+## Exercise 8: Create the Fleet status real-time dashboard in Power BI
+
+[Microsoft Power BI](https://powerbi.microsoft.com) is a business analytics service that provides interactive visualizations with self-service business intelligence capabilities, enabling end users to create reports and dashboards by themselves without having to depend on information technology staff or database administrators.
+
+> **Important**: If the data generator is no longer running or sending new telemetry, be sure to start it before continuing. Simulating 50 vehicles should suffice for this exercise.
 
 1. Browse to <https://powerbi.microsoft.com> and sign in with the same account you used when you created the Power BI output in Stream Analytics.
 
@@ -1304,6 +1708,8 @@ If the health checks fail for the Function Apps, the data generator will display
 6. Select your **Contoso Auto IoT Events** dataset, then select **Next**.
 
    ![The Contoso Auto IoT Events dataset is selected.](media/power-bi-dashboard-add-tile-dataset.png 'Your datasets')
+
+   > **Important**: If the **Contoso Auto IoT Events** data set does not appear, it is because there is a lag time of several minutes between when you first configure the Stream Analytics Power BI output and when data first appears in the streaming data set. Please ensure the data generator is running and that you have started the Stream Analytics query. Also, you may try restarting the Function App as well.
 
 7. Select the **Card** Visualization Type. Under fields, select **+ Add value**, then select **oilAnomaly** from the dropdown. Select **Next**.
 
