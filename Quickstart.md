@@ -53,6 +53,7 @@
     - [Task 2: View and edit the vehicle](#task-2-view-and-edit-the-vehicle)
     - [Task 3: Delete the vehicle](#task-3-delete-the-vehicle)
   - [Exercise 8: Create the Fleet status real-time dashboard in Power BI](#exercise-8-create-the-fleet-status-real-time-dashboard-in-power-bi)
+    - [Task 1: Launch Power BI online and create the dashboard](#task-1-launch-power-bi-online-and-create-the-dashboard)
   - [Exercise 9: Create the Trip/Consignment Status reports in Power BI](#exercise-9-create-the-tripconsignment-status-reports-in-power-bi)
     - [Task 1: Import report in Power BI Desktop](#task-1-import-report-in-power-bi-desktop)
     - [Task 2: Update report data sources](#task-2-update-report-data-sources)
@@ -1656,6 +1657,8 @@ In this exercise, you will insert, update, and delete a vehicle record.
 [Microsoft Power BI](https://powerbi.microsoft.com) is a business analytics service that provides interactive visualizations with self-service business intelligence capabilities, enabling end users to create reports and dashboards by themselves without having to depend on information technology staff or database administrators.
 
 > **Important**: If the data generator is no longer running or sending new telemetry, be sure to start it before continuing. Simulating 50 vehicles should suffice for this exercise.
+
+### Task 1: Launch Power BI online and create the dashboard
 
 1. Browse to <https://powerbi.microsoft.com> and sign in with the same account you used when you created the Power BI output in Stream Analytics.
 
