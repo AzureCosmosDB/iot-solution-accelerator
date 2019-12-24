@@ -948,7 +948,7 @@ This Function App provides initial stream processing from the IoT Hub instance a
 
 The Web App provides a web-based management interface for vehicle, package, trip, and consignment operational data for the sample scenario. You can adapt this web application as you deem necessary for your own scenario. This ASP.NET MVC Core web app demonstrates how to use the Cosmos DB SDK v3.0 to directly communicate with Cosmos DB, highlighting capabilities such as injecting the Cosmos DB client into controllers, performing CRUD operations against the database, and implementing paging of large data sets.
 
-1. Open **Startup.cs** within the **FleetManagementWebApp** project. Scroll down to the bottom of the file to find and complete **TODO 8** with the following code:
+1. Open **Startup.cs** within the **FleetManagementWebApp** project. Scroll down to the bottom of the file to find the following code:
 
     ```csharp
     CosmosClientBuilder clientBuilder = new CosmosClientBuilder(cosmosDbConnectionString.ServiceEndpoint.OriginalString, cosmosDbConnectionString.AuthKey);
