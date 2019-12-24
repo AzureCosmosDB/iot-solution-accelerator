@@ -1013,7 +1013,7 @@ The Web App provides a web-based management interface for vehicle, package, trip
     }
     ```
 
-    We are using dependency injection with this controller, just as we did with one of our Function Apps earlier. The `ICosmosDbService`, `IHttpClientFactory`, and `IConfiguration` services are injected into the controller through the controller's constructor. The `CosmosDbService` is the class whose code you updated in the previous step. The `CosmosClient` is injected into it through its constructor.
+    We are using dependency injection with this controller, just as we did with one of our Function Apps earlier. The `ICosmosDbService`, `IHttpClientFactory`, and `IConfiguration` services are injected into the controller through the controller's constructor. The `CosmosDbService` is the class whose code you reviewed in the previous step. The `CosmosClient` is injected into it through its constructor.
 
     The `Index` controller action method uses paging, which it implements by calling the `ICosmosDbService.GetItemsWithPagingAsync` method you updated in the previous step. Using this service in the controller helps abstract the Cosmos DB query implementation details and business rules from the code in the action methods, keeping the controller lightweight and the code in the service reusable across all the controllers.
 
@@ -1662,7 +1662,7 @@ In this exercise, you will insert, update, and delete a vehicle record.
 
 ## Exercise 8: Create the Fleet status real-time dashboard in Power BI
 
-[Microsoft Power BI](https://powerbi.microsoft.com) is a business analytics service that provides interactive visualizations with self-service business intelligence capabilities, enabling end users to create reports and dashboards by themselves without having to depend on information technology staff or database administrators.
+[Microsoft Power BI](https://powerbi.microsoft.com) is a business analytics service that provides interactive visualizations with self-service business intelligence capabilities, enabling end-users to create reports and dashboards by themselves without having to depend on information technology staff or database administrators.
 
 > **Important**: If the data generator is no longer running or sending new telemetry, be sure to start it before continuing. Simulating 50 vehicles should suffice for this exercise.
 
