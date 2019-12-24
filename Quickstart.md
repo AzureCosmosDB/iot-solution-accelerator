@@ -1123,7 +1123,7 @@ Azure Databricks has two types of secret scopes: Key Vault-backed and Databricks
 
    > Your account must have the Azure Databricks Premium Plan for you to be able to select Creator. This is the recommended approach: grant MANAGE permission to the Creator when you create the secret scope, and then assign more granular access permissions after you have tested the scope.
 
-7. Enter the **DNS Name** (for example, <https://iot-vault.vault.azure.net/>) and **Resource ID** you copied earlier during the Key Vault creation step, for example: `/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourcegroups/cosmos-db-iot/providers/Microsoft.KeyVault/vaults/iot-vault`.
+7. Enter the **DNS Name** (for example, <https://iot-vault.vault.azure.net/>) and **Resource ID** you copied in step 2 above, for example: `/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourcegroups/cosmos-db-iot/providers/Microsoft.KeyVault/vaults/iot-vault`.
 
    ![Create Secret Scope form](media/create-secret-scope.png 'Create Secret Scope')
 
@@ -1424,11 +1424,6 @@ In this task, you will run the generator and have it generate events for 50 truc
 
 - In the next exercise, we will observe the function triggers and event activities with Application Insights.
 - We need to have completed trips prior to performing batch predictions in a later exercise.
-
-In this task, you will run the generator and have it generate events for 50 trucks. The reason we are generating events for so many vehicles is two-fold:
-
-   - In the next exercise, we will observe the function triggers and event activities with Application Insights.
-   - We need to have completed trips prior to performing batch predictions in a later exercise.
 
 > **Warning**: You will receive a lot of emails when the generator starts sending vehicle telemetry. If you do not wish to receive emails, simply disable the Logic App you created.
 
