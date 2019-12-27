@@ -192,11 +192,12 @@ In this exercise, you will configure your environment so you can start sending a
 
 #### Deployment information: Cosmos DB
 
-Among the Azure resources the deployment script created, is a Cosmos DB database and three SQL-based containers:
+Among the Azure resources the deployment script created, is a Cosmos DB database and four SQL-based containers:
 
 - **telemetry**: Used for ingesting hot vehicle telemetry data with a 90-day lifespan (TTL).
 - **metadata**: Stores vehicle, consignment, package, trip, and aggregate event data.
 - **maintenance**: The batch battery failure predictions are stored here for reporting purposes.
+- **alerts**: Stores alert settings that control the types of alerts and frequency in which they are sent. Also stores a history document that keeps track of when summary alerts are sent.
 
 These containers are used for the demo solution used as a reference for this accelerator. In this document, as well as the [companion accelerator guide](Microsoft_Cosmos_DB_IoT_Solution_Accelerator.docx), we provide detailed information about design decisions and database configuration that you can use to adapt the solution to your scenario.
 
@@ -216,13 +217,13 @@ To view the Cosmos DB containers, perform the following steps:
 
    ![Data Explorer is selected and the ContosoAuto database is expanded.](media/cosmos-containers.png "Data Explorer")
 
-5. Expand the **maintenance** container in the Cosmos DB Data Explorer, then select **Scale & Settings**.
+5. Expand the **alerts** container in the Cosmos DB Data Explorer, then select **Scale & Settings**.
 
     ![The Scale & Settings blade for the maintenance container is displayed.](media/cosmos-scale-settings-maintenance.png "Scale & Settings")
 
-    The **Throughput** value for this container is set to **400** RU/s. This is the lowest setting for a container, which is sufficient for the throughput requirements for maintenance data due to low read and write usage.
+    The **Throughput** value for this container is set to **400** RU/s. This is the lowest setting for a container, which is sufficient for the throughput requirements for alert management-related data due to low read and write usage.
 
-    The **Partition Key** is set to **/vin** (VIN means *vehicle identification number*) so we can group maintenance data by vehicle, and because the `vin` field is used in most queries.
+    The **Partition Key** is set to **/id**. Having the partition key and ID share the same value allows us to perform rapid, low-cost point lookups of data, when coupled with the `ReadItemAsync` method on the `Container` object when using the [Cosmos DB SDK](https://github.com/Azure/azure-cosmos-dotnet-v3).
 
     The **Indexing Policy** is set to the default value, which automatically indexes all fields for each document stored in the container. This is because all paths are included (remember, since we are storing JSON documents, we use paths to identify the property since they can exist within child collections in the document) by setting the value of `includedPaths` to `"path": "/*"`, and the only excluded path is the internal `_etag` property, which is used for versioning the documents. The default Indexing Policy is:
 
@@ -243,7 +244,15 @@ To view the Cosmos DB containers, perform the following steps:
     }
     ```
 
-6. Expand the **metadata** container in the Cosmos DB Data Explorer, then select **Scale & Settings**.
+6. Expand the **maintenance** container in the Cosmos DB Data Explorer, then select **Scale & Settings**.
+
+    The **Throughput** value for this container is set to **400** RU/s, which is sufficient for the throughput requirements for maintenance data due to low read and write usage.
+
+    The **Partition Key** is set to **/vin** (VIN means *vehicle identification number*) so we can group maintenance data by vehicle, and because the `vin` field is used in most queries.
+
+    The **Indexing Policy** is set to the default value.
+
+7. Expand the **metadata** container in the Cosmos DB Data Explorer, then select **Scale & Settings**.
 
     The **Throughput** value for this container is set to **50000** RU/s. We are initially setting the throughput on this container to this high number of RU/s because the data generator will perform a bulk insert of metadata the first time it runs. After inserting the data, it will programmatically reduce the throughput to **15000**.
 
@@ -251,7 +260,7 @@ To view the Cosmos DB containers, perform the following steps:
 
     The **Indexing Policy** is set to the default value.
 
-7. Expand the **telemetry** container in the Cosmos DB Data Explorer, then select **Scale & Settings**.
+8. Expand the **telemetry** container in the Cosmos DB Data Explorer, then select **Scale & Settings**.
 
     The **Throughput** value for this container is set to **15000** RU/s, which is optimal for handling the rate of vehicle telemetry data written to this container.
 
@@ -307,7 +316,7 @@ Choosing an appropriate partition key for Cosmos DB is a critical step for ensur
 
 #### About the Cosmos DB indexing policies
 
-The default indexing policy for newly created containers indexes every property of every item, enforcing range indexes for any string or number, and spatial indexes for any GeoJSON object of type Point. This allows you to get high query performance without having to think about indexing and index management upfront. Since the `metadata` and `maintenance` containers have more read-heavy workloads than `telemetry`, it makes sense to use the default indexing policy where query performance is optimized. Since we need faster writes for `telemetry`, we exclude unused paths. The use of indexing paths can offer improved write performance and lower index storage for scenarios in which the query patterns are known beforehand, as indexing costs are directly correlated to the number of unique paths indexed.
+The default indexing policy for newly created containers indexes every property of every item, enforcing range indexes for any string or number, and spatial indexes for any GeoJSON object of type Point. This allows you to get high query performance without having to think about indexing and index management upfront. Since the `alerts`, `metadata`, and `maintenance` containers have more read-heavy workloads than `telemetry`, it makes sense to use the default indexing policy where query performance is optimized. Since we need faster writes for `telemetry`, we exclude unused paths. The use of indexing paths can offer improved write performance and lower index storage for scenarios in which the query patterns are known beforehand, as indexing costs are directly correlated to the number of unique paths indexed.
 
 The indexing mode for all three containers is set to **Consistent**. This means the index is updated synchronously as items are added, updated, or deleted, enforcing the consistency level configured for the account for read queries. The other indexing mode one could choose is None, which disables indexing on the container. Usually this mode is used when your container acts as a pure key-value store, and you do not need indexes for any of the other properties. It is possible to dynamically change the consistency mode prior to executing bulk operations, then changing the mode back to Consistent afterwards, if the potential performance increase warrants the temporary change.
 
