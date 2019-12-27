@@ -344,7 +344,7 @@ The logic app that is deployed in the solution accelerator sends email notificat
 
 To view the logic app, select **Logic app designer** in the left-hand menu. This will display the current workflow in the visual designer. There are currently four activities:
 
-1. **HTTP trigger**: This is the entry point for the logic app. When you post a request to the URL provided by this activity, the logic app is triggered and it receives a payload of data from the request body in JSON format. This is the shape of the JSON document that the Azure Function sends to the logic app through this HTTP trigger:
+1. **HTTP trigger**: This is the entry point for the logic app. When you post a request to the URL provided by this activity, the logic app is triggered, and it receives a payload of data from the request body in JSON format. This is the shape of the JSON document that the Azure Function sends to the logic app through this HTTP trigger:
 
     ```json
     {
