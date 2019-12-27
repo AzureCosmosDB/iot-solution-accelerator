@@ -423,24 +423,61 @@
                         }
                     },
                     "actions": {
-                        "Send_an_email": {
-                            "runAfter": {
+                        "Condition": {
+                            "actions": {
+                                "Send_an_alert_summary_email": {
+                                    "inputs": {
+                                        "body": {
+                                            "Body": "<p>Here is a summary of the status of your trips:<br>\n<br>\n<strong>Number of trips that started:</strong> <strong></strong><strong>@{triggerBody()?['tripsStarted']}</strong><strong></strong><br>\n<strong>Number of trips that ended:</strong> @{triggerBody()?['tripsCompleted']}<br>\n<strong>Delayed trips:</strong> @{triggerBody()?['tripsDelayed']}<br>\n<strong>Delayed vehicles (VINs)</strong>: @{triggerBody()?['delayedVINs']}<br>\n<br>\nRegards,<br>\nContoso Auto Bot</p>",
+                                            "Subject": "Contoso Auto trip status update (summary): @{triggerBody()?['status']}",
+                                            "To": "@triggerBody()?['recipientEmail']"
+                                        },
+                                        "host": {
+                                            "connection": {
+                                                "name": "@parameters('$connections')['office365']['connectionId']"
+                                            }
+                                        },
+                                        "method": "post",
+                                        "path": "/v2/Mail"
+                                    },
+                                    "runAfter": {},
+                                    "type": "ApiConnection"
+                                }
                             },
-                            "type": "ApiConnection",
-                            "inputs": {
-                                "body": {
-                                    "Body": "Here are the details of the trip and consignment:\n\nCONSIGNMENT INFORMATION:\n\nCustomer: @{triggerBody()?['customer']}\nDelivery Due Date: @{triggerBody()?['deliveryDueDate']}\nLocation: @{triggerBody()?['location']}\nStatus: @{triggerBody()?['status']}\n\nTRIP INFORMATION:\n\nTrip Start Time: @{triggerBody()?['tripStarted']} \nTrip End Time: @{triggerBody()?['tripEnded']} \nVehicle (VIN): @{triggerBody()?['vin']}\nPlanned Trip Distance: @{triggerBody()?['plannedTripDistance']}\nDistance Driven: @{triggerBody()?['distanceDriven']}\nStart Odometer Reading: @{triggerBody()?['odometerBegin']}\nEnd Odometer Reading: @{triggerBody()?['odometerEnd']}\n\nPACKAGE INFORMATION:\n\nHas High Value Packages: @{triggerBody()?['hasHighValuePackages']}\nLowest Package Storage Temp (F): @{triggerBody()?['lowestPackageStorageTemperature']}\nTrip Temp Setting (F): @{triggerBody()?['temperatureSetting']}\nLast Refrigeration Unit Temp Reading (F): @{triggerBody()?['lastRefrigerationUnitTemperatureReading']}\n\nREFERENCE INFORMATION:\n\nTrip ID: @{triggerBody()?['id']}\nConsignment ID: @{triggerBody()?['consignmentId']}\nVehicle VIN: @{triggerBody()?['vin']}\n\nRegards,\nContoso Auto Bot\n",
-                                    "Subject": "Contoso Auto trip status update: @{triggerBody()?['status']}",
-                                    "To": "@triggerBody()?['recipientEmail']"
-                                },
-                                "host": {
-                                    "connection": {
-                                        "name": "@parameters('$connections')['office365']['connectionId']"
+                            "else": {
+                                "actions": {
+                                    "Send_an_individual_alert_email": {
+                                        "inputs": {
+                                            "body": {
+                                                "Body": "<p>Here are the details of the trip and consignment:<br>\n<br>\n<u>CONSIGNMENT INFORMATION</u>:<br>\n<br>\n<strong>Customer:</strong> @{triggerBody()?['customer']}<br>\n<strong>Delivery Due Date:</strong> @{triggerBody()?['deliveryDueDate']}<br>\n<strong>Location:</strong> @{triggerBody()?['location']}<br>\n<strong>Status:</strong> @{triggerBody()?['status']}<br>\n<br>\n<u>TRIP INFORMATION</u>:<br>\n<br>\n<strong>Trip Start Time:</strong> @{triggerBody()?['tripStarted']}<br>\n<strong>Trip End Time:</strong> @{triggerBody()?['tripEnded']}<br>\n<strong>Vehicle (VIN):</strong> @{triggerBody()?['vin']}<br>\n<strong>Planned Trip Distance: </strong>@{triggerBody()?['plannedTripDistance']}<br>\n<strong>Distance Driven:</strong> @{triggerBody()?['distanceDriven']}<br>\n<strong>Start Odometer Reading:</strong> @{triggerBody()?['odometerBegin']}<br>\n<strong>End Odometer Reading:</strong> @{triggerBody()?['odometerEnd']}<br>\n<br>\n<u>PACKAGE INFORMATION</u>:<br>\n<br>\n<strong>Has High Value Packages:</strong> @{triggerBody()?['hasHighValuePackages']}<br>\n<strong>Lowest Package Storage Temp (F):</strong> @{triggerBody()?['lowestPackageStorageTemperature']}<br>\n<strong>Trip Temp Setting (F):</strong> @{triggerBody()?['temperatureSetting']}<br>\n<strong>Last Refrigeration Unit Temp Reading (F):</strong> @{triggerBody()?['lastRefrigerationUnitTemperatureReading']}<br>\n<br>\n<u>REFERENCE INFORMATION</u>:<br>\n<br>\n<strong>Trip ID:</strong> @{triggerBody()?['id']}<br>\n<strong>Consignment ID:</strong> @{triggerBody()?['consignmentId']}<br>\n<strong>Vehicle VIN:</strong> @{triggerBody()?['vin']}<br>\n<br>\nRegards,<br>\nContoso Auto Bot</p>",
+                                                "Subject": "Contoso Auto trip status update: @{triggerBody()?['status']}",
+                                                "To": "@triggerBody()?['recipientEmail']"
+                                            },
+                                            "host": {
+                                                "connection": {
+                                                    "name": "@parameters('$connections')['office365']['connectionId']"
+                                                }
+                                            },
+                                            "method": "post",
+                                            "path": "/v2/Mail"
+                                        },
+                                        "runAfter": {},
+                                        "type": "ApiConnection"
                                     }
-                                },
-                                "method": "post",
-                                "path": "/Mail"
-                            }
+                                }
+                            },
+                            "expression": {
+                                "and": [
+                                    {
+                                        "equals": [
+                                            "@triggerBody()?['isSummary']",
+                                            true
+                                        ]
+                                    }
+                                ]
+                            },
+                            "runAfter": {},
+                            "type": "If"
                         }
                     },
                     "outputs": {
