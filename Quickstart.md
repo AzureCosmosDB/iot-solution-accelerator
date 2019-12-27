@@ -342,7 +342,7 @@ The Azure Logic Apps service works as a powerful workflow orchestrator that nati
 
 The logic app that is deployed in the solution accelerator sends email notifications to recipients when certain event milestones occur, such as when a package delivery is running behind schedule, or when an oil pump encounters an anomaly.
 
-To view the logic app, select **Logic app designer** in the left-hand menu. This will display the current workflow in the visual designer. There are currently two activities:
+To view the logic app, select **Logic app designer** in the left-hand menu. This will display the current workflow in the visual designer. There are currently four activities:
 
 1. **HTTP trigger**: This is the entry point for the logic app. When you post a request to the URL provided by this activity, the logic app is triggered and it receives a payload of data from the request body in JSON format. This is the shape of the JSON document that the Azure Function sends to the logic app through this HTTP trigger:
 
@@ -353,6 +353,9 @@ To view the logic app, select **Logic app designer** in the left-hand menu. This
                 "type": "string"
             },
             "customer": {
+                "type": "string"
+            },
+            "delayedVINs": {
                 "type": "string"
             },
             "deliveryDueDate": {
@@ -366,6 +369,9 @@ To view the logic app, select **Logic app designer** in the left-hand menu. This
             },
             "id": {
                 "type": "string"
+            },
+            "isSummary": {
+                "type": "boolean"
             },
             "lastRefrigerationUnitTemperatureReading": {
                 "type": "integer"
@@ -400,6 +406,15 @@ To view the logic app, select **Logic app designer** in the left-hand menu. This
             "tripStarted": {
                 "type": "string"
             },
+            "tripsCompleted": {
+                "type": "integer"
+            },
+            "tripsDelayed": {
+                "type": "integer"
+            },
+            "tripsStarted": {
+                "type": "integer"
+            },
             "vin": {
                 "type": "string"
             }
@@ -410,11 +425,33 @@ To view the logic app, select **Logic app designer** in the left-hand menu. This
 
     Defining this payload allows subsequent activities to reference the fields to dynamically add the values, as you can see below.
 
-2. **Send an email**: This activity uses Office 365 to send an email to the defined email recipient (`recipientEmail` field). Office 365 is only one of many connections for sending emails. You can use Outlook, Gmail, SendGrid, and other email services. You can also use on of the [hundreds of service connectors](https://docs.microsoft.com/azure/connectors/apis-list) to send notifications or create multi-step workflows. Notice in the screenshot below that we are using dynamic field references in the email activity from the payload sent to the HTTP trigger:
+2. **Condition**: The Condition evaluates the `isSummary` value, which indicates whether the passed in alert is for a summary email (summary of alerts sent every x minutes) or an individual alert message. There are two paths, based on the value: **If true**, which contains an activity that sends the summary email, and **If false**, which contains an activity that sends the individual alert email.
+
+    ![The Condition within the logic app's designer is displayed.](media/logic-app-condition.png "Logic app condition")
+
+3. **Send an alert summary email**: This activity uses Office 365 to send an email to the defined email recipient (`recipientEmail` field). Office 365 is only one of many connections for sending emails. You can use Outlook, Gmail, SendGrid, and other email services. You can also use one of the [hundreds of service connectors](https://docs.microsoft.com/azure/connectors/apis-list) to send notifications or create multi-step workflows. Notice in the screenshot below that we are using dynamic field references in the email activity from the payload sent to the HTTP trigger:
+
+    ![The email activity within the logic app's designer is displayed.](media/logic-app-summary-email-activity.png "Logic app summary email activity")
+
+    You can use a dialog within the designer to add the dynamic fields from a list, or you can use a special dynamic field reference syntax (`@{source()?['field']}`) instead. When you paste the following into the email body, for instance, the dynamic fields will appear in the same way as in the screenshot above:
+
+    ```text
+    Here is a summary of the status of your trips:
+
+    Number of trips that started: @{triggerBody()?['tripsStarted']}
+    Number of trips that ended: @{triggerBody()?['tripsCompleted']}
+    Delayed trips: @{triggerBody()?['tripsDelayed']}
+    Delayed vehicles (VINs): @{triggerBody()?['delayedVINs']}
+
+    Regards,
+    Contoso Auto Bot
+    ```
+
+4. **Send an individual alert email**: This activity also uses Office 365 to send an email to the defined email recipient (`recipientEmail` field).
 
     ![The email activity within the logic app's designer is displayed.](media/logic-app-email-activity.png "Logic app email activity")
 
-    You can use a dialog within the designer to add the dynamic fields from a list, or you can use a special dynamic field reference syntax (`@{source()?['field']}`) instead. When you paste the following into the email body, for instance, the dynamic fields will appear in the same way as the screenshot above:
+    The email body is as follows:
 
     ```text
     Here are the details of the trip and consignment:
@@ -1401,10 +1438,22 @@ There is a lot of code within the data generator project, so we'll just touch on
         // Set initial performance to 400 RU/s due to light workloads.
         await _database.CreateContainerIfNotExistsAsync(maintenanceContainerDefinition, throughput: 400);
         #endregion
+
+        #region Alerts container
+        // Define a new container (collection).
+        var alertsContainerDefinition =
+            new ContainerProperties(id: AlertsContainerName, partitionKeyPath: $"/id")
+            {
+                IndexingPolicy = { IndexingMode = IndexingMode.Consistent }
+            };
+
+        // Set initial performance to 400 RU/s due to light workloads.
+        await _database.CreateContainerIfNotExistsAsync(alertsContainerDefinition, throughput: 400);
+        #endregion
     }
     ```
 
-    This method creates a Cosmos DB database if it does not already exist, otherwise it retrieves a reference to it (`await _cosmosDbClient.CreateDatabaseIfNotExistsAsync(DatabaseName);`). Then it creates `ContainerProperties` for the `telemetry`, `metadata`, and `maintenance` containers. The `ContainerProperties` object lets us specify the container's indexing policy. We use the default indexing policy for `metadata` and `maintenance` since they are read-heavy and benefit from a greater number of paths, but we exclude all paths in the `telemetry` index policy, and add paths only to those properties we need to query, due to the container's write-heavy workload. The `telemetry` container is assigned a throughput of 15,000 RU/s, 50,000 for `metadata` for the initial bulk import, then it is scaled down to 15,000, and 400 for `maintenance`.
+    This method creates a Cosmos DB database if it does not already exist, otherwise it retrieves a reference to it (`await _cosmosDbClient.CreateDatabaseIfNotExistsAsync(DatabaseName);`). Then it creates `ContainerProperties` for the `telemetry`, `metadata`, `maintenance`, and `alerts` containers. The `ContainerProperties` object lets us specify the container's indexing policy. We use the default indexing policy for `alerts`, `metadata`, and `maintenance` since they are read-heavy and benefit from a greater number of paths, but we exclude all paths in the `telemetry` index policy, and add paths only to those properties we need to query, due to the container's write-heavy workload. The `telemetry` container is assigned a throughput of 15,000 RU/s, 50,000 for `metadata` for the initial bulk import, then it is scaled down to 15,000, and 400 for `maintenance` and `alerts`.
 
 ### Task 4: Update application configuration
 
