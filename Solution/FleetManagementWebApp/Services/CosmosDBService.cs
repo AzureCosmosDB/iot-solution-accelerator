@@ -15,31 +15,56 @@ namespace FleetManagementWebApp.Services
 {
     public class CosmosDbService : ICosmosDbService
     {
-        private readonly Container _container;
+        private readonly Dictionary<string, Container> _containers = new Dictionary<string, Container>();
+        private readonly string _defaultContainerName;
 
+        /// <summary>
+        /// Creates a new Cosmos DB service reference to simplify working with the Cosmos DB SDK.
+        /// </summary>
+        /// <param name="dbClient">The CosmosClient object.</param>
+        /// <param name="databaseName">The name of the Cosmos DB database.</param>
+        /// <param name="containerNames">A collection of container names. The first container in
+        /// the list will be used as the default container within this service's methods if a
+        /// container name is not defined in the parameters.</param>
         public CosmosDbService(
             CosmosClient dbClient,
             string databaseName,
-            string containerName)
+            IEnumerable<string> containerNames)
         {
-            this._container = dbClient.GetContainer(databaseName, containerName);
+            var names = containerNames.ToList();
+            if (names.Any())
+            {
+                foreach (var containerName in names)
+                {
+                    _containers.Add(containerName, dbClient.GetContainer(databaseName, containerName));
+                }
+
+                _defaultContainerName = names[0];
+            }
+            else
+            {
+                throw new ArgumentNullException(nameof(containerNames), "You must specify at least one container name.");
+            }
         }
 
-        public async Task AddItemAsync<T>(T item, string partitionKey) where T : class
+        public async Task AddItemAsync<T>(T item, string partitionKey, string containerName = null) where T : class
         {
-            await this._container.CreateItemAsync<T>(item, new PartitionKey(partitionKey));
+            var container = GetContainerByName(containerName);
+            await container.CreateItemAsync<T>(item, new PartitionKey(partitionKey));
         }
 
-        public async Task DeleteItemAsync<T>(string id, string partitionKey) where T : class
+        public async Task DeleteItemAsync<T>(string id, string partitionKey, string containerName = null) where T : class
         {
-            await this._container.DeleteItemAsync<T>(id, new PartitionKey(partitionKey));
+            var container = GetContainerByName(containerName);
+            await container.DeleteItemAsync<T>(id, new PartitionKey(partitionKey));
         }
 
-        public async Task<T> GetItemAsync<T>(string id, string partitionKey) where T : class
+        public async Task<T> GetItemAsync<T>(string id, string partitionKey, string containerName = null) where T : class
         {
+            var container = GetContainerByName(containerName);
             try
             {
-                var response = await this._container.ReadItemAsync<T>(id, new PartitionKey(partitionKey));
+                var response = await container.ReadItemAsync<T>(id, new PartitionKey(partitionKey));
                 return response.Resource;
             }
             catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -48,9 +73,10 @@ namespace FleetManagementWebApp.Services
             }
         }
 
-        public async Task<IEnumerable<T>> GetItemsAsync<T>(string queryString, string partitionKey = null) where T : class
+        public async Task<IEnumerable<T>> GetItemsAsync<T>(string queryString, string partitionKey = null, string containerName = null) where T : class
         {
-            var query = this._container.GetItemQueryIterator<T>(new QueryDefinition(queryString),
+            var container = GetContainerByName(containerName);
+            var query = container.GetItemQueryIterator<T>(new QueryDefinition(queryString),
                 requestOptions: !string.IsNullOrWhiteSpace(partitionKey) ? new QueryRequestOptions { PartitionKey = new PartitionKey(partitionKey) } : null);
             var results = new List<T>();
             while (query.HasMoreResults)
@@ -63,9 +89,10 @@ namespace FleetManagementWebApp.Services
             return results;
         }
 
-        public async Task<IEnumerable<T>> GetItemsAsync<T>(QueryDefinition queryDefinition, string partitionKey = null) where T : class
+        public async Task<IEnumerable<T>> GetItemsAsync<T>(QueryDefinition queryDefinition, string partitionKey = null, string containerName = null) where T : class
         {
-            var query = this._container.GetItemQueryIterator<T>(queryDefinition,
+            var container = GetContainerByName(containerName);
+            var query = container.GetItemQueryIterator<T>(queryDefinition,
                 requestOptions: !string.IsNullOrWhiteSpace(partitionKey) ? new QueryRequestOptions { PartitionKey = new PartitionKey(partitionKey) } : null);
             var results = new List<T>();
             while (query.HasMoreResults)
@@ -78,10 +105,11 @@ namespace FleetManagementWebApp.Services
             return results;
         }
 
-        public async Task<IEnumerable<T>> GetItemsAsync<T>(Expression<Func<T, bool>> predicate, int? skip = null, int? take = null, string partitionKey = null) where T : class
+        public async Task<IEnumerable<T>> GetItemsAsync<T>(Expression<Func<T, bool>> predicate, int? skip = null, int? take = null, string partitionKey = null, string containerName = null) where T : class
         {
+            var container = GetContainerByName(containerName);
             FeedIterator<T> setIterator;
-            var query = this._container.GetItemLinqQueryable<T>(requestOptions: !string.IsNullOrWhiteSpace(partitionKey) ? new QueryRequestOptions { PartitionKey = new PartitionKey(partitionKey) } : null);
+            var query = container.GetItemLinqQueryable<T>(requestOptions: !string.IsNullOrWhiteSpace(partitionKey) ? new QueryRequestOptions { PartitionKey = new PartitionKey(partitionKey) } : null);
 
             // Implement paging:
             if (skip.HasValue && take.HasValue)
@@ -104,12 +132,13 @@ namespace FleetManagementWebApp.Services
             return results;
         }
 
-        public async Task<IPager<T>> GetItemsWithPagingAsync<T>(Expression<Func<T, bool>> predicate, int pageIndex, int pageSize, string partitionKey = null) where T : class
+        public async Task<IPager<T>> GetItemsWithPagingAsync<T>(Expression<Func<T, bool>> predicate, int pageIndex, int pageSize, string partitionKey = null, string containerName = null) where T : class
         {
+            var container = GetContainerByName(containerName);
             // Find the item index for the Skip command:
             var itemIndex = (pageIndex - 1) * pageSize;
 
-            var query = this._container.GetItemLinqQueryable<T>(requestOptions: !string.IsNullOrWhiteSpace(partitionKey) ? new QueryRequestOptions { PartitionKey = new PartitionKey(partitionKey) } : null);
+            var query = container.GetItemLinqQueryable<T>(requestOptions: !string.IsNullOrWhiteSpace(partitionKey) ? new QueryRequestOptions { PartitionKey = new PartitionKey(partitionKey) } : null);
 
             // Implement paging:
             var setIterator = query.Where(predicate).Skip(itemIndex).Take(pageSize).ToFeedIterator();
@@ -123,7 +152,7 @@ namespace FleetManagementWebApp.Services
             }
 
             // Get total item count from the database:
-            var count = this._container.GetItemLinqQueryable<T>(allowSynchronousQueryExecution: true, requestOptions: !string.IsNullOrWhiteSpace(partitionKey) ? new QueryRequestOptions { PartitionKey = new PartitionKey(partitionKey) } : null)
+            var count = container.GetItemLinqQueryable<T>(allowSynchronousQueryExecution: true, requestOptions: !string.IsNullOrWhiteSpace(partitionKey) ? new QueryRequestOptions { PartitionKey = new PartitionKey(partitionKey) } : null)
                 .Where(predicate).Count();
 
             var results = list.ToPagerList();
@@ -134,9 +163,21 @@ namespace FleetManagementWebApp.Services
             return results;
         }
 
-        public async Task UpdateItemAsync<T>(T item, string partitionKey) where T : class
+        public async Task UpdateItemAsync<T>(T item, string partitionKey, string containerName = null) where T : class
         {
-            await this._container.UpsertItemAsync<T>(item, new PartitionKey(partitionKey));
+            var container = GetContainerByName(containerName);
+            await container.UpsertItemAsync<T>(item, new PartitionKey(partitionKey));
+        }
+
+        /// <summary>
+        /// Retrieves a Cosmos DB Container from the <see cref="_containers"/> collection by container name.
+        /// If the container name is not specified, the default container is retrieved.
+        /// </summary>
+        /// <param name="containerName">The name of the container to retrieve.</param>
+        /// <returns></returns>
+        private Container GetContainerByName(string containerName)
+        {
+            return string.IsNullOrWhiteSpace(containerName) ? _containers[_defaultContainerName] : _containers[containerName];
         }
     }
 }

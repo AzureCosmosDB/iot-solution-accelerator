@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Authorization;
 using System.Linq;
 using System.Threading.Tasks;
 using CosmosDbIoTScenario.Common;
@@ -10,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FleetManagementWebApp.Controllers
 {
+    [Authorize]
     public class ConsignmentsController : Controller
     {
         private readonly ICosmosDbService _cosmosDbService;

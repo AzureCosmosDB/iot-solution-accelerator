@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Net.Http.Headers;
 using System.Text;
 using CosmosDbIoTScenario.Common;
+using Functions.CosmosDB.Helpers;
 using Microsoft.Azure.Cosmos.Fluent;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
@@ -60,6 +62,12 @@ namespace Functions.CosmosDB
                 return configurationBuilder
                     .Build();
             });
+
+            // Create Azure Storage queue client reference and create any queues that do not yet exist, through the
+            // CreateKnownAzureQueues method.
+            builder.Services.Configure<AzureStorageSettings>(configuration);
+            StorageQueuesHelper.CreateKnownAzureQueues(configuration["ColdStorageAccount"]);
+            builder.Services.AddTransient<IQueueResolver, QueueResolver>();
         }
     }
 }

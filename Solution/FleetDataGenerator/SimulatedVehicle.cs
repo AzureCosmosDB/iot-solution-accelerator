@@ -10,6 +10,7 @@ using CosmosDbIoTScenario.Common.Models;
 using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.EventHubs;
 using Newtonsoft.Json;
+using TransportType = Microsoft.Azure.Devices.Client.TransportType;
 
 namespace FleetDataGenerator
 {

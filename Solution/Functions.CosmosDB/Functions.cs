@@ -24,12 +24,18 @@ namespace Functions.CosmosDB
     public class Functions
     {
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IQueueResolver _queueResolver;
         private readonly CosmosClient _cosmosClient;
 
-        // Use Dependency Injection to inject the HttpClientFactory service and Cosmos DB client that were configured in Startup.cs.
-        public Functions(IHttpClientFactory httpClientFactory, CosmosClient cosmosClient)
+        private const string Database = "ContosoAuto";
+        private const string MetadataContainerName = "metadata";
+        private const string AlertsContainerName = "alerts";
+
+        // Use Dependency Injection to inject the HttpClientFactory service, Azure Storage queue resolver, and Cosmos DB client that were configured in Startup.cs.
+        public Functions(IHttpClientFactory httpClientFactory, IQueueResolver queueResolver, CosmosClient cosmosClient)
         {
             _httpClientFactory = httpClientFactory;
+            _queueResolver = queueResolver;
             _cosmosClient = cosmosClient;
         }
 
@@ -48,9 +54,6 @@ namespace Functions.CosmosDB
 
             // Retrieve the Trip records by VIN, compare the odometer reading to the starting odometer reading to calculate miles driven,
             // and update the Trip and Consignment status and send an alert if needed once completed.
-            const string database = "ContosoAuto";
-            const string metadataContainer = "metadata";
-
             if (vehicleEvents.Count > 0)
             {
                 foreach (var group in vehicleEvents.GroupBy(singleEvent => singleEvent.GetPropertyValue<string>("vin")))
@@ -61,10 +64,12 @@ namespace Functions.CosmosDB
                         group.Average(item => item.GetPropertyValue<double>("refrigerationUnitTemp"));
 
                     // First, retrieve the metadata Cosmos DB container reference:
-                    var container = _cosmosClient.GetContainer(database, metadataContainer);
+                    var metadataContainer = _cosmosClient.GetContainer(Database, MetadataContainerName);
+                    // Next, retrieve the alerts Cosmos DB container reference. This is used to retrieve alert settings and keep track of when batch messages are sent.
+                    var alertsContainer = _cosmosClient.GetContainer(Database, AlertsContainerName);
 
                     // Create a query, defining the partition key so we don't execute a fan-out query (saving RUs), where the entity type is a Trip and the status is not Completed, Canceled, or Inactive.
-                    var query = container.GetItemLinqQueryable<Trip>(requestOptions: new QueryRequestOptions { PartitionKey = new Microsoft.Azure.Cosmos.PartitionKey(vin) })
+                    var query = metadataContainer.GetItemLinqQueryable<Trip>(requestOptions: new QueryRequestOptions { PartitionKey = new Microsoft.Azure.Cosmos.PartitionKey(vin) })
                         .Where(p => p.status != WellKnown.Status.Completed
                                     && p.status != WellKnown.Status.Canceled
                                     && p.status != WellKnown.Status.Inactive
@@ -78,7 +83,7 @@ namespace Functions.CosmosDB
                         
                         if (trip != null)
                         {
-                            var tripHelper = new TripHelper(trip, container, _httpClientFactory);
+                            var tripHelper = new TripHelper(trip, metadataContainer, alertsContainer, _httpClientFactory, _queueResolver, log);
 
                             var sendTripAlert = await tripHelper.UpdateTripProgress(odometerHigh);
 
@@ -187,6 +192,18 @@ namespace Functions.CosmosDB
             }
 
             return new OkObjectResult($"The service contains expected application settings");
+        }
+
+        [FunctionName("SendQueuedAlerts")]
+        public async Task SendQueuedAlerts([TimerTrigger("0 */5 * * * *")]TimerInfo myTimer, ILogger log)
+        {
+            log.LogInformation($"SendQueuedAlerts timer executed at: {DateTime.Now}");
+
+            // Retrieve the alerts Cosmos DB container reference. This is used to retrieve alert settings and keep track of when batch messages are sent.
+            var alertsContainer = _cosmosClient.GetContainer(Database, AlertsContainerName);
+
+            var tripHelper = new TripHelper(null, null, alertsContainer, _httpClientFactory, _queueResolver, log);
+            await tripHelper.SendAlertSummary();
         }
     }
 }

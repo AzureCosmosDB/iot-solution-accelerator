@@ -1,0 +1,27 @@
+﻿@using System.Security.Principal
+@using Microsoft.Identity.Web
+
+    <div class="user-panel">
+        @if (User.Identity.IsAuthenticated)
+        {
+            <div class="pull-left image">
+                <img src="~/dist/img/defaultuser-160x160.jpg" class="img-circle" alt="User Image">
+            </div>
+            <div class="pull-left info">
+                <p>@User.Identity.Name</p>
+                <!-- Status -->
+                <a href="#"><i class="fa fa-circle text-success"></i> Online</a>
+            </div>
+        }
+        else
+        {
+            <div class="pull-left image">
+                <img src="~/dist/img/defaultuser-160x160-offline.jpg" class="img-circle" alt="User Image">
+            </div>
+            <div class="pull-left info">
+                <p>Signed out</p>
+                <!-- Status -->
+                <a href="#"><i class="fa fa-circle text-danger"></i> Offline</a>
+            </div>
+        }
+    </div>

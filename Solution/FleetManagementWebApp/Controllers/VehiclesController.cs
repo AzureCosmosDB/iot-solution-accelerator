@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Authorization;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -17,6 +18,7 @@ using Newtonsoft.Json;
 
 namespace FleetManagementWebApp.Controllers
 {
+    [Authorize]
     public class VehiclesController : Controller
     {
         private readonly ICosmosDbService _cosmosDbService;
@@ -47,7 +49,7 @@ namespace FleetManagementWebApp.Controllers
                          (string.IsNullOrWhiteSpace(search) ||
                          (x.vin.ToLower().Contains(search.ToLower()) || x.stateVehicleRegistered.ToLower() == search.ToLower())), page, 10)
             };
-
+            
             return View(vm);
         }
 
@@ -238,7 +240,7 @@ namespace FleetManagementWebApp.Controllers
                 new StringContent(postBody, Encoding.UTF8, "application/json"));
             httpResponse.EnsureSuccessStatusCode();
 
-            var result = BatteryPredictionResult.FromJson(await httpResponse.Content.ReadAsAsync<string>());
+            var result = BatteryPredictionResult.FromJson(await httpResponse.Content.ReadAsStringAsync());
 
             // The results return in an array of doubles. We only expect a single result for this prediction.
             var predictedDailyCyclesUsed = result.Result[0];

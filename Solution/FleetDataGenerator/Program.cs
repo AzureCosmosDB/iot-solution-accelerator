@@ -31,6 +31,7 @@ namespace FleetDataGenerator
         private const string TelemetryContainerName = "telemetry";
         private const string MetadataContainerName = "metadata";
         private const string MaintenanceContainerName = "maintenance";
+        private const string AlertsContainerName = "alerts";
         private const string PartitionKey = "partitionKey";
 
         private static readonly object LockObject = new object();
@@ -430,6 +431,18 @@ namespace FleetDataGenerator
 
             // Set initial performance to 400 RU/s due to light workloads.
             await _database.CreateContainerIfNotExistsAsync(maintenanceContainerDefinition, throughput: 400);
+            #endregion
+
+            #region Alerts container
+            // Define a new container (collection).
+            var alertsContainerDefinition =
+                new ContainerProperties(id: AlertsContainerName, partitionKeyPath: $"/id")
+                {
+                    IndexingPolicy = { IndexingMode = IndexingMode.Consistent }
+                };
+
+            // Set initial performance to 400 RU/s due to light workloads.
+            await _database.CreateContainerIfNotExistsAsync(alertsContainerDefinition, throughput: 400);
             #endregion
         }
 

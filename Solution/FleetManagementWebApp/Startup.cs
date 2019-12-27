@@ -10,10 +10,13 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Fluent;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Identity.Web;
+using Microsoft.AspNetCore.Authorization;
 using Polly;
 
 namespace FleetManagementWebApp
@@ -37,7 +40,18 @@ namespace FleetManagementWebApp
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            // Sign-in users with the Microsoft identity platform
+            services.AddMicrosoftIdentityPlatformAuthentication(Configuration);
+            services.AddControllersWithViews(options =>
+            {
+                var policy = new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .Build();
+                options.Filters.Add(new AuthorizeFilter(policy));
+            });
+
+            services.AddMvc(o => o.EnableEndpointRouting = false).SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
+
             services.AddSingleton<ICosmosDbService>(InitializeCosmosClientInstance(Configuration));
 
             // Inject the HttpClientFactory and set a default resilience policy with an exponential back-off using Polly, in case of failures reaching the service.
@@ -68,6 +82,9 @@ namespace FleetManagementWebApp
             app.UseStaticFiles();
             app.UseCookiePolicy();
 
+            app.UseAuthentication();
+            app.UseAuthorization();
+
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
@@ -84,13 +101,19 @@ namespace FleetManagementWebApp
         {
             var databaseName = configuration["DatabaseName"];
             var containerName = configuration["ContainerName"];
+            var alertsContainerName = configuration["AlertsContainerName"];
             var connectionString = configuration["CosmosDBConnection"];
             var cosmosDbConnectionString = new CosmosDbConnectionString(connectionString);
+
+            // Define the container name collection. The first container name listed is the default container
+            // the Cosmos DB service class uses if no container name is provided within its methods.
+            var containerNames = new List<string> { containerName, alertsContainerName };
+
             CosmosClientBuilder clientBuilder = new CosmosClientBuilder(cosmosDbConnectionString.ServiceEndpoint.OriginalString, cosmosDbConnectionString.AuthKey);
             CosmosClient client = clientBuilder
                 .WithConnectionModeDirect()
                 .Build();
-            CosmosDbService cosmosDbService = new CosmosDbService(client, databaseName, containerName);
+            CosmosDbService cosmosDbService = new CosmosDbService(client, databaseName, containerNames);
 
             return cosmosDbService;
         }

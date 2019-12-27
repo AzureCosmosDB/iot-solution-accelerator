@@ -1,5 +1,6 @@
 {
   "id": "b1aea167-bb94-472e-86c3-80077794798d",
+  "isSummary": false,
   "vin": "4GGHJBM0ZFJ7IGZQH",
   "consignmentId": "dbac93ef-770f-4205-bb5c-6fe6bd65992b",
   "plannedTripDistance": 31.58,
@@ -16,5 +17,9 @@
   "lastRefrigerationUnitTemperatureReading": 19,
   "customer": "Fincher Architects",
   "deliveryDueDate": "2019-09-07T09:36:40.460679Z",
-  "recipientEmail": "brian.stitt@contosoauto.com"
+  "recipientEmail": "brian.stitt@contosoauto.com",
+  "tripsStarted": 0,
+  "tripsCompleted": 2,
+  "tripsDelayed": 3,
+  "delayedVINs": "ABC123, DEF456, GHI789"
 }

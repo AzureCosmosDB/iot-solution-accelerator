@@ -11,6 +11,9 @@ namespace CosmosDbIoTScenario.Common.Models.Alerts
     public class LogicAppAlert
     {
         public string id { get; set; }
+        // Set to true if this is a summary alert. The Logic App will send the alert
+        // in the correct format, based on this value.
+        [JsonProperty] public bool isSummary { get; set; }
         [JsonProperty] public string vin { get; set; }
         [JsonProperty] public string consignmentId { get; set; }
         [JsonProperty] public double plannedTripDistance { get; set; }
@@ -27,5 +30,12 @@ namespace CosmosDbIoTScenario.Common.Models.Alerts
         [JsonProperty] public string customer { get; set; }
         [JsonProperty] public DateTime deliveryDueDate { get; set; }
         [JsonProperty] public string recipientEmail { get; set; }
+
+        // Summary fields used when isSummary is set to true:
+
+        [JsonProperty] public int tripsStarted { get; set; }
+        [JsonProperty] public int tripsCompleted { get; set; }
+        [JsonProperty] public int tripsDelayed { get; set; }
+        [JsonProperty] public string delayedVINs { get; set; }
     }
 }
