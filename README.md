@@ -261,6 +261,7 @@ The sample devices and data provided in this solution accelerator are based on f
 3. [Azure CLI](https://docs.microsoft.com/cli/azure/install-azure-cli?view=azure-cli-latest) - version 2.0.68 or later
 4. Install [Visual Studio 2019 Community](https://visualstudio.microsoft.com/vs/) (v16.4) or greater
 5. Install [.NET Core SDK 2.2](https://dotnet.microsoft.com/download/dotnet-core/2.2) and [.NET Core SDK 3.1](https://dotnet.microsoft.com/download/dotnet-core/3.1) or greater
+6. Optional: [Windows PowerShell](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-windows-powershell) (PowerShell Core will not work with the Azure AD scripts at this time)
 
 ## References
 

@@ -29,7 +29,16 @@
       - [Cosmos DB Processing Function App code walk-through](#cosmos-db-processing-function-app-code-walk-through)
     - [Task 2: Deploy Stream Processing Function App](#task-2-deploy-stream-processing-function-app)
       - [Stream Processing Function App code walk-through](#stream-processing-function-app-code-walk-through)
-    - [Task 3: Deploy Web App](#task-3-deploy-web-app)
+    - [Task 3: Configure Azure Active Directory application for the Web App](#task-3-configure-azure-active-directory-application-for-the-web-app)
+      - [(Optionally) Install AzureAD PowerShell modules](#optionally-install-azuread-powershell-modules)
+      - [Open PowerShell and navigate to the scripts directory](#open-powershell-and-navigate-to-the-scripts-directory)
+      - [Option 1 (interactive)](#option-1-interactive)
+      - [Option 2 (interactive with specified tenant)](#option-2-interactive-with-specified-tenant)
+      - [Option 3 (manual steps)](#option-3-manual-steps)
+        - [Choose the Azure AD tenant where you want to create your applications](#choose-the-azure-ad-tenant-where-you-want-to-create-your-applications)
+        - [Register the webApp app (IoTSolutionAcceleratorWebApp)](#register-the-webapp-app-iotsolutionacceleratorwebapp)
+    - [Task 4: Deploy Web App](#task-4-deploy-web-app)
+    - [Task 5: Add new redirect URIs to the Azure AD application](#task-5-add-new-redirect-uris-to-the-azure-ad-application)
       - [Web App code walk-through](#web-app-code-walk-through)
   - [Exercise 3: Configuring Azure Databricks](#exercise-3-configuring-azure-databricks)
     - [Task 1: Create Azure Databricks cluster](#task-1-create-azure-databricks-cluster)
@@ -139,6 +148,7 @@ Below is a diagram of the solution architecture you will build in this guide. Pl
 3. [Azure CLI](https://docs.microsoft.com/cli/azure/install-azure-cli?view=azure-cli-latest) - version 2.0.68 or later
 4. Install [Visual Studio 2019 Community](https://visualstudio.microsoft.com/vs/) (v16.4) or greater
 5. Install [.NET Core SDK 2.2](https://dotnet.microsoft.com/download/dotnet-core/2.2) and [.NET Core SDK 3.1](https://dotnet.microsoft.com/download/dotnet-core/3.1) or greater
+6. Optional: [Windows PowerShell](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-windows-powershell) (PowerShell Core will not work with the Azure AD scripts at this time)
 
 ### Task 0: Download the starter files
 
@@ -662,6 +672,7 @@ Now let's introduce the Function Apps and Web App and how they contribute to the
   - **ColdStorage**: This function connects to the Azure Storage account (`ColdStorageAccount`) and writes the raw vehicle telemetry data for cold storage in the following time-sliced path format: `telemetry/custom/scenario1/yyyy/MM/dd/HH/mm/ss-fffffff.json`.
   - **SendToEventHubsForReporting**: This function simply sends the vehicle telemetry data straight to Event Hubs, allowing Stream Analytics to apply windowed aggregates and save those aggregates in batches to Power BI and to the Cosmos DB `metadata` container.
   - **HealthCheck**: As with the function of the same name within the Stream Processing Function App, this function has an Http trigger that enables users to verify that the Function App is up and running, and that each configuration setting exists and has a value. The data generator calls this function before running.
+  - **SendQueuedAlerts**: This function executes on a regular 5-minute interval via its `TimerTrigger`. It uses the `TripHelper` to determine whether to send a summary alert, based on the user settings and the number of alerts in the Azure Storage queue, if applicable.
 
   ![The Trip Processing function is shown.](media/solution-architecture-function2.png 'Solution architecture')
 
@@ -684,6 +695,7 @@ In this task, you will open the Visual Studio solution for this lab. It contains
     3. **CosmosDbIoTScenario.Common**: Contains entity models, extensions, and helpers used by the other projects.
     4. **FleetDataGenerator**: The data generator seeds the Cosmos DB `metadata` container with data and simulates vehicles, connects them to IoT Hub, then sends generated telemetry data.
     5. **FleetManagementWebApp**: Project for the **IoTWebApp** Web App.
+    6. **Microsoft.Identity.Web**: Helper library that simplifies working with Microsoft Identity within the ASP.NET MVC Core web app (`IoTWebApp`).
 
     ![The Visual Studio Solution Explorer is displayed.](media/vs-solution-explorer.png "Solution Explorer")
 
@@ -956,7 +968,128 @@ This Function App provides initial stream processing from the IoT Hub instance a
 
     When we asynchronously add the class to the `vehicleTelemetryOut` collection, the Cosmos DB output binding on the function automatically handles writing the data to the defined Cosmos DB database and container, managing the implementation details for us.
 
-### Task 3: Deploy Web App
+### Task 3: Configure Azure Active Directory application for the Web App
+
+The web app uses Azure Active Directory (Azure AD) for user authentication. Before deploying the web app, we need to register a new app in Azure AD and add the domain, tenant, and app's client ID to the web app's settings. There are two options to do this. If you have Windows PowerShell (only available on Windows machines), you can run a script to automate these steps. Otherwise, you can follow the manual configuration steps.
+
+#### (Optionally) Install AzureAD PowerShell modules
+
+The scripts install the required PowerShell module (AzureAD) for the current user if needed. However, if you want to install if for all users on the machine, you can follow the following steps:
+
+1. If you have not done so already, in the PowerShell window, install the AzureAD PowerShell modules. For this:
+
+   1. Open PowerShell as an admin (On Windows, Search Powershell in the search bar, right click on it and select Run as administrator).
+   2. Type:
+
+      ```PowerShell
+      Install-Module AzureAD
+      ```
+
+      Or if you cannot be an administrator on your machine, run:
+
+      ```PowerShell
+      Install-Module AzureAD -Scope CurrentUser
+      ```
+
+2. Close the PowerShell window. You will need to re-open it to gain access to the new modules.
+
+#### Open PowerShell and navigate to the scripts directory
+
+1. Open PowerShell (On Windows, press  `Windows-R` and type `PowerShell` in the search window)
+
+2. Navigate to the location you extracted the solution ZIP file, as instructed at the beginning of this Quickstart guide. You need to navigate to the **AppCreationScripts** sub-folder of the **FleetManagementWebApp** directory within the `Solution` folder. If you extracted the ZIP file directly to `C:\`, you need to open the following folder: `C:\cosmos-db-iot-solution-accelerator-master\Solution\FleetManagementWebApp\AppCreationScripts`.
+
+3. Until you change it, the default [Execution Policy](https:/go.microsoft.com/fwlink/?LinkID=135170) for scripts is usually `Restricted`. In order to run the PowerShell script you need to set the Execution Policy to `RemoteSigned`. You can set this just for the current PowerShell process by running the command:
+
+    ```PowerShell
+    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
+    ```
+
+#### Option 1 (interactive)
+
+- Just run `. .\Configure.ps1`, and you will be prompted to sign-in (email address, password, and if needed MFA).
+- The script will be run as the signed-in user and will use the tenant in which the user is defined.
+
+> Note that the script will choose the tenant in which to create the applications, based on the user. Also to run the `Cleanup.ps1` script, you will need to re-sign-in.
+
+#### Option 2 (interactive with specified tenant)
+
+If you have more than one Azure tenant associated with your account, perform the following steps to define the tenant prior to running the scripts:
+
+- Open the [Azure portal](https://portal.azure.com).
+- Select the Azure Active Directory you are interested in (in the combo-box below your name on the top right of the browser window).
+- Find the "Active Directory" object in this tenant, found in the portal's left-hand menu.
+- Go to **Properties** and copy the content of the **Directory Id** property.
+- Then use the full syntax to run the scripts:
+
+```PowerShell
+$tenantId = "yourTenantIdGuid"
+. .\Cleanup.ps1 -TenantId $tenantId
+. .\Configure.ps1 -TenantId $tenantId
+```
+
+The `Configure.ps1` script will create the Azure AD application and update the web app's `appsettings.json` file with the details of the new application.
+
+#### Option 3 (manual steps)
+
+If you cannot run the PowerShell scripts, complete the following steps to manually configure Azure AD:
+
+##### Choose the Azure AD tenant where you want to create your applications
+
+As a first step you'll need to:
+
+1. Sign in to the [Azure portal](https://portal.azure.com) using either a work or school account or a personal Microsoft account.
+1. If your account is present in more than one Azure AD tenant, select your profile at the top right corner in the menu on top of the page, and then **switch directory**.
+   Change your portal session to the desired Azure AD tenant.
+
+##### Register the webApp app (IoTSolutionAcceleratorWebApp)
+
+1. Navigate to the Microsoft identity platform for developers [App registrations](https://go.microsoft.com/fwlink/?linkid=2083908) page.
+1. Select **New registration**.
+1. When the **Register an application page** appears, enter your application's registration information:
+   - In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `IoTSolutionAcceleratorWebApp`.
+   - In the **Supported account types** section, select **Accounts in this organizational directory only ({tenant name})**.
+
+     <details open=true>
+     <summary>Expand/collapse screenshot</summary>
+
+       ![Register an application](media/aad-register-app.png "Register an application")
+
+     </details>
+
+     > Note that there are more than one redirect URIs. You'll need to add them from the **Authentication** tab later after the app has been created successfully.
+     
+2. Select **Register** to create the application.
+3. On the app **Overview** page, find the **Application (client) ID** value and record it for later. You'll need it to configure the Visual Studio configuration file for this project.
+   
+   <details open=true>
+   <summary>Expand/collapse screenshot</summary>
+
+     ![Overview blade](media/aad-application-overview.png "Overview blade")
+
+   </details>
+
+4. In the list of pages for the app, select **Authentication**..
+   - In the Redirect URIs section, select **Web** in the combo-box and enter the following redirect URIs.
+       - `https://localhost:44321/`
+       - `https://localhost:44321/signin-oidc`
+   - In the **Advanced settings** section set **Logout URL** to `https://localhost:44321/signout-oidc`
+   - In the **Advanced settings** | **Implicit grant** section, check **ID tokens** as this sample requires
+     the [Implicit grant flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-implicit-grant-flow) to be enabled to
+     sign-in the user.
+     
+     <details open=true>
+     <summary>Expand/collapse screenshot</summary>
+
+       ![Authentication blade](media/aad-authentication-initial.png "Authentication blade")
+
+     </details>
+
+1. Select **Save**.
+
+> Note that unless the Web App calls a Web API, no certificate or secret is needed.
+
+### Task 4: Deploy Web App
 
 1. In the Visual Studio Solution Explorer, right-click on the **FleetManagementWebApp** project, then select **Publish...**.
 
@@ -988,6 +1121,32 @@ This Function App provides initial stream processing from the IoT Hub instance a
 ![The application setting shows the Key Vault reference details underneath.](media/webapp-app-setting-key-vault-reference.png "Key Vault reference details")
 
 > If you see an error in the Key Vault Reference Details, go to Key Vault and delete the access policy for the web app's system identity. Then go back to the web app, turn off the System Identity, turn it back on (which creates a new one), then re-add it to Key Vault's access policies.
+
+### Task 5: Add new redirect URIs to the Azure AD application
+
+Now that you have deployed the web app, we need to add the redirect URIs in the Azure AD application's Authentication settings. This will allow the web application to successfully incorporate user authentication.
+
+1. Copy the web app's URL you obtained in the previous task. If you cannot find this value, navigate to the web app in the Azure portal, located within the resource group, then copy the URL on the Overview blade.
+
+    ![The URL is highlighted on the Overview blade.](media/web-app-overview-url.png "Overview")
+
+2. Navigate to Azure Active Directory in the Azure portal, then select **App registrations** on the left-hand menu.
+
+    ![The app registrations link is highlighted.](media/aad-app-registrations-link.png "App registrations")
+
+3. Locate and select the **IoTSolutionAcceleratorWebApp** app registration.
+
+    ![The app registration is highlighted.](media/aad-app-registrations.png "App registrations")
+
+4. Select **Authentication** in the left-hand menu. Add two new redirect URIs, using the published web app URL you copied (replace `[YOUR URL]` with the web app's URL):
+
+   - `[YOUR URL]`
+   - `[YOUR URL]/signin-oidc`
+   - In the **Advanced settings** section set **Logout URL** to `[YOUR URL]/signout-oidc`
+
+    ![The Authentication form is displayed.](media/aad-app-registration-authentication.png "Authentication")
+
+5. Select **Save** to apply your changes.
 
 #### Web App code walk-through
 

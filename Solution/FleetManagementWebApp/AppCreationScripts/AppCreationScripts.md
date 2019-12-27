@@ -13,7 +13,7 @@ Adapted from the [Azure-Samples/active-directory-aspnetcore-webapp-openidconnect
    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process -Force
    ```
 
-1. Run the script to create your Azure AD application and configure the code of the sample application accordinly. (Other ways of running the scripts are described below)
+1. Run the script to create your Azure AD application and configure the code of the sample application accordingly. (Other ways of running the scripts are described below)
 
    ```PowerShell
    .\AppCreationScripts\Configure.ps1
@@ -122,7 +122,7 @@ Here are the details on how to do this.
 
 #### Option 1 (interactive)
 
-- Just run ``. .\Configure.ps1``, and you will be prompted to sign-in (email address, password, and if needed MFA).
+- Just run `. .\Configure.ps1`, and you will be prompted to sign-in (email address, password, and if needed MFA).
 - The script will be run as the signed-in user and will use the tenant in which the user is defined.
 
 > Note that the script will choose the tenant in which to create the applications, based on the user. Also to run the `Cleanup.ps1` script, you will need to re-sign-in.
@@ -144,7 +144,7 @@ Of course, in real life, you might already get the password as a `SecureString`.
 
 If you want to create the apps in a particular tenant, you can use the following option:
 
-- open the [Azure portal](https://portal.azure.com)
+- Open the [Azure portal](https://portal.azure.com)
 - Select the Azure Active directory you are interested in (in the combo-box below your name on the top right of the browser window)
 - Find the "Active Directory" object in this tenant
 - Go to **Properties** and copy the content of the **Directory Id** property
