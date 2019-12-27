@@ -138,8 +138,7 @@ Below is a diagram of the solution architecture you will build in this guide. Pl
 2. Install [Power BI Desktop](https://powerbi.microsoft.com/desktop/)
 3. [Azure CLI](https://docs.microsoft.com/cli/azure/install-azure-cli?view=azure-cli-latest) - version 2.0.68 or later
 4. Install [Visual Studio 2019 Community](https://visualstudio.microsoft.com/vs/) (v16.4) or greater
-5. Install [.NET Core SDK 2.2](https://dotnet.microsoft.com/download/dotnet-core/2.2) or greater
-   - If you are running Visual Studio 2017, install SDK 2.2.109
+5. Install [.NET Core SDK 2.2](https://dotnet.microsoft.com/download/dotnet-core/2.2) and [.NET Core SDK 3.1](https://dotnet.microsoft.com/download/dotnet-core/3.1) or greater
 
 ### Task 0: Download the starter files
 
@@ -157,7 +156,7 @@ Download a starter project that includes a vehicle simulator, Azure Function App
 
 5. Navigate to the [.NET Core 2.2 download page](https://dotnet.microsoft.com/download/dotnet-core/2.2), then download the SDK for your environment, such as Windows .NET Core Installer x64.
 
-   ![The webpage is displayed with the SDK download section highlighted.](media/dotnet-sdk-2-2.png 'Download .NET Core 2.2')
+6. Navigate to the [.NET Core 3.1 download page](https://dotnet.microsoft.com/download/dotnet-core/3.1), then download the SDK for your environment, such as Windows .NET Core Installer x64.
 
 ## Exercise 1: Configure environment
 
