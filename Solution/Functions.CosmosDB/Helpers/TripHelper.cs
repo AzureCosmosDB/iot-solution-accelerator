@@ -296,9 +296,9 @@ namespace Functions.CosmosDB.Helpers
                         // Send the summarized alert to the Logic App via its HTTP trigger.
                         await SendAlertToLogicApp(payload);
 
-                        // Update the alert summary history to keep track of when we sent the alert.
+                        // Upsert (insert or update) the alert summary history to keep track of when we sent the alert.
                         alertSummaryHistory.summaryAlertLastSent = compareDate;
-                        await _alertsContainer.ReplaceItemAsync(alertSummaryHistory, alertSummaryHistory.id, new PartitionKey(alertSummaryHistory.id));
+                        await _alertsContainer.UpsertItemAsync(alertSummaryHistory, new PartitionKey(alertSummaryHistory.id));
                     }
                 }
             }
