@@ -39,6 +39,7 @@
         - [Register the webApp app (IoTSolutionAcceleratorWebApp)](#register-the-webapp-app-iotsolutionacceleratorwebapp)
     - [Task 4: Deploy Web App](#task-4-deploy-web-app)
     - [Task 5: Add new redirect URIs to the Azure AD application](#task-5-add-new-redirect-uris-to-the-azure-ad-application)
+    - [Task 6: Update your notification settings in the Web App](#task-6-update-your-notification-settings-in-the-web-app)
       - [Web App code walk-through](#web-app-code-walk-through)
   - [Exercise 3: Configuring Azure Databricks](#exercise-3-configuring-azure-databricks)
     - [Task 1: Create Azure Databricks cluster](#task-1-create-azure-databricks-cluster)
@@ -1148,6 +1149,24 @@ Now that you have deployed the web app, we need to add the redirect URIs in the 
     ![The Authentication form is displayed.](media/aad-app-registration-authentication.png "Authentication")
 
 5. Select **Save** to apply your changes.
+
+### Task 6: Update your notification settings in the Web App
+
+When you run the data generator in a later exercise, the device telemetry flows through the solution, starting with IoT devices sending telemetry to IoT Hub, an Azure Function processing those messages and saving them to Cosmos DB, then the Cosmos DB change feed triggering other Azure Functions for further processing. Inside one of these change feed-triggered functions, the processing logic keeps track of vehicle trip progress, optionally sending an alert notification through the Logic App.
+
+In this task, you sign in to the deployed web app and configure your notification settings.
+
+1. Launch the deployed web app. If you cannot find the URL, navigate to the web app in the Azure portal, located within the resource group, then copy the URL on the Overview blade.
+
+    ![The URL is highlighted on the Overview blade.](media/web-app-overview-url.png "Overview")
+
+2. When prompted, sign in with your Azure account.
+
+3. Select **Settings** in the left-hand menu.
+
+4. Enter the email address that you want to receive alerts within the **Recipient Email Address** field. Check which types of alerts you wish to receive, then select a **Send Alert Interval** value. The default value is `Send every alert individually`. This instructs the Function App to send every alert as they occur to the Logic App for email notifications. This type of email contains very detailed information about the trip events, but can quickly flood your inbox. ALternately, select one of the summary email options. These summary emails contain counts of the number of events (trips started, completed, or delayed), as well as any vehicle VINs affected by delays. You can choose whether to receive a summary every 5, 10, 30, or 60 minutes.
+
+    ![The Settings form is displayed in the web app.](media/web-app-settings.png "Settings")
 
 #### Web App code walk-through
 
