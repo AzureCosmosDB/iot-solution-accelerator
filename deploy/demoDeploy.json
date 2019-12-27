@@ -5,7 +5,7 @@
         "RecipientEmail": {
             "type": "string",
             "metadata": {
-                "description": "Enter a valid email address you want to receive notification emails from the Logic App."
+                "description": "Enter a valid email address you want to use to send notification emails from the Logic App."
             }
         },
         "location": {
@@ -725,10 +725,6 @@
                         {
                             "name": "LogicAppUrl",
                             "value": "[concat('@Microsoft.KeyVault(SecretUri=', reference(concat(resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName')), '/secrets/', 'LogicAppUrl')).secretUriWithVersion, ')')]"
-                        },
-                        {
-                            "name": "RecipientEmail",
-                            "value": "[parameters('RecipientEmail')]"
                         }
                     ]
                 }

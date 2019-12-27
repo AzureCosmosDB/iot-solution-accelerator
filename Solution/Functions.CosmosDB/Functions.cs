@@ -177,14 +177,12 @@ namespace Functions.CosmosDB
             var coldStorageAccount = Environment.GetEnvironmentVariable("ColdStorageAccount");
             var eventHubsConnection = Environment.GetEnvironmentVariable("EventHubsConnection");
             var logicAppUrl = Environment.GetEnvironmentVariable("LogicAppUrl");
-            var recipientEmail = Environment.GetEnvironmentVariable("RecipientEmail");
 
             var variableList = new List<string>();
             if (string.IsNullOrWhiteSpace(cosmosDbConnection)) variableList.Add("CosmosDBConnection");
             if (string.IsNullOrWhiteSpace(coldStorageAccount)) variableList.Add("ColdStorageAccount");
             if (string.IsNullOrWhiteSpace(eventHubsConnection)) variableList.Add("EventHubsConnection");
             if (string.IsNullOrWhiteSpace(logicAppUrl)) variableList.Add("LogicAppUrl");
-            if (string.IsNullOrWhiteSpace(recipientEmail)) variableList.Add("RecipientEmail");
 
             if (variableList.Count > 0)
             {
