@@ -353,6 +353,9 @@
                                         "customer": {
                                             "type": "string"
                                         },
+                                        "delayedVINs": {
+                                            "type": "string"
+                                        },
                                         "deliveryDueDate": {
                                             "type": "string"
                                         },
@@ -364,6 +367,9 @@
                                         },
                                         "id": {
                                             "type": "string"
+                                        },
+                                        "isSummary": {
+                                            "type": "boolean"
                                         },
                                         "lastRefrigerationUnitTemperatureReading": {
                                             "type": "integer"
@@ -397,6 +403,15 @@
                                         },
                                         "tripStarted": {
                                             "type": "string"
+                                        },
+                                        "tripsCompleted": {
+                                            "type": "integer"
+                                        },
+                                        "tripsDelayed": {
+                                            "type": "integer"
+                                        },
+                                        "tripsStarted": {
+                                            "type": "integer"
                                         },
                                         "vin": {
                                             "type": "string"
