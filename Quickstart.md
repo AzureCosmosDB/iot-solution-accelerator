@@ -1034,60 +1034,61 @@ The `Configure.ps1` script will create the Azure AD application and update the w
 
 If you cannot run the PowerShell scripts, complete the following steps to manually configure Azure AD:
 
+<details>
+    <summary>Expand to see the manual steps</summary>
+
 ##### Choose the Azure AD tenant where you want to create your applications
 
 As a first step you'll need to:
 
 1. Sign in to the [Azure portal](https://portal.azure.com) using either a work or school account or a personal Microsoft account.
 1. If your account is present in more than one Azure AD tenant, select your profile at the top right corner in the menu on top of the page, and then **switch directory**.
-   Change your portal session to the desired Azure AD tenant.
+Change your portal session to the desired Azure AD tenant.
 
 ##### Register the webApp app (IoTSolutionAcceleratorWebApp)
 
 1. Navigate to the Microsoft identity platform for developers [App registrations](https://go.microsoft.com/fwlink/?linkid=2083908) page.
-1. Select **New registration**.
-1. When the **Register an application page** appears, enter your application's registration information:
+
+2. Select **New registration**.
+
+3. When the **Register an application page** appears, enter your application's registration information:
+
    - In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `IoTSolutionAcceleratorWebApp`.
    - In the **Supported account types** section, select **Accounts in this organizational directory only ({tenant name})**.
 
-     <details open=true>
-     <summary>Expand/collapse screenshot</summary>
+    ![Register an application](media/aad-register-app.png "Register an application")
 
-       ![Register an application](media/aad-register-app.png "Register an application")
+    > Note that there are more than one redirect URIs. You'll need to add them from the **Authentication** tab later after the app has been created successfully.
 
-     </details>
+4. Select **Register** to create the application.
 
-     > Note that there are more than one redirect URIs. You'll need to add them from the **Authentication** tab later after the app has been created successfully.
-     
-2. Select **Register** to create the application.
-3. On the app **Overview** page, find the **Application (client) ID** value and record it for later. You'll need it to configure the Visual Studio configuration file for this project.
-   
-   <details open=true>
-   <summary>Expand/collapse screenshot</summary>
+5. On the app **Overview** page, find the **Application (client) ID** value and record it for later. You'll need it to configure the Visual Studio configuration file for this project.
 
-     ![Overview blade](media/aad-application-overview.png "Overview blade")
+    ![Overview blade](media/aad-application-overview.png "Overview blade")
 
-   </details>
+6. In the list of pages for the app, select **Authentication**.
 
-4. In the list of pages for the app, select **Authentication**..
    - In the Redirect URIs section, select **Web** in the combo-box and enter the following redirect URIs.
        - `https://localhost:44321/`
        - `https://localhost:44321/signin-oidc`
    - In the **Advanced settings** section set **Logout URL** to `https://localhost:44321/signout-oidc`
    - In the **Advanced settings** | **Implicit grant** section, check **ID tokens** as this sample requires
-     the [Implicit grant flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-implicit-grant-flow) to be enabled to
-     sign-in the user.
-     
-     <details open=true>
-     <summary>Expand/collapse screenshot</summary>
+       the [Implicit grant flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-implicit-grant-flow) to be enabled to
+       sign-in the user.
 
-       ![Authentication blade](media/aad-authentication-initial.png "Authentication blade")
+    ![Authentication blade](media/aad-authentication-initial.png "Authentication blade")
 
-     </details>
+7. Select **Save**.
 
-1. Select **Save**.
+    > Note that unless the Web App calls a Web API, no certificate or secret is needed.
 
-> Note that unless the Web App calls a Web API, no certificate or secret is needed.
+8. Open the **FleetManagementWebApp** project in Visual Studio and update the **appsettings.json** file:
+
+   - Replace the `ClientID` value with the *Application ID* from the application you registered in Application Registration portal in *Step 5*.
+   - Replace the `TenantId` value with the *Tenant ID* where you registered your Application in *Step 5*.
+   - Replace the `Domain` value with the *Azure AD domain name*,  e.g. contoso.onmicrosoft.com where you registered your Application in *Step 5*.
+
+</details>
 
 ### Task 4: Deploy Web App
 
