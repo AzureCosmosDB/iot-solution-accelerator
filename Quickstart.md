@@ -11,7 +11,7 @@
     - [Architecture components](#architecture-components)
   - [Requirements](#requirements)
     - [Task 0: Download the starter files](#task-0-download-the-starter-files)
-  - [Exercise 1: Configure environment](#exercise-1-configure-environment)
+  - [Section 1: Configure environment](#section-1-configure-environment)
     - [Task 1: Run deployment scripts](#task-1-run-deployment-scripts)
       - [Deployment information: Cosmos DB](#deployment-information-cosmos-db)
       - [About Cosmos DB throughput](#about-cosmos-db-throughput)
@@ -23,7 +23,7 @@
     - [Task 4: Add Stream Analytics outputs](#task-4-add-stream-analytics-outputs)
     - [Task 5: Create Stream Analytics query](#task-5-create-stream-analytics-query)
     - [Task 6: Run Stream Analytics job](#task-6-run-stream-analytics-job)
-  - [Exercise 2: Deploying Function Apps and Web App](#exercise-2-deploying-function-apps-and-web-app)
+  - [Section 2: Deploying Function Apps and Web App](#section-2-deploying-function-apps-and-web-app)
     - [Task 1: Open solution](#task-1-open-solution)
     - [Task 1: Deploy Cosmos DB Processing Function App](#task-1-deploy-cosmos-db-processing-function-app)
       - [Cosmos DB Processing Function App code walk-through](#cosmos-db-processing-function-app-code-walk-through)
@@ -41,10 +41,10 @@
     - [Task 5: Add new redirect URIs to the Azure AD application](#task-5-add-new-redirect-uris-to-the-azure-ad-application)
     - [Task 6: Update your notification settings in the Web App](#task-6-update-your-notification-settings-in-the-web-app)
       - [Web App code walk-through](#web-app-code-walk-through)
-  - [Exercise 3: Configuring Azure Databricks](#exercise-3-configuring-azure-databricks)
+  - [Section 3: Configuring Azure Databricks](#section-3-configuring-azure-databricks)
     - [Task 1: Create Azure Databricks cluster](#task-1-create-azure-databricks-cluster)
     - [Task 2: Configure Key Vault-backed Databricks secret store](#task-2-configure-key-vault-backed-databricks-secret-store)
-  - [Exercise 4: Explore and execute the data generator](#exercise-4-explore-and-execute-the-data-generator)
+  - [Section 4: Explore and execute the data generator](#section-4-explore-and-execute-the-data-generator)
     - [How to provision your own devices](#how-to-provision-your-own-devices)
     - [Task 1: View Cosmos DB processing Function App in the portal and copy the Health Check URL](#task-1-view-cosmos-db-processing-function-app-in-the-portal-and-copy-the-health-check-url)
     - [Task 2: View stream processing Function App in the portal and copy the Health Check URL](#task-2-view-stream-processing-function-app-in-the-portal-and-copy-the-health-check-url)
@@ -53,26 +53,26 @@
     - [Task 4: Update application configuration](#task-4-update-application-configuration)
     - [Task 5: Run generator](#task-5-run-generator)
     - [Task 6: View devices in IoT Hub](#task-6-view-devices-in-iot-hub)
-  - [Exercise 5: Observe Change Feed using Azure Functions and App Insights](#exercise-5-observe-change-feed-using-azure-functions-and-app-insights)
+  - [Section 5: Observe Change Feed using Azure Functions and App Insights](#section-5-observe-change-feed-using-azure-functions-and-app-insights)
     - [Task 1: Open App Insights Live Metrics Stream](#task-1-open-app-insights-live-metrics-stream)
-  - [Exercise 6: Observe data using Cosmos DB Data Explorer and Web App](#exercise-6-observe-data-using-cosmos-db-data-explorer-and-web-app)
+  - [Section 6: Observe data using Cosmos DB Data Explorer and Web App](#section-6-observe-data-using-cosmos-db-data-explorer-and-web-app)
     - [Task 1: View data in Cosmos DB Data Explorer](#task-1-view-data-in-cosmos-db-data-explorer)
     - [Task 2: Search and view data in Web App](#task-2-search-and-view-data-in-web-app)
-  - [Exercise 7: Perform CRUD operations using the Web App](#exercise-7-perform-crud-operations-using-the-web-app)
+  - [Section 7: Perform CRUD operations using the Web App](#section-7-perform-crud-operations-using-the-web-app)
     - [Task 1: Create a new vehicle](#task-1-create-a-new-vehicle)
     - [Task 2: View and edit the vehicle](#task-2-view-and-edit-the-vehicle)
     - [Task 3: Delete the vehicle](#task-3-delete-the-vehicle)
-  - [Exercise 8: Create the Fleet status real-time dashboard in Power BI](#exercise-8-create-the-fleet-status-real-time-dashboard-in-power-bi)
+  - [Section 8: Create the Fleet status real-time dashboard in Power BI](#section-8-create-the-fleet-status-real-time-dashboard-in-power-bi)
     - [Task 1: Launch Power BI online and create the dashboard](#task-1-launch-power-bi-online-and-create-the-dashboard)
-  - [Exercise 9: Create the Trip/Consignment Status reports in Power BI](#exercise-9-create-the-tripconsignment-status-reports-in-power-bi)
+  - [Section 9: Create the Trip/Consignment Status reports in Power BI](#section-9-create-the-tripconsignment-status-reports-in-power-bi)
     - [Task 1: Import report in Power BI Desktop](#task-1-import-report-in-power-bi-desktop)
     - [Task 2: Update report data sources](#task-2-update-report-data-sources)
     - [Task 3: Explore report](#task-3-explore-report)
-  - [Exercise 10: Run the predictive maintenance batch scoring](#exercise-10-run-the-predictive-maintenance-batch-scoring)
+  - [Section 10: Run the predictive maintenance batch scoring](#section-10-run-the-predictive-maintenance-batch-scoring)
     - [About Azure Machine Learning](#about-azure-machine-learning)
     - [Task 1: Import lab notebooks into Azure Databricks](#task-1-import-lab-notebooks-into-azure-databricks)
     - [Task 2: Run batch scoring notebook](#task-2-run-batch-scoring-notebook)
-  - [Exercise 11: Deploy the predictive maintenance web service](#exercise-11-deploy-the-predictive-maintenance-web-service)
+  - [Section 11: Deploy the predictive maintenance web service](#section-11-deploy-the-predictive-maintenance-web-service)
     - [Task 1: Run deployment notebook](#task-1-run-deployment-notebook)
     - [Task 2: Call the deployed scoring web service from the Web App](#task-2-call-the-deployed-scoring-web-service-from-the-web-app)
     - [About Azure Machine Learning workspace and model deployments](#about-azure-machine-learning-workspace-and-model-deployments)
@@ -82,7 +82,7 @@
         - [3 - Validate](#3---validate)
         - [4 - Deploy](#4---deploy)
         - [5 - Monitor](#5---monitor)
-  - [Exercise 12: Refresh the Power BI report and view maintenance data](#exercise-12-refresh-the-power-bi-report-and-view-maintenance-data)
+  - [Section 12: Refresh the Power BI report and view maintenance data](#section-12-refresh-the-power-bi-report-and-view-maintenance-data)
     - [Task 1: Open and refresh the report in Power BI Desktop](#task-1-open-and-refresh-the-report-in-power-bi-desktop)
   - [Environment clean-up](#environment-clean-up)
     - [Task 1: Delete the resource group](#task-1-delete-the-resource-group)
@@ -169,13 +169,13 @@ Download a starter project that includes a vehicle simulator, Azure Function App
 
 6. Navigate to the [.NET Core 3.1 download page](https://dotnet.microsoft.com/download/dotnet-core/3.1), then download the SDK for your environment, such as Windows .NET Core Installer x64.
 
-## Exercise 1: Configure environment
+## Section 1: Configure environment
 
 **Duration**: 45 minutes
 
 You must provision a few resources in Azure before you start developing the solution. Ensure all resources use the same resource group for easier cleanup.
 
-In this exercise, you will configure your environment so you can start sending and processing generated vehicle, consignment, package, and trip data. You will begin by creating a Cosmos DB database and containers, then you will create a new Logic App and create a workflow for sending email notifications, create an Application Insights service for real-time monitoring of your solution, then retrieve secrets used in the solution's application settings (such as connection strings) and securely store them in Azure Key Vault, and finally configure your Azure Databricks environment.
+In this section, you will configure your environment so you can start sending and processing generated vehicle, consignment, package, and trip data. You will begin by creating a Cosmos DB database and containers, then you will create a new Logic App and create a workflow for sending email notifications, create an Application Insights service for real-time monitoring of your solution, then retrieve secrets used in the solution's application settings (such as connection strings) and securely store them in Azure Key Vault, and finally configure your Azure Databricks environment.
 
 ### Task 1: Run deployment scripts
 
@@ -646,11 +646,11 @@ Please take a moment to analyze the query below. Notice how we are using the `ev
 
    ![The steps to start the job as described are displayed.](media/stream-analytics-start-job.png 'Start job')
 
-## Exercise 2: Deploying Function Apps and Web App
+## Section 2: Deploying Function Apps and Web App
 
 In the architecture for this scenario, Azure functions play a major role in event processing. These functions execute within an Azure Function App, Microsoft's serverless solution for easily running small pieces of code, or "functions," in the cloud. You can write just the code you need for the problem at hand, without worrying about a whole application or the infrastructure to run it. Functions can make development even more productive, and you can use your development language of choice, such as C#, F#, Node.js, Java, or PHP.
 
-Before we dive into this exercise, let's go over how the functions and Web App fit into our architecture.
+Before we dive into this section, let's go over how the functions and Web App fit into our architecture.
 
 There are three Function Apps and one Web App in the solution. The Function Apps handle event processing within two stages of the data pipeline, and the Web App is used to perform CRUD operations against data stored in Cosmos DB.
 
@@ -1107,7 +1107,7 @@ Change your portal session to the desired Azure AD tenant.
 
 4. Click **Publish** to begin.
 
-    After the publish completes, you should see the following in the Output window: `========== Publish: 1 succeeded, 0 failed, 0 skipped ==========` to indicate a successful publish. Also, the web app should open in a new browser window. If you try to navigate through the site, you will notice there is no data. We will seed the Cosmos DB `metadata` container with data in the next exercise.
+    After the publish completes, you should see the following in the Output window: `========== Publish: 1 succeeded, 0 failed, 0 skipped ==========` to indicate a successful publish. Also, the web app should open in a new browser window. If you try to navigate through the site, you will notice there is no data. We will seed the Cosmos DB `metadata` container with data in the next section.
 
     ![The Fleet Management web app home page is displayed.](media/webapp-home-page.png "Fleet Management home page")
 
@@ -1152,7 +1152,7 @@ Now that you have deployed the web app, we need to add the redirect URIs in the 
 
 ### Task 6: Update your notification settings in the Web App
 
-When you run the data generator in a later exercise, the device telemetry flows through the solution, starting with IoT devices sending telemetry to IoT Hub, an Azure Function processing those messages and saving them to Cosmos DB, then the Cosmos DB change feed triggering other Azure Functions for further processing. Inside one of these change feed-triggered functions, the processing logic keeps track of vehicle trip progress, optionally sending an alert notification through the Logic App.
+When you run the data generator in a later section, the device telemetry flows through the solution, starting with IoT devices sending telemetry to IoT Hub, an Azure Function processing those messages and saving them to Cosmos DB, then the Cosmos DB change feed triggering other Azure Functions for further processing. Inside one of these change feed-triggered functions, the processing logic keeps track of vehicle trip progress, optionally sending an alert notification through the Logic App.
 
 In this task, you sign in to the deployed web app and configure your notification settings.
 
@@ -1251,7 +1251,7 @@ The Web App provides a web-based management interface for vehicle, package, trip
 
     Here we are doing a hard delete by completely removing the item. In a real-world scenario, we would most likely perform a soft delete, which means updating the document with a `deleted` property and ensuring all filters exclude items with this property. Plus, we'd soft delete related records, such as trips. Soft deletions make it much easier to recover a deleted item if needed in the future. This is an enhancement you should consider adding to your solution.
 
-## Exercise 3: Configuring Azure Databricks
+## Section 3: Configuring Azure Databricks
 
 [Azure Databricks](https://azure.microsoft.com/services/databricks/) is a fully-managed, cloud-based Big Data and Machine Learning platform, which empowers developers to accelerate AI and innovation by simplifying the process of building enterprise-grade production data applications. Built as a joint effort by the team that started Apache Spark and Microsoft, Azure Databricks provides data science and engineering teams with a single platform for Big Data processing and Machine Learning.
 
@@ -1263,7 +1263,7 @@ Contoso Auto wants to use the valuable data they are collecting from their vehic
 
 To support this requirement, you will use Apache Spark on Azure Databricks, a fully managed Apache Spark platform optimized to run on Azure. Spark is a unified big data and advanced analytics platform that enables data scientists and data engineers to explore and prepare large amounts of structured and unstructured data, then use that data to train, use, and deploy machine learning models at scale. We will read and write to Cosmos DB, using the `azure-cosmosdb-spark` connector (<https://github.com/Azure/azure-cosmosdb-spark>).
 
-In this task, you will create a new cluster on which data exploration and model deployment tasks will be executed in later exercises.
+In this task, you will create a new cluster on which data exploration and model deployment tasks will be executed in later sections.
 
 1. In the [Azure portal](https://portal.azure.com), open your lab resource group, then open your **Azure Databricks Service**. The name should start with `iot-databricks`.
 
@@ -1355,9 +1355,9 @@ Azure Databricks has two types of secret scopes: Key Vault-backed and Databricks
 
 After a moment, you will see a dialog verifying that the secret scope has been created.
 
-## Exercise 4: Explore and execute the data generator
+## Section 4: Explore and execute the data generator
 
-In this exercise, we will explore the data generator project, **FleetDataGenerator**, update the application configuration, and run it in order to seed the metadata database with data and simulate vehicles.
+In this section, we will explore the data generator project, **FleetDataGenerator**, update the application configuration, and run it in order to seed the metadata database with data and simulate vehicles.
 
 There are several tasks that the data generator performs, depending on the state of your environment. The first task is that the generator will create the Cosmos DB database and containers with the optimal configuration for this lab if these elements do not exist in your Cosmos DB account. When you run the generator in a few moments, this step will be skipped because you already created them at the beginning of the lab. The second task the generator performs is to seed your Cosmos DB `metadata` container with data if no data exists. This includes vehicle, consignment, package, and trip data. Before seeding the container with data, the generator temporarily increases the requested RU/s for the container to 50,000 for optimal data ingestion speed. After the seeding process completes, the RU/s are scaled back down to 15,000.
 
@@ -1474,7 +1474,7 @@ The best way to provision multiple IoT devices in a secure and scalable manner i
 
     ![The HealthCheck function is selected and the Get function URL link is highlighted.](media/portal-cosmos-function-healthcheck.png "HealthCheck function")
 
-6. **Copy the URL** and save it to Notepad or similar text editor for the exercise that follows.
+6. **Copy the URL** and save it to Notepad or similar text editor for the section that follows.
 
     ![The HealthCheck URL is highlighted.](media/portal-cosmos-function-healthcheck-url.png "Get function URL")
 
@@ -1486,7 +1486,7 @@ The best way to provision multiple IoT devices in a secure and scalable manner i
 
     ![The HealthCheck function is selected and the Get function URL link is highlighted.](media/portal-stream-function-healthcheck.png "HealthCheck")
 
-3. **Copy the URL** and save it to Notepad or similar text editor for the exercise that follows.
+3. **Copy the URL** and save it to Notepad or similar text editor for the section that follows.
 
     ![The HealthCheck URL is highlighted.](media/portal-stream-function-healthcheck-url.png "Get function URL")
 
@@ -1644,7 +1644,7 @@ The data generator needs two connection strings before it can successfully run; 
 
 2. Paste the IoT Hub connection string value in quotes next to the **IOT_HUB_CONNECTION_STRING** key. Paste the Cosmos DB connection string value in quotes next to the **COSMOS_DB_CONNECTION_STRING** key.
 
-3. The data generator also requires the Health Check URLs you copied in the previous exercise for the `HealthCheck` functions located in both Function Apps. Paste the Cosmos DB Processing Function App's `HealthCheck` function's URL in quotes next to the **COSMOS_PROCESSING_FUNCTION_HEALTHCHECK_URL** key. Paste the Stream Processing Function App's `HealthCheck` function's URL in quotes next to the **STREAM_PROCESSING_FUNCTION_HEALTHCHECK_URL** key.
+3. The data generator also requires the Health Check URLs you copied in the previous section for the `HealthCheck` functions located in both Function Apps. Paste the Cosmos DB Processing Function App's `HealthCheck` function's URL in quotes next to the **COSMOS_PROCESSING_FUNCTION_HEALTHCHECK_URL** key. Paste the Stream Processing Function App's `HealthCheck` function's URL in quotes next to the **STREAM_PROCESSING_FUNCTION_HEALTHCHECK_URL** key.
 
     ![The appsettings.json file is highlighted in the Solution Explorer, and the connection strings and health check URLs are highlighted within the file.](media/vs-appsettings.png "appsettings.json")
 
@@ -1658,8 +1658,8 @@ The data generator needs two connection strings before it can successfully run; 
 
 In this task, you will run the generator and have it generate events for 50 trucks. The reason we are generating events for so many vehicles is two-fold:
 
-- In the next exercise, we will observe the function triggers and event activities with Application Insights.
-- We need to have completed trips prior to performing batch predictions in a later exercise.
+- In the next section, we will observe the function triggers and event activities with Application Insights.
+- We need to have completed trips prior to performing batch predictions in a later section.
 
 > **Warning**: You will receive a lot of emails when the generator starts sending vehicle telemetry. If you do not wish to receive emails, simply disable the Logic App you created.
 
@@ -1675,7 +1675,7 @@ In this task, you will run the generator and have it generate events for 50 truc
 
     ![3 has been entered in the console window.](media/cmd-run.png "Generator")
 
-4. After the seeding is completed the generator will retrieve 50 trips from the database, sorted by shortest trip distance first so we can have completed trip data appear faster. You will see a message output for every 50 events sent, per vehicle with their VIN, the message count, and the number of miles remaining for the trip. For example: `Vehicle 19: C1OVHZ8ILU8TGGPD8 Message count: 3650 -- 3.22 miles remaining`. **Let the generator run in the background and continue to the next exercise**.
+4. After the seeding is completed the generator will retrieve 50 trips from the database, sorted by shortest trip distance first so we can have completed trip data appear faster. You will see a message output for every 50 events sent, per vehicle with their VIN, the message count, and the number of miles remaining for the trip. For example: `Vehicle 19: C1OVHZ8ILU8TGGPD8 Message count: 3650 -- 3.22 miles remaining`. **Let the generator run in the background and continue to the next section**.
 
     ![Vehicle simulation begins.](media/cmd-simulated-vehicles.png "Generator")
 
@@ -1703,9 +1703,9 @@ The data generator registered and activated each simulated vehicle in IoT Hub as
 
     ![The IoT devices pane is displayed.](media/iot-hub-iot-devices.png "IoT devices")
 
-## Exercise 5: Observe Change Feed using Azure Functions and App Insights
+## Section 5: Observe Change Feed using Azure Functions and App Insights
 
-In this exercise, we use the Live Metrics Stream feature of Application Insights to view the incoming requests, outgoing requests, overall health, allocated server information, and sample telemetry in near-real-time. The Live Metrics Stream helps you observe how your functions scale under load and allow you to spot any potential bottlenecks or problematic components, through a single interactive interface.
+In this section, we use the Live Metrics Stream feature of Application Insights to view the incoming requests, outgoing requests, overall health, allocated server information, and sample telemetry in near-real-time. The Live Metrics Stream helps you observe how your functions scale under load and allow you to spot any potential bottlenecks or problematic components, through a single interactive interface.
 
 [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview), a feature of Azure Monitor, is an extensible Application Performance Management (APM) service for developers and DevOps professionals. Use it to monitor your live applications. It will automatically detect performance anomalies and includes powerful analytics tools to help you diagnose issues and to understand what users actually do with your app. It's designed to help you continuously improve performance and usability. It works for apps on a wide variety of platforms including .NET, Node.js and Java EE, hosted on-premises, hybrid, or any public cloud. It integrates with your DevOps process and has connection points to a variety of development tools. It can monitor and analyze telemetry from mobile apps by integrating with Visual Studio App Center.
 
@@ -1727,7 +1727,7 @@ In this exercise, we use the Live Metrics Stream feature of Application Insights
 
     While observing the live stream, you may notice many dependency call failures (404). These can be safely ignored. They are caused by the Azure Storage binding used in the **ColdStorage** function within the Cosmos DB Processing Function App. This binding checks if the file exists before writing to the specified container. Since we are writing new files, you will see a `404` message for every file that is written since it does not exist. Currently, the binding engine does not know the difference between "good" 404 messages such as these, and "bad" ones.
 
-## Exercise 6: Observe data using Cosmos DB Data Explorer and Web App
+## Section 6: Observe data using Cosmos DB Data Explorer and Web App
 
 The Cosmos DB Data Explorer is a web-based interface that allows you to view and manage the data stored in Cosmos DB. Alternately, you can use the [Azure Cosmos DB explorer](https://docs.microsoft.com/azure/cosmos-db/data-explorer) stand-alone interface to perform the same tasks.
 
@@ -1845,9 +1845,9 @@ The Cosmos DB Data Explorer is a web-based interface that allows you to view and
 
     ![The search results are displayed.](media/webapp-trips-search.png "Trips")
 
-## Exercise 7: Perform CRUD operations using the Web App
+## Section 7: Perform CRUD operations using the Web App
 
-In this exercise, you will insert, update, and delete a vehicle record.
+In this section, you will insert, update, and delete a vehicle record.
 
 ### Task 1: Create a new vehicle
 
@@ -1891,11 +1891,11 @@ In this exercise, you will insert, update, and delete a vehicle record.
 
     ![The vehicle was not found.](media/webapp-vehicles-search-deleted.png "Vehicles")
 
-## Exercise 8: Create the Fleet status real-time dashboard in Power BI
+## Section 8: Create the Fleet status real-time dashboard in Power BI
 
 [Microsoft Power BI](https://powerbi.microsoft.com) is a business analytics service that provides interactive visualizations with self-service business intelligence capabilities, enabling end-users to create reports and dashboards by themselves without having to depend on information technology staff or database administrators.
 
-> **Important**: If the data generator is no longer running or sending new telemetry, be sure to start it before continuing. Simulating 50 vehicles should suffice for this exercise.
+> **Important**: If the data generator is no longer running or sending new telemetry, be sure to start it before continuing. Simulating 50 vehicles should suffice for this section.
 
 ### Task 1: Launch Power BI online and create the dashboard
 
@@ -1999,9 +1999,9 @@ In this exercise, you will insert, update, and delete a vehicle record.
 
     After the generator starts sending vehicle telemetry, the dashboard should start working after a few seconds. In this screenshot, we are simulating 50 vehicles with 2,486 events in the last 10 seconds. You may see a higher or lower value for the `eventCount`, depending on the speed of your computer on which you are running the generator, your network speed and latency, and other factors.
 
-## Exercise 9: Create the Trip/Consignment Status reports in Power BI
+## Section 9: Create the Trip/Consignment Status reports in Power BI
 
-In this exercise, you will import a Power BI report that has been created for you. After opening it, you will update the data source to point to your Power BI instance.
+In this section, you will import a Power BI report that has been created for you. After opening it, you will update the data source to point to your Power BI instance.
 
 ### Task 1: Import report in Power BI Desktop
 
@@ -2126,7 +2126,7 @@ In this exercise, you will import a Power BI report that has been created for yo
 
     ![The trips page is displayed.](media/pbi-trips-tab.png "Trips")
 
-5. The Maintenance page should contain no data at this time. This page shows information from a batch scoring Machine Learning notebook that you can optionally execute in Databricks in the next exercise.
+5. The Maintenance page should contain no data at this time. This page shows information from a batch scoring Machine Learning notebook that you can optionally execute in Databricks in the next section.
 
 6. If at any time you have a number of filters set and you cannot see records, **Ctrl+Click** the **Clear Filters** button on the main report page (Trip/Consignments).
 
@@ -2136,9 +2136,9 @@ In this exercise, you will import a Power BI report that has been created for yo
 
     ![The refresh button is highlighted.](media/pbi-refresh.png "Refresh")
 
-## Exercise 10: Run the predictive maintenance batch scoring
+## Section 10: Run the predictive maintenance batch scoring
 
-In this exercise, you will import Databricks notebooks into your Azure Databricks workspace. A notebook is interactive and runs in any web browser, mixing markup (formatted text with instructions), executable code, and outputs from running the code.
+In this section, you will import Databricks notebooks into your Azure Databricks workspace. A notebook is interactive and runs in any web browser, mixing markup (formatted text with instructions), executable code, and outputs from running the code.
 
 Next, you will run the Batch Scoring notebook to make battery failure predictions on vehicles, using vehicle and trip data stored in Cosmos DB.
 
@@ -2223,7 +2223,7 @@ The values highlighted in the screenshot below are for the following variables i
 
 > If you wish to execute this notebook on a scheduled basis, such as every evening, you can use the Jobs feature in Azure Databricks to accomplish this.
 
-## Exercise 11: Deploy the predictive maintenance web service
+## Section 11: Deploy the predictive maintenance web service
 
 In addition to batch scoring, Contoso Auto would like to predict battery failures on-demand in real time for any given vehicle. They want to be able to call the model from their Fleet Management website when looking at a vehicle to predict whether that vehicle's battery may fail in the next 30 days.
 
@@ -2328,7 +2328,7 @@ When you want your model to be available for on-demand access over the web or on
 
 Monitor for changes in the distribution of data between the training dataset and inference data of your deployed model. These changes are sometimes called [data drift](https://docs.microsoft.com/azure/machine-learning/service/concept-data-drift) and indicate degraded prediction performance over time due to how the input data changes during this period. When you detect degraded model performance, the next step is to retrain your model with new data, thus creating a new version of the model. If your model is deployed to a web service or IoT devices, then you would use the new version of the model to redeploy it to those endpoints. The Azure Machine Learning SDK provides tools you can use to redeploy with minimal interruption of these services and endpoints.
 
-## Exercise 12: Refresh the Power BI report and view maintenance data
+## Section 12: Refresh the Power BI report and view maintenance data
 
 ### Task 1: Open and refresh the report in Power BI Desktop
 
@@ -2344,7 +2344,7 @@ Monitor for changes in the distribution of data between the training dataset and
 
 ## Environment clean-up
 
-In this exercise, you will delete any Azure resources that were created in support of the Quickstart. You should follow all steps provided after you finish evaluating the sample scenario to ensure your account does not continue to be charged for unused resources.
+In this section, you will delete any Azure resources that were created in support of the Quickstart. You should follow all steps provided after you finish evaluating the sample scenario to ensure your account does not continue to be charged for unused resources.
 
 ### Task 1: Delete the resource group
 
