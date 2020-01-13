@@ -541,7 +541,7 @@ You should now see your Event Hubs input listed.
 
 1. **If you have never signed in to Power BI with this account**, open a new browser tab and navigate to <https://powerbi.com> and sign in. Confirm any messages if they appear and continue to the next step after the home page appears. This will help the connection authorization step from Stream Analytics succeed and find the group workspace.
 
-2. While remaining in the Outputs blade, select **+ Add** once again, then select **Power BI** from the list.
+2. Select **Outputs** in the left-hand menu, select **+ Add**, then select **Power BI** from the list.
 
    ![The Power BI output is selected in the Add menu.](media/stream-analytics-outputs-add-power-bi.png 'Outputs')
 
@@ -554,6 +554,7 @@ You should now see your Event Hubs input listed.
    2. **Group workspace**: Select **My workspace**.
    3. **Dataset name**: Enter **Contoso Auto IoT Events**.
    4. **Table name**: Enter **FleetEvents**.
+   5. **Authentication mode**: Select **User token**.
 
    ![The New Output form is displayed with the previously described values.](media/stream-analytics-new-output-power-bi.png 'New output')
 
@@ -1006,6 +1007,8 @@ The scripts install the required PowerShell module (AzureAD) for the current use
     Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
     ```
 
+    When prompted, enter **A** (`[A] Yes to All`) to change the execution policy.
+
 #### Option 1 (interactive)
 
 - Just run `. .\Configure.ps1`, and you will be prompted to sign-in (email address, password, and if needed MFA).
@@ -1019,7 +1022,7 @@ If you have more than one Azure tenant associated with your account, perform the
 
 - Open the [Azure portal](https://portal.azure.com).
 - Select the Azure Active Directory you are interested in (in the combo-box below your name on the top right of the browser window).
-- Find the "Active Directory" object in this tenant, found in the portal's left-hand menu.
+- Find the "Azure Active Directory" object in this tenant, found in the portal's left-hand menu.
 - Go to **Properties** and copy the content of the **Directory Id** property.
 - Then use the full syntax to run the scripts:
 
@@ -1029,7 +1032,7 @@ $tenantId = "yourTenantIdGuid"
 . .\Configure.ps1 -TenantId $tenantId
 ```
 
-The `Configure.ps1` script will create the Azure AD application and update the web app's `appsettings.json` file with the details of the new application.
+The `Configure.ps1` script will create the Azure AD application and update the web app's `appsettings.json` file with the details of the new application. You will be prompted to log in twice, once for each script.
 
 #### Option 3 (manual steps)
 
@@ -1107,9 +1110,13 @@ Change your portal session to the desired Azure AD tenant.
 
 4. Click **Publish** to begin.
 
-    After the publish completes, you should see the following in the Output window: `========== Publish: 1 succeeded, 0 failed, 0 skipped ==========` to indicate a successful publish. Also, the web app should open in a new browser window. If you try to navigate through the site, you will notice there is no data. We will seed the Cosmos DB `metadata` container with data in the next section.
+    After the publish completes, you should see the following in the Output window: `========== Publish: 1 succeeded, 0 failed, 0 skipped ==========` to indicate a successful publish. Also, the web app should open in a new browser window.
 
-    ![The Fleet Management web app home page is displayed.](media/webapp-home-page.png "Fleet Management home page")
+    You will be prompted to approve the application to allow it to access your Azure Active Directory profile information. Accept the request.
+
+    You should now see a notification that states: **Sorry, but we're having trouble signing you in.**. This is expected. We will add the required redirect URIs to the Azure Active Directory application in the next task.
+
+    ![Sorry, but we're having trouble signing you in.](media/web-app-sign-in-error.png "Sign in error dialog")
 
     If the web app does not automatically open, you can copy its URL on the publish dialog:
 
@@ -1118,7 +1125,7 @@ Change your portal session to the desired Azure AD tenant.
 > **NOTE:** If the web application displays an error, then go into the Azure Portal for the **IoTWebApp** and click **Restart**. When the Azure Web App is created from the ARM Template and configured for .NET Core, it may need to be restarted for the .NET Core configuration to be fully installed and ready for the application to run. Once restarted, the web application will run as expected.
 > ![App Service blade with Restart button highlighted](media/IoTWebApp-App-Service-Restart-Button.png "App Service blade with Restart button highlighted")
 
-> **Further troubleshooting:** If, after restarting the web application more than once, you still encounter a _500_ error, there may be a problem with the system identity for the web app. To check if this is the issue, open the web application's Configuration and view its Application Settings. Open the **CosmosDBConnection** setting and look at the **Key Vault Reference Details** underneath the setting. You should see an output similar to the following, which displays the secret details and indicates that it is using the _System assigned managed identity_:
+> **Further troubleshooting:** If, after restarting the web application more than once, you still encounter a _500_ error, there may be a problem with the system identity for the web app (**please note**, after restarting, you may see a _503_ error for a while, as the web application initializes). To check if this is the issue, open the web application's Configuration and view its Application Settings. Open the **CosmosDBConnection** setting and look at the **Key Vault Reference Details** underneath the setting. You should see an output similar to the following, which displays the secret details and indicates that it is using the _System assigned managed identity_:
 
 ![The application setting shows the Key Vault reference details underneath.](media/webapp-app-setting-key-vault-reference.png "Key Vault reference details")
 
@@ -1161,6 +1168,10 @@ In this task, you sign in to the deployed web app and configure your notificatio
     ![The URL is highlighted on the Overview blade.](media/web-app-overview-url.png "Overview")
 
 2. When prompted, sign in with your Azure account.
+
+    If you try to navigate through the site, you will notice there is no data. We will seed the Cosmos DB `metadata` container with data in the next section.
+
+    ![The Fleet Management web app home page is displayed.](media/webapp-home-page.png "Fleet Management home page")
 
 3. Select **Settings** in the left-hand menu.
 
@@ -1253,6 +1264,8 @@ The Web App provides a web-based management interface for vehicle, package, trip
 
 ## Section 3: Configuring Azure Databricks
 
+> **Please note**: This is an optional component. If you do not need advanced analytics and machine learning in your solution, you may skip this section.
+
 [Azure Databricks](https://azure.microsoft.com/services/databricks/) is a fully-managed, cloud-based Big Data and Machine Learning platform, which empowers developers to accelerate AI and innovation by simplifying the process of building enterprise-grade production data applications. Built as a joint effort by the team that started Apache Spark and Microsoft, Azure Databricks provides data science and engineering teams with a single platform for Big Data processing and Machine Learning.
 
 By combining the power of Databricks, an end-to-end, managed Apache Spark platform optimized for the cloud, with the enterprise scale and security of Microsoft's Azure platform, Azure Databricks makes it simple to run large-scale Spark workloads.
@@ -1289,6 +1302,7 @@ In this task, you will create a new cluster on which data exploration and model 
    8. **Workers**: Enter **1**.
 
    ![The New Cluster form is displayed with the previously described values.](media/databricks-new-cluster.png 'New Cluster')
+   
    **Note** If you failed to create a cluster, try to change the worker type from Standard_DS3_v2 to other VM sizes.
 
 5. Select **Create Cluster**.
@@ -1643,6 +1657,10 @@ The data generator needs two connection strings before it can successfully run; 
 1. Open **appsettings.json** within the **FleetDataGenerator** project.
 
 2. Paste the IoT Hub connection string value in quotes next to the **IOT_HUB_CONNECTION_STRING** key. Paste the Cosmos DB connection string value in quotes next to the **COSMOS_DB_CONNECTION_STRING** key.
+
+    If you do not have the Cosmos DB connection string, you can find it by opening the Cosmos DB account in the solution accelerator's resource group in the portal, then selecting **Keys** in the left-hand menu, then copy the **Primary Connection String** value.
+
+    ![Cosmos DB connection string is highlighted within the Keys blade.](media/cosmos-db-connection-string.png "Keys")
 
 3. The data generator also requires the Health Check URLs you copied in the previous section for the `HealthCheck` functions located in both Function Apps. Paste the Cosmos DB Processing Function App's `HealthCheck` function's URL in quotes next to the **COSMOS_PROCESSING_FUNCTION_HEALTHCHECK_URL** key. Paste the Stream Processing Function App's `HealthCheck` function's URL in quotes next to the **STREAM_PROCESSING_FUNCTION_HEALTHCHECK_URL** key.
 
@@ -2138,6 +2156,8 @@ In this section, you will import a Power BI report that has been created for you
 
 ## Section 10: Run the predictive maintenance batch scoring
 
+> **Please note**: This is an optional component. If you do not need advanced analytics and machine learning in your solution, you may skip this section.
+
 In this section, you will import Databricks notebooks into your Azure Databricks workspace. A notebook is interactive and runs in any web browser, mixing markup (formatted text with instructions), executable code, and outputs from running the code.
 
 Next, you will run the Batch Scoring notebook to make battery failure predictions on vehicles, using vehicle and trip data stored in Cosmos DB.
@@ -2224,6 +2244,8 @@ The values highlighted in the screenshot below are for the following variables i
 > If you wish to execute this notebook on a scheduled basis, such as every evening, you can use the Jobs feature in Azure Databricks to accomplish this.
 
 ## Section 11: Deploy the predictive maintenance web service
+
+> **Please note**: This is an optional component. If you do not need advanced analytics and machine learning in your solution, you may skip this section.
 
 In addition to batch scoring, Contoso Auto would like to predict battery failures on-demand in real time for any given vehicle. They want to be able to call the model from their Fleet Management website when looking at a vehicle to predict whether that vehicle's battery may fail in the next 30 days.
 
@@ -2329,6 +2351,8 @@ When you want your model to be available for on-demand access over the web or on
 Monitor for changes in the distribution of data between the training dataset and inference data of your deployed model. These changes are sometimes called [data drift](https://docs.microsoft.com/azure/machine-learning/service/concept-data-drift) and indicate degraded prediction performance over time due to how the input data changes during this period. When you detect degraded model performance, the next step is to retrain your model with new data, thus creating a new version of the model. If your model is deployed to a web service or IoT devices, then you would use the new version of the model to redeploy it to those endpoints. The Azure Machine Learning SDK provides tools you can use to redeploy with minimal interruption of these services and endpoints.
 
 ## Section 12: Refresh the Power BI report and view maintenance data
+
+> **Please note**: This is an optional component. If you do not need advanced analytics and machine learning in your solution, you may skip this section.
 
 ### Task 1: Open and refresh the report in Power BI Desktop
 
