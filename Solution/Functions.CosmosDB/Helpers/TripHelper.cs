@@ -231,7 +231,7 @@ namespace Functions.CosmosDB.Helpers
             {
                 var alertSummaryHistory = new AlertSummaryHistory();
                 // Retrieve the alert summary history document from the alerts container.
-                var response = await _alertsContainer.ReadItemAsync<AlertSummaryHistory>(WellKnown.EntityTypes.Settings,
+                var response = await _alertsContainer.ReadItemAsync<AlertSummaryHistory>(WellKnown.EntityTypes.AlertSummaryHistory,
                     new PartitionKey(WellKnown.EntityTypes.AlertSummaryHistory));
 
                 if (response.StatusCode == HttpStatusCode.OK)
