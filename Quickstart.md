@@ -1535,6 +1535,7 @@ There is a lot of code within the data generator project, so we'll just touch on
 
     ```csharp
     // Instantiate Cosmos DB client and start sending messages:
+    var trips = new List<Trip>();
     using (_cosmosDbClient = new CosmosClient(cosmosDbConnectionString.ServiceEndpoint.OriginalString,
         cosmosDbConnectionString.AuthKey, connectionPolicy))
     {
@@ -1553,40 +1554,50 @@ There is a lot of code within the data generator project, so we'll just touch on
                 ConsoleColor.Green);
         }
 
-        // Initially seed the Cosmos DB database with metadata if empty.
-        await SeedDatabase(cosmosDbConnectionString, cancellationToken);
-        trips = await GetTripsFromDatabase(numberSimulatedTrucks, container);
-    }
+        // Ensure the telemetry container throughput is set to 15,000 RU/s.
+        var telemetryContainer = await GetContainerIfExists(TelemetryContainerName);
+        await ChangeContainerPerformance(telemetryContainer, 15000);
 
-    try
-    {
-        // Start sending telemetry from simulated vehicles to Event Hubs:
-        _runningVehicleTasks = await SetupVehicleTelemetryRunTasks(numberSimulatedTrucks,
-            trips, arguments.IoTHubConnectionString);
-        var tasks = _runningVehicleTasks.Select(t => t.Value).ToList();
-        while (tasks.Count > 0)
+        // Initially seed the Cosmos DB database with metadata if empty or if the user wants to generate new trips.
+        await SeedDatabase(cosmosDbConnectionString, generateNewTripsOnly, cancellationToken);
+        if (!generateNewTripsOnly)
         {
-            try
-            {
-                Task.WhenAll(tasks).Wait(cancellationToken);
-            }
-            catch (TaskCanceledException)
-            {
-                //expected
-            }
-
-            tasks = _runningVehicleTasks.Where(t => !t.Value.IsCompleted).Select(t => t.Value).ToList();
-
+            trips = await GetTripsFromDatabase(numberSimulatedTrucks, container);
         }
     }
-    catch (OperationCanceledException)
+
+    if (!generateNewTripsOnly)
     {
-        Console.WriteLine("The vehicle telemetry operation was canceled.");
-        // No need to throw, as this was expected.
+        try
+        {
+            // Start sending telemetry from simulated vehicles to Event Hubs:
+            _runningVehicleTasks = await SetupVehicleTelemetryRunTasks(numberSimulatedTrucks,
+                trips, arguments.IoTHubConnectionString);
+            var tasks = _runningVehicleTasks.Select(t => t.Value).ToList();
+            while (tasks.Count > 0)
+            {
+                try
+                {
+                    Task.WhenAll(tasks).Wait(cancellationToken);
+                }
+                catch (TaskCanceledException)
+                {
+                    //expected
+                }
+
+                tasks = _runningVehicleTasks.Where(t => !t.Value.IsCompleted).Select(t => t.Value).ToList();
+
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            Console.WriteLine("The vehicle telemetry operation was canceled.");
+            // No need to throw, as this was expected.
+        }
     }
     ```
 
-    The top section of the code instantiates a new `CosmosClient`, using the connection string defined in either `appsettings.json` or the environment variables. The first call within the block is to `InitializeCosmosDb()`. We'll dig into this method in a moment, but it is responsible for creating the Cosmos DB database and containers if they do not exist in the Cosmos DB account. Next, we create a new `Container` instance, which the v3 version of the .NET Cosmos DB SDK uses for operations against a container, such as CRUD and maintenance information. For example, we call `ReadThroughputAsync` on the container to retrieve the current throughput (RU/s), and we pass it to `GetTripsFromDatabase` to read Trip documents from the container, based on the number of vehicles we are simulating. In this method, we also call the `SeedDatabase` method, which checks whether data currently exists and, if not, calls methods in the `DataGenerator` class (`DataGenerator.cs` file) to generate vehicles, consignments, packages, and trips, then writes the data in bulk using the `BulkImporter` class (`BulkImporter.cs` file). This `SeedDatabase` method executes the following on the `Container` instance to adjust the throughput (RU/s) to 50,000 before the bulk import, and back to 15,000 after the data seeding is complete: `await container.ReplaceThroughputAsync(desiredThroughput);`.
+    The top section of the code instantiates a new `CosmosClient`, using the connection string defined in either `appsettings.json` or the environment variables. The first call within the block is to `InitializeCosmosDb()`. We'll dig into this method in a moment, but it is responsible for creating the Cosmos DB database and containers if they do not exist in the Cosmos DB account. Next, we create a new `Container` instance, which the v3 version of the .NET Cosmos DB SDK uses for operations against a container, such as CRUD and maintenance information. For example, we call `ReadThroughputAsync` on the container to retrieve the current throughput (RU/s), and we pass it to `GetTripsFromDatabase` to read Trip documents from the container, based on the number of vehicles we are simulating. In this method, we also call the `SeedDatabase` method, which checks whether data currently exists and, if not, calls methods in the `DataGenerator` class (`DataGenerator.cs` file) to generate vehicles, consignments, packages, and trips, then writes the data in bulk using the `BulkImporter` class (`BulkImporter.cs` file). This `SeedDatabase` method executes the following on the `Container` instance to adjust the throughput (RU/s) to 50,000 before the bulk import, and back to 15,000 after the data seeding is complete: `await container.ReplaceThroughputAsync(desiredThroughput);`. Also notice that we are passing `generateNewTripsOnly` to the `SeedDatabase` method. This value is set to true if the user selects option 6 when executing the generator. When `generateNewTripsOnly` is set to true, any existing trips and consignments that are in pending or active status are canceled and new trips and consignments are created for existing vehicles. If no data currently exists, the `SeedDatabase` method generates all new data, as usual.
 
     The `try/catch` block calls `SetupVehicleTelemetryRunTasks` to register IoT device instances for each simulated vehicle and load up the tasks from each `SimulatedVehicle` instance it creates. It uses `Task.WhenAll` to ensure all pending tasks (simulated vehicle trips) are complete, removing completed tasks from the `_runningvehicleTasks` list as they finish. The cancellation token is used to cancel all running tasks if you issue the cancel command (`Ctrl+C` or `Ctrl+Break`) in the console.
 
@@ -1598,29 +1609,27 @@ There is a lot of code within the data generator project, so we'll just touch on
         _database = await _cosmosDbClient.CreateDatabaseIfNotExistsAsync(DatabaseName);
 
         #region Telemetry container
-        // Define a new container.
-        var telemetryContainerDefinition =
-            new ContainerProperties(id: TelemetryContainerName, partitionKeyPath: $"/{PartitionKey}")
-            {
-                IndexingPolicy = { IndexingMode = IndexingMode.Consistent }
-            };
-
-        // Tune the indexing policy for write-heavy workloads by only including regularly queried paths.
-        // Be careful when using an opt-in policy as we are below. Excluding all and only including certain paths removes
-        // Cosmos DB's ability to proactively add new properties to the index.
-        telemetryContainerDefinition.IndexingPolicy.ExcludedPaths.Clear();
-        telemetryContainerDefinition.IndexingPolicy.ExcludedPaths.Add(new ExcludedPath { Path = "/*" }); // Exclude all paths.
-        telemetryContainerDefinition.IndexingPolicy.IncludedPaths.Clear();
-        telemetryContainerDefinition.IndexingPolicy.IncludedPaths.Add(new IncludedPath { Path = "/vin/?" });
-        telemetryContainerDefinition.IndexingPolicy.IncludedPaths.Add(new IncludedPath { Path = "/state/?" });
-        telemetryContainerDefinition.IndexingPolicy.IncludedPaths.Add(new IncludedPath { Path = "/partitionKey/?" });
-
-        // Create the container with a throughput of 15000 RU/s.
-        await _database.CreateContainerIfNotExistsAsync(telemetryContainerDefinition, throughput: 15000);
+        // Define and create a new container using the builder pattern.
+        await _database.DefineContainer(TelemetryContainerName, $"/{PartitionKey}")
+            // Tune the indexing policy for write-heavy workloads by only including regularly queried paths.
+            // Be careful when using an opt-in policy as we are below. Excluding all and only including certain paths removes
+            // Cosmos DB's ability to proactively add new properties to the index.
+            .WithIndexingPolicy()
+                .WithIndexingMode(IndexingMode.Consistent)
+                .WithIncludedPaths()
+                    .Path("/vin/?")
+                    .Path("/state/?")
+                    .Path("/partitionKey/?")
+                    .Attach()
+                .WithExcludedPaths()
+                    .Path("/*")
+                    .Attach()
+                .Attach()
+            .CreateIfNotExistsAsync(15000);
         #endregion
 
         #region Metadata container
-        // Define a new container (collection).
+        // Define a new container.
         var metadataContainerDefinition =
             new ContainerProperties(id: MetadataContainerName, partitionKeyPath: $"/{PartitionKey}")
             {
@@ -1634,7 +1643,7 @@ There is a lot of code within the data generator project, so we'll just touch on
         #endregion
 
         #region Maintenance container
-        // Define a new container (collection).
+        // Define a new container.
         var maintenanceContainerDefinition =
             new ContainerProperties(id: MaintenanceContainerName, partitionKeyPath: $"/vin")
             {
@@ -1646,7 +1655,7 @@ There is a lot of code within the data generator project, so we'll just touch on
         #endregion
 
         #region Alerts container
-        // Define a new container (collection).
+        // Define a new container.
         var alertsContainerDefinition =
             new ContainerProperties(id: AlertsContainerName, partitionKeyPath: $"/id")
             {
