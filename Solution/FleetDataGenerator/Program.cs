@@ -54,7 +54,6 @@ namespace FleetDataGenerator
             _cancellationSource = arguments.MillisecondsToRun == 0 ? new CancellationTokenSource() : new CancellationTokenSource(arguments.MillisecondsToRun);
             var cancellationToken = _cancellationSource.Token;
             var statistics = new Statistic[0];
-            List<Trip> trips;
 
             // Set the Cosmos DB connection policy.
             var connectionPolicy = new CosmosClientOptions
@@ -92,6 +91,7 @@ namespace FleetDataGenerator
             WriteLineInColor("** Enter 3 to generate and send data for 50 vehicles.", ConsoleColor.Green);
             WriteLineInColor("** Enter 4 to generate and send data for 100 vehicles.", ConsoleColor.Green);
             WriteLineInColor("** Enter 5 to generate and send data for the number of vehicles defined in the application settings/environment variables.", ConsoleColor.Green);
+            WriteLineInColor("** Enter 6 to generate new consignments and trips for existing vehicles. This will cancel any existing incomplete trips.", ConsoleColor.Green);
             Console.WriteLine("=============");
 
             // Handle Control+C or Control+Break.
@@ -107,6 +107,7 @@ namespace FleetDataGenerator
             var userInput = "";
             var numberSimulatedTrucks = arguments.NumberSimulatedTrucks;
             var runGenerator = true;
+            var generateNewTripsOnly = false;
 
             while (true)
             {
@@ -117,13 +118,14 @@ namespace FleetDataGenerator
                                       input.Equals("2", StringComparison.InvariantCultureIgnoreCase) ||
                                       input.Equals("3", StringComparison.InvariantCultureIgnoreCase) ||
                                       input.Equals("4", StringComparison.InvariantCultureIgnoreCase) ||
-                                      input.Equals("5", StringComparison.InvariantCultureIgnoreCase)))
+                                      input.Equals("5", StringComparison.InvariantCultureIgnoreCase) ||
+                                      input.Equals("6", StringComparison.InvariantCultureIgnoreCase)))
                 {
                     userInput = input.Trim();
                     break;
                 }
 
-                Console.WriteLine("Invalid input entered. Please enter either 1, 2, 3, 4, or 5.");
+                Console.WriteLine("Invalid input entered. Please enter either 1, 2, 3, 4, 5, or 6.");
             }
 
             switch (userInput)
@@ -143,6 +145,9 @@ namespace FleetDataGenerator
                 case "5":
                     numberSimulatedTrucks = arguments.NumberSimulatedTrucks;
                     break;
+                case "6":
+                    generateNewTripsOnly = true;
+                    break;
                 default:
                     // Exit.
                     runGenerator = false;
@@ -157,6 +162,7 @@ namespace FleetDataGenerator
             if (runGenerator && healthChecksPassed)
             {
                 // Instantiate Cosmos DB client and start sending messages:
+                var trips = new List<Trip>();
                 using (_cosmosDbClient = new CosmosClient(cosmosDbConnectionString.ServiceEndpoint.OriginalString,
                     cosmosDbConnectionString.AuthKey, connectionPolicy))
                 {
@@ -179,41 +185,47 @@ namespace FleetDataGenerator
                     var telemetryContainer = await GetContainerIfExists(TelemetryContainerName);
                     await ChangeContainerPerformance(telemetryContainer, 15000);
 
-                    // Initially seed the Cosmos DB database with metadata if empty.
-                    await SeedDatabase(cosmosDbConnectionString, cancellationToken);
-                    trips = await GetTripsFromDatabase(numberSimulatedTrucks, container);
-                }
-
-                try
-                {
-                    // Start sending telemetry from simulated vehicles to Event Hubs:
-                    _runningVehicleTasks = await SetupVehicleTelemetryRunTasks(numberSimulatedTrucks,
-                        trips, arguments.IoTHubConnectionString);
-                    var tasks = _runningVehicleTasks.Select(t => t.Value).ToList();
-                    while (tasks.Count > 0)
+                    // Initially seed the Cosmos DB database with metadata if empty or if the user wants to generate new trips.
+                    await SeedDatabase(cosmosDbConnectionString, generateNewTripsOnly, cancellationToken);
+                    if (!generateNewTripsOnly)
                     {
-                        try
-                        {
-                            Task.WhenAll(tasks).Wait(cancellationToken);
-                        }
-                        catch (TaskCanceledException)
-                        {
-                            //expected
-                        }
-
-                        tasks = _runningVehicleTasks.Where(t => !t.Value.IsCompleted).Select(t => t.Value).ToList();
-
+                        trips = await GetTripsFromDatabase(numberSimulatedTrucks, container);
                     }
                 }
-                catch (OperationCanceledException)
+
+                if (!generateNewTripsOnly)
                 {
-                    Console.WriteLine("The vehicle telemetry operation was canceled.");
-                    // No need to throw, as this was expected.
+                    try
+                    {
+                        // Start sending telemetry from simulated vehicles to Event Hubs:
+                        _runningVehicleTasks = await SetupVehicleTelemetryRunTasks(numberSimulatedTrucks,
+                            trips, arguments.IoTHubConnectionString);
+                        var tasks = _runningVehicleTasks.Select(t => t.Value).ToList();
+                        while (tasks.Count > 0)
+                        {
+                            try
+                            {
+                                Task.WhenAll(tasks).Wait(cancellationToken);
+                            }
+                            catch (TaskCanceledException)
+                            {
+                                //expected
+                            }
+
+                            tasks = _runningVehicleTasks.Where(t => !t.Value.IsCompleted).Select(t => t.Value).ToList();
+
+                        }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        Console.WriteLine("The vehicle telemetry operation was canceled.");
+                        // No need to throw, as this was expected.
+                    }
                 }
 
                 CancelAll();
                 Console.WriteLine();
-                WriteLineInColor("Done sending generated vehicle telemetry data", ConsoleColor.Cyan);
+                WriteLineInColor(generateNewTripsOnly ? "Done generating new trips and consignments. You may close this window." : "Done sending generated vehicle telemetry data. You may close this window.", ConsoleColor.Cyan);
                 Console.WriteLine();
                 Console.WriteLine();
             }
@@ -251,6 +263,84 @@ namespace FleetDataGenerator
             }
 
             return trips;
+        }
+
+        /// <summary>
+        /// Retrieves vehicles from Cosmos DB.
+        /// </summary>
+        /// <param name="container"></param>
+        /// <returns></returns>
+        private static async Task<List<Vehicle>> GetVehiclesFromDatabase(Container container)
+        {
+            var vehicles = new List<Vehicle>();
+
+            WriteLineInColor($"\nRetrieving vehicles from Cosmos DB.", ConsoleColor.DarkCyan);
+
+            var query = new QueryDefinition("SELECT * FROM c WHERE c.entityType = @entityType")
+                .WithParameter("@entityType", WellKnown.EntityTypes.Vehicle);
+
+            var results = container.GetItemQueryIterator<Vehicle>(query);
+
+            while (results.HasMoreResults)
+            {
+                foreach (var vehicle in await results.ReadNextAsync())
+                {
+                    vehicles.Add(vehicle);
+                }
+            }
+
+            return vehicles;
+        }
+
+        /// <summary>
+        /// Cancels any non-completed trips and consignments. This is called when the user requests
+        /// to generate new trips. There cannot be more than one active or pending trip associated
+        /// with a vehicle at one time.
+        /// </summary>
+        /// <param name="container"></param>
+        /// <returns></returns>
+        private static async Task CancelNonCompletedTripsAndConsignments(Container container, BulkImporter bulkImporter, CancellationToken cancellationToken)
+        {
+            var trips = new List<Trip>();
+            var consignments = new List<Consignment>();
+            WriteLineInColor($"\nCanceling incomplete trips and consignments from Cosmos DB.", ConsoleColor.DarkCyan);
+
+            var query = new QueryDefinition("SELECT * FROM c WHERE c.entityType = @entityType AND (c.status != @status AND c.status != @status2)")
+                .WithParameter("@entityType", WellKnown.EntityTypes.Trip)
+                .WithParameter("@status", WellKnown.Status.Completed)
+                .WithParameter("@status2", WellKnown.Status.Canceled);
+
+            var tripResults = container.GetItemQueryIterator<Trip>(query);
+
+            while (tripResults.HasMoreResults)
+            {
+                foreach (var trip in await tripResults.ReadNextAsync(cancellationToken))
+                {
+                    trip.status = WellKnown.Status.Canceled;
+                    trips.Add(trip);
+                }
+            }
+
+            query = new QueryDefinition("SELECT * FROM c WHERE c.entityType = @entityType AND (c.status != @status AND c.status != @status2)")
+                .WithParameter("@entityType", WellKnown.EntityTypes.Consignment)
+                .WithParameter("@status", WellKnown.Status.Completed)
+                .WithParameter("@status2", WellKnown.Status.Canceled);
+
+            var consignmentResults = container.GetItemQueryIterator<Consignment>(query);
+
+            while (consignmentResults.HasMoreResults)
+            {
+                foreach (var consignment in await consignmentResults.ReadNextAsync(cancellationToken))
+                {
+                    consignment.status = WellKnown.Status.Canceled;
+                    consignments.Add(consignment);
+                }
+            }
+
+            // Bulk update trips.
+            await bulkImporter.BulkImport(trips, DatabaseName, MetadataContainerName, cancellationToken, 1);
+            // Bulk update consignments.
+            await bulkImporter.BulkImport(consignments, DatabaseName, MetadataContainerName, cancellationToken, 1);
         }
 
         /// <summary>
@@ -386,29 +476,27 @@ namespace FleetDataGenerator
             _database = await _cosmosDbClient.CreateDatabaseIfNotExistsAsync(DatabaseName);
 
             #region Telemetry container
-            // Define a new container.
-            var telemetryContainerDefinition =
-                new ContainerProperties(id: TelemetryContainerName, partitionKeyPath: $"/{PartitionKey}")
-                {
-                    IndexingPolicy = { IndexingMode = IndexingMode.Consistent }
-                };
-
-            // Tune the indexing policy for write-heavy workloads by only including regularly queried paths.
-            // Be careful when using an opt-in policy as we are below. Excluding all and only including certain paths removes
-            // Cosmos DB's ability to proactively add new properties to the index.
-            telemetryContainerDefinition.IndexingPolicy.ExcludedPaths.Clear();
-            telemetryContainerDefinition.IndexingPolicy.ExcludedPaths.Add(new ExcludedPath { Path = "/*" }); // Exclude all paths.
-            telemetryContainerDefinition.IndexingPolicy.IncludedPaths.Clear();
-            telemetryContainerDefinition.IndexingPolicy.IncludedPaths.Add(new IncludedPath { Path = "/vin/?" });
-            telemetryContainerDefinition.IndexingPolicy.IncludedPaths.Add(new IncludedPath { Path = "/state/?" });
-            telemetryContainerDefinition.IndexingPolicy.IncludedPaths.Add(new IncludedPath { Path = "/partitionKey/?" });
-
-            // Create the container with a throughput of 15000 RU/s.
-            await _database.CreateContainerIfNotExistsAsync(telemetryContainerDefinition, throughput: 15000);
+            // Define and create a new container using the builder pattern.
+            await _database.DefineContainer(TelemetryContainerName, $"/{PartitionKey}")
+                // Tune the indexing policy for write-heavy workloads by only including regularly queried paths.
+                // Be careful when using an opt-in policy as we are below. Excluding all and only including certain paths removes
+                // Cosmos DB's ability to proactively add new properties to the index.
+                .WithIndexingPolicy()
+                    .WithIndexingMode(IndexingMode.Consistent)
+                    .WithIncludedPaths()
+                        .Path("/vin/?")
+                        .Path("/state/?")
+                        .Path("/partitionKey/?")
+                        .Attach()
+                    .WithExcludedPaths()
+                        .Path("/*")
+                        .Attach()
+                    .Attach()
+                .CreateIfNotExistsAsync(15000);
             #endregion
 
             #region Metadata container
-            // Define a new container (collection).
+            // Define a new container.
             var metadataContainerDefinition =
                 new ContainerProperties(id: MetadataContainerName, partitionKeyPath: $"/{PartitionKey}")
                 {
@@ -422,7 +510,7 @@ namespace FleetDataGenerator
             #endregion
 
             #region Maintenance container
-            // Define a new container (collection).
+            // Define a new container.
             var maintenanceContainerDefinition =
                 new ContainerProperties(id: MaintenanceContainerName, partitionKeyPath: $"/vin")
                 {
@@ -434,7 +522,7 @@ namespace FleetDataGenerator
             #endregion
 
             #region Alerts container
-            // Define a new container (collection).
+            // Define a new container.
             var alertsContainerDefinition =
                 new ContainerProperties(id: AlertsContainerName, partitionKeyPath: $"/id")
                 {
@@ -490,7 +578,7 @@ namespace FleetDataGenerator
         /// <summary>
         /// Seeds the Cosmos DB metadata container.
         /// </summary>
-        private static async Task SeedDatabase(CosmosDbConnectionString cosmosDbConnectionString, CancellationToken cancellationToken)
+        private static async Task SeedDatabase(CosmosDbConnectionString cosmosDbConnectionString, bool generateNewTripsOnly, CancellationToken cancellationToken)
         {
             // Check if data exists before seeding.
             var count = 0;
@@ -500,28 +588,46 @@ namespace FleetDataGenerator
             
             if (resultSetIterator.HasMoreResults)
             {
-                var result = await resultSetIterator.ReadNextAsync();
+                var result = await resultSetIterator.ReadNextAsync(cancellationToken);
                 if (result.Count > 0) count = result.FirstOrDefault();
             }
 
-            if (count == 0)
+            if (count == 0 || generateNewTripsOnly)
             {
+                var vehiclesExist = count != 0 && generateNewTripsOnly;
+                List<Vehicle> vehicles;
+
                 // Scale up the requested throughput (RU/s) for the metadata container prior to bulk import:
-                WriteLineInColor($"No data currently exists in the {MetadataContainerName} container. Scaling up the container RU/s to 50,000 prior to bulk data insert...", ConsoleColor.Cyan);
+                var reason = vehiclesExist
+                    ? "Data already exists. Preparing to cancel pending and active trips and generate new ones."
+                    : $"No data currently exists in the {MetadataContainerName} container.";
+                WriteLineInColor($"{reason} Scaling up the container RU/s to 50,000 prior to bulk data insert...", ConsoleColor.Cyan);
                 await ChangeContainerPerformance(container, 50000);
                 WriteLineInColor("Container RU/s adjusted. Generating data to seed database...", ConsoleColor.Cyan);
 
                 var bulkImporter = new BulkImporter(cosmosDbConnectionString);
-                var vehicles = DataGenerator.GenerateVehicles().ToList();
+                if (vehiclesExist)
+                {
+                    await CancelNonCompletedTripsAndConsignments(container, bulkImporter, cancellationToken);
+                    vehicles = await GetVehiclesFromDatabase(container);
+                }
+                else
+                {
+                    vehicles = DataGenerator.GenerateVehicles().ToList();
+                }
+                
                 var consignments = DataGenerator.GenerateConsignments(900).ToList();
                 var packages = DataGenerator.GeneratePackages(consignments.ToList()).ToList();
                 var trips = DataGenerator.GenerateTrips(consignments.ToList(), vehicles.ToList()).ToList();
 
                 WriteLineInColor("Generated data to seed database. Saving metadata to Cosmos DB...", ConsoleColor.Cyan);
 
-                // Save vehicles:
-                WriteLineInColor($"Adding {vehicles.Count()} vehicles...", ConsoleColor.Green);
-                await bulkImporter.BulkImport(vehicles, DatabaseName, MetadataContainerName, cancellationToken, 1);
+                if (!vehiclesExist)
+                {
+                    // Save vehicles:
+                    WriteLineInColor($"Adding {vehicles.Count()} vehicles...", ConsoleColor.Green);
+                    await bulkImporter.BulkImport(vehicles, DatabaseName, MetadataContainerName, cancellationToken, 1);
+                }
 
                 // Save consignments:
                 WriteLineInColor($"Adding {consignments.Count()} consignments...", ConsoleColor.Green);
