@@ -180,7 +180,7 @@ In this section, you will configure your environment so you can start sending an
 
 Most of the deployment is automated, but there is some manual configuration you must complete.
 
-We base the time estimates that follow on an experienced Azure user completing the setup steps in the Quickstart guide, bypassing code and application walkthroughs, as well as the learning materials located throughout the guide.
+We base the time estimates that follow on an experienced Azure user completing the setup steps in this Quickstart guide, bypassing code and application walkthroughs, as well as the learning materials located throughout the guide.
 
 - Automated deployment from the ARM template: **< 15 minutes**.
 - Manual configuration of core components: **1 hour**.
