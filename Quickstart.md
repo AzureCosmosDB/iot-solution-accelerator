@@ -12,6 +12,7 @@
   - [Requirements](#requirements)
     - [Task 0: Download the starter files](#task-0-download-the-starter-files)
   - [Section 1: Configure environment](#section-1-configure-environment)
+    - [Deployment and setup time](#deployment-and-setup-time)
     - [Task 1: Run deployment scripts](#task-1-run-deployment-scripts)
       - [Deployment information: Cosmos DB](#deployment-information-cosmos-db)
       - [About Cosmos DB throughput](#about-cosmos-db-throughput)
@@ -171,11 +172,23 @@ Download a starter project that includes a vehicle simulator, Azure Function App
 
 ## Section 1: Configure environment
 
-**Duration**: 45 minutes
-
 You must provision a few resources in Azure before you start developing the solution. Ensure all resources use the same resource group for easier cleanup.
 
 In this section, you will configure your environment so you can start sending and processing generated vehicle, consignment, package, and trip data. You will begin by creating a Cosmos DB database and containers, then you will create a new Logic App and create a workflow for sending email notifications, create an Application Insights service for real-time monitoring of your solution, then retrieve secrets used in the solution's application settings (such as connection strings) and securely store them in Azure Key Vault, and finally configure your Azure Databricks environment.
+
+### Deployment and setup time
+
+Most of the deployment is automated, but there is some manual configuration you must complete.
+
+We base the time estimates that follow on an experienced Azure user completing the setup steps in the Quickstart guide, bypassing code and application walkthroughs, as well as the learning materials located throughout the guide.
+
+- Automated deployment from the ARM template: **< 15 minutes**.
+- Manual configuration of core components: **1 hour**.
+- (Optional) Power BI dashboard creation: **15 minutes**.
+- (Optional) Power BI desktop report configuration: **5-10 minutes**.
+- (Optional) Azure Databricks configuration, batch processing, and model deployment: **~30 minutes**.
+
+> **Before you begin**: See [detailed monthly pricing](Pricing.md) of the deployed resources.
 
 ### Task 1: Run deployment scripts
 
