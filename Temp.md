@@ -648,6 +648,8 @@ First, create an AKS cluster with the Azure Machine Learning SDK:
 from azureml.core.compute import AksCompute, ComputeTarget
 
 ```python
+from azureml.core.compute import AksCompute, ComputeTarget
+
 # Use the default configuration (you can also provide parameters to customize this)
 prov_config = AksCompute.provisioning_configuration()
 
