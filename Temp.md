@@ -50,23 +50,23 @@ Now view the Indexing Policy, which is different from the default policy the oth
     "indexingMode": "consistent",
     "automatic": true,
     "includedPaths": [
-    {
-        "path": "/vin/?"
-    },
-    {
-        "path": "/state/?"
-    },
-    {
-        "path": "/partitionKey/?"
-    }
+        {
+            "path": "/vin/?"
+        },
+        {
+            "path": "/state/?"
+        },
+        {
+            "path": "/partitionKey/?"
+        }
     ],
     "excludedPaths": [
-    {
-        "path": "/*"
-    },
-    {
-        "path": "/\"_etag\"/?"
-    }
+        {
+            "path": "/*"
+        },
+        {
+            "path": "/\"_etag\"/?"
+        }
     ]
 }
 ```
