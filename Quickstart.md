@@ -14,10 +14,10 @@
   - [Section 1: Configure environment](#section-1-configure-environment)
     - [Deployment and setup time](#deployment-and-setup-time)
     - [Task 1: Run deployment scripts](#task-1-run-deployment-scripts)
-      - [Deployment information: Cosmos DB](#deployment-information-cosmos-db)
-      - [About Cosmos DB throughput](#about-cosmos-db-throughput)
-      - [About Cosmos DB partitioning](#about-cosmos-db-partitioning)
-      - [About the Cosmos DB indexing policies](#about-the-cosmos-db-indexing-policies)
+      - [Deployment information: Azure Cosmos DB](#deployment-information-azure-cosmos-db)
+      - [About Azure Cosmos DB throughput](#about-azure-cosmos-db-throughput)
+      - [About Azure Cosmos DB partitioning](#about-azure-cosmos-db-partitioning)
+      - [About the Azure Cosmos DB indexing policies](#about-the-azure-cosmos-db-indexing-policies)
     - [Task 2: Authenticate the Office 365 API Connection for sending email alerts](#task-2-authenticate-the-office-365-api-connection-for-sending-email-alerts)
       - [About the Logic App](#about-the-logic-app)
     - [Task 3: Add Stream Analytics Event Hubs input](#task-3-add-stream-analytics-event-hubs-input)
@@ -26,8 +26,8 @@
     - [Task 6: Run Stream Analytics job](#task-6-run-stream-analytics-job)
   - [Section 2: Deploying Function Apps and Web App](#section-2-deploying-function-apps-and-web-app)
     - [Task 1: Open solution](#task-1-open-solution)
-    - [Task 1: Deploy Cosmos DB Processing Function App](#task-1-deploy-cosmos-db-processing-function-app)
-      - [Cosmos DB Processing Function App code walk-through](#cosmos-db-processing-function-app-code-walk-through)
+    - [Task 1: Deploy Azure Cosmos DB Processing Function App](#task-1-deploy-azure-cosmos-db-processing-function-app)
+      - [Azure Cosmos DB Processing Function App code walk-through](#azure-cosmos-db-processing-function-app-code-walk-through)
     - [Task 2: Deploy Stream Processing Function App](#task-2-deploy-stream-processing-function-app)
       - [Stream Processing Function App code walk-through](#stream-processing-function-app-code-walk-through)
     - [Task 3: Configure Azure Active Directory application for the Web App](#task-3-configure-azure-active-directory-application-for-the-web-app)
@@ -47,7 +47,7 @@
     - [Task 2: Configure Key Vault-backed Databricks secret store](#task-2-configure-key-vault-backed-databricks-secret-store)
   - [Section 4: Explore and execute the data generator](#section-4-explore-and-execute-the-data-generator)
     - [How to provision your own devices](#how-to-provision-your-own-devices)
-    - [Task 1: View Cosmos DB processing Function App in the portal and copy the Health Check URL](#task-1-view-cosmos-db-processing-function-app-in-the-portal-and-copy-the-health-check-url)
+    - [Task 1: View the Azure Cosmos DB processing Function App in the portal and copy the Health Check URL](#task-1-view-the-azure-cosmos-db-processing-function-app-in-the-portal-and-copy-the-health-check-url)
     - [Task 2: View stream processing Function App in the portal and copy the Health Check URL](#task-2-view-stream-processing-function-app-in-the-portal-and-copy-the-health-check-url)
     - [Task 3: Open the data generator project](#task-3-open-the-data-generator-project)
       - [Code walk-through](#code-walk-through)
@@ -56,8 +56,8 @@
     - [Task 6: View devices in IoT Hub](#task-6-view-devices-in-iot-hub)
   - [Section 5: Observe Change Feed using Azure Functions and App Insights](#section-5-observe-change-feed-using-azure-functions-and-app-insights)
     - [Task 1: Open App Insights Live Metrics Stream](#task-1-open-app-insights-live-metrics-stream)
-  - [Section 6: Observe data using Cosmos DB Data Explorer and Web App](#section-6-observe-data-using-cosmos-db-data-explorer-and-web-app)
-    - [Task 1: View data in Cosmos DB Data Explorer](#task-1-view-data-in-cosmos-db-data-explorer)
+  - [Section 6: Observe data using the Azure Cosmos DB Data Explorer and Web App](#section-6-observe-data-using-the-azure-cosmos-db-data-explorer-and-web-app)
+    - [Task 1: View data in Azure Cosmos DB Data Explorer](#task-1-view-data-in-azure-cosmos-db-data-explorer)
     - [Task 2: Search and view data in Web App](#task-2-search-and-view-data-in-web-app)
   - [Section 7: Perform CRUD operations using the Web App](#section-7-perform-crud-operations-using-the-web-app)
     - [Task 1: Create a new vehicle](#task-1-create-a-new-vehicle)
@@ -109,7 +109,7 @@ Ultimately Contoso would surface the raw and derived insights data to its users 
 
 - **Management and Customer Reporting personnel** who would like to be in a position to see the current state of the vehicle fleet and customer consignment level information presented in on a Power BI report that automatically updates with new data as it flows in after being processed. What they would like to see are reports on bad driving behavior by driver and using visual components such as a map to show anomalies related to cities or areas, as well as various charts and graphs depicting aggregate fleet and consignment information in a clear way.
 
-In this experience, you will use Azure Cosmos DB to ingest streaming vehicle telemetry data as the entry point to a near real-time analytics pipeline built on Cosmos DB, Azure Functions, Event Hubs, Azure Databricks, Azure Storage, Azure Stream Analytics, Power BI, Azure Web Apps, and Logic Apps.
+In this experience, you will use Azure Cosmos DB to ingest streaming vehicle telemetry data as the entry point to a near real-time analytics pipeline built on Azure Cosmos DB, Azure Functions, Event Hubs, Azure Databricks, Azure Storage, Azure Stream Analytics, Power BI, Azure Web Apps, and Logic Apps.
 
 ## Solution architecture
 
@@ -121,25 +121,25 @@ Below is a diagram of the solution architecture you will build in this guide. Pl
 
 - Data ingest, event processing, and storage:
 
-  The solution for the IoT scenario centers around **Cosmos DB**, which acts as the globally-available, highly scalable data storage for streaming event data, fleet, consignment, package, and trip metadata, and aggregate data for reporting. Vehicle telemetry (you may not have vehicles, but oil field pumps) data flows in from the data generator, through registered IoT devices in **IoT Hub**, where an **Azure function** processes the event data and inserts it into a telemetry container in Cosmos DB.
+  The solution for the IoT scenario centers around **Azure Cosmos DB**, which acts as the globally-available, highly scalable data storage for streaming event data, fleet, consignment, package, and trip metadata, and aggregate data for reporting. Vehicle telemetry (you may not have vehicles, but oil field pumps) data flows in from the data generator, through registered IoT devices in **IoT Hub**, where an **Azure function** processes the event data and inserts it into a telemetry container in Azure Cosmos DB.
 
 - Trip processing with Azure Functions:
 
-  The Cosmos DB change feed triggers three separate Azure functions, with each managing their own checkpoints so they can process the same incoming data without conflicting with one another. One function serializes the event data and stores it into time-sliced folders in **Azure Storage** for long-term cold storage of raw data. Another function processes the vehicle (or pump) telemetry, aggregating the batch data and updating the trip and consignment status in the metadata container, based on odometer readings and whether the trip is running on schedule. This function also triggers a **Logic App** to send email alerts when trip milestones are reached. A third function sends the event data to **Event Hubs**, which in turn triggers **Stream Analytics** to execute time window aggregate queries.
+  The Azure Cosmos DB change feed triggers three separate Azure functions, with each managing their own checkpoints so they can process the same incoming data without conflicting with one another. One function serializes the event data and stores it into time-sliced folders in **Azure Storage** for long-term cold storage of raw data. Another function processes the vehicle (or pump) telemetry, aggregating the batch data and updating the trip and consignment status in the metadata container, based on odometer readings and whether the trip is running on schedule. This function also triggers a **Logic App** to send email alerts when trip milestones are reached. A third function sends the event data to **Event Hubs**, which in turn triggers **Stream Analytics** to execute time window aggregate queries.
 
 - Stream processing, dashboards, and reports:
 
-  The Stream Analytics queries output vehicle-specific aggregates to the Cosmos DB metadata container, and overall vehicle aggregates to **Power BI** to populate its real-time dashboard of vehicle status information. A Power BI Desktop report displays detailed vehicle, trip, and consignment information pulled directly from the Cosmos DB metadata container. It also displays batch battery failure predictions, pulled from the maintenance container.
+  The Stream Analytics queries output vehicle-specific aggregates to the Azure Cosmos DB metadata container, and overall vehicle aggregates to **Power BI** to populate its real-time dashboard of vehicle status information. A Power BI Desktop report displays detailed vehicle, trip, and consignment information pulled directly from the Azure Cosmos DB metadata container. It also displays batch battery failure predictions, pulled from the maintenance container.
 
 - Advanced analytics and ML model training:
 
   **Azure Databricks** is used to train a machine learning model to predict vehicle battery failure, based on historical information. It saves a trained model locally for batch predictions, and deploys a model and scoring web service to **Azure Kubernetes Service (AKS)** or **Azure Container Instances (ACI)** for real-time predictions. Azure Databricks also uses the **Spark Cosmos DB connector** to pull down each day's trip information to make batch predictions on battery failure and store the predictions in the maintenance container.
 
-  > We use vehicle battery data in this sample scenario to provide a concrete example of how Apache Spark, through an Azure Databricks workspace, can directly connect to Cosmos DB and use it as a source for advanced analytics and machine learning. The data, or the machine learning model, are not important. What we highlight is the Spark connector for Cosmos DB and the Azure Key Vault-backed secret store to securely access secrets, like the Cosmos DB connection string. You may choose to adapt the supplied notebooks to your scenario or skip the ML pieces altogether.
+  > We use vehicle battery data in this sample scenario to provide a concrete example of how Apache Spark, through an Azure Databricks workspace, can directly connect to Azure Cosmos DB and use it as a source for advanced analytics and machine learning. The data, or the machine learning model, are not important. What we highlight is the Spark connector for Azure Cosmos DB and the Azure Key Vault-backed secret store to securely access secrets, like the Azure Cosmos DB connection string. You may choose to adapt the supplied notebooks to your scenario or skip the ML pieces altogether.
 
 - Fleet management web app, security, and monitoring:
 
-  A **Web App** allows Contoso Auto to manage vehicles and view consignment, package, and trip information that is stored in Cosmos DB. The Web App is also used to make real-time battery failure predictions while viewing vehicle information. **Azure Key Vault** is used to securely store centralized application secrets, such as connection strings and access keys, and is used by the Function Apps, Web App, and Azure Databricks. Finally, **Application Insights** provides real-time monitoring, metrics, and logging information for the Function Apps and Web App.
+  A **Web App** allows Contoso Auto to manage vehicles and view consignment, package, and trip information that is stored in Azure Cosmos DB. The Web App is also used to make real-time battery failure predictions while viewing vehicle information. **Azure Key Vault** is used to securely store centralized application secrets, such as connection strings and access keys, and is used by the Function Apps, Web App, and Azure Databricks. Finally, **Application Insights** provides real-time monitoring, metrics, and logging information for the Function Apps and Web App.
 
 ## Requirements
 
@@ -156,9 +156,9 @@ Below is a diagram of the solution architecture you will build in this guide. Pl
 
 Download a starter project that includes a vehicle simulator, Azure Function App projects, a Web App project, Azure Databricks notebooks, and data files used in the lab.
 
-1. From your lab computer, download the starter files by downloading a .zip copy of the Cosmos DB scenario-based labs GitHub repo.
+1. From your lab computer, download the starter files by downloading a .zip copy of the Azure Cosmos DB scenario-based labs GitHub repo.
 
-2. In a web browser, navigate to the [Cosmos DB IoT solution accelerator repo](https://github.com/solliancenet/cosmos-db-iot-solution-accelerator).
+2. In a web browser, navigate to the [Azure Cosmos DB IoT solution accelerator repo](https://github.com/AzureCosmosDB/solution-accelerator).
 
 3. On the repo page, select **Clone or download**, then select **Download ZIP**.
 
@@ -174,7 +174,7 @@ Download a starter project that includes a vehicle simulator, Azure Function App
 
 You must provision a few resources in Azure before you start developing the solution. Ensure all resources use the same resource group for easier cleanup.
 
-In this section, you will configure your environment so you can start sending and processing generated vehicle, consignment, package, and trip data. You will begin by creating a Cosmos DB database and containers, then you will create a new Logic App and create a workflow for sending email notifications, create an Application Insights service for real-time monitoring of your solution, then retrieve secrets used in the solution's application settings (such as connection strings) and securely store them in Azure Key Vault, and finally configure your Azure Databricks environment.
+In this section, you will configure your environment so you can start sending and processing generated vehicle, consignment, package, and trip data. You will begin by creating an Azure Cosmos DB database and containers, then you will create a new Logic App and create a workflow for sending email notifications, create an Application Insights service for real-time monitoring of your solution, then retrieve secrets used in the solution's application settings (such as connection strings) and securely store them in Azure Key Vault, and finally configure your Azure Databricks environment.
 
 ### Deployment and setup time
 
@@ -194,7 +194,7 @@ We base the time estimates that follow on an experienced Azure user completing t
 
 1. Select the **Deploy to Azure** button below to get started. When prompted, sign in to the Azure portal with your account.
 
-   <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fsolliancenet%2Fcosmos-db-iot-solution-accelerator%2Fmaster%2Fdeploy%2FdemoDeploy.json" target="_blank">
+   <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzureCosmosDB%2Fsolution-accelerator%2Fmaster%2Fdeploy%2FdemoDeploy.json" target="_blank">
    <img src="http://azuredeploy.net/deploybutton.png"/>
    </a>
 
@@ -214,9 +214,9 @@ We base the time estimates that follow on an experienced Azure user completing t
 
 > The template deployment will take a few minutes to complete. Continue with the guide once it completes.
 
-#### Deployment information: Cosmos DB
+#### Deployment information: Azure Cosmos DB
 
-Among the Azure resources the deployment script created, is a Cosmos DB database and four SQL-based containers:
+Among the Azure resources the deployment script created, is an Azure Cosmos DB database and four SQL-based containers:
 
 - **telemetry**: Used for ingesting hot vehicle telemetry data with a 90-day lifespan (TTL).
 - **metadata**: Stores vehicle, consignment, package, trip, and aggregate event data.
@@ -225,7 +225,7 @@ Among the Azure resources the deployment script created, is a Cosmos DB database
 
 These containers are used for the demo solution used as a reference for this accelerator. In this document, as well as the [companion accelerator guide](Microsoft_Cosmos_DB_IoT_Solution_Accelerator.docx), we provide detailed information about design decisions and database configuration that you can use to adapt the solution to your scenario.
 
-To view the Cosmos DB containers, perform the following steps:
+To view the Azure Cosmos DB containers, perform the following steps:
 
 1. Using a new tab or instance of your browser, navigate to the Azure portal, <https://portal.azure.com>.
 
@@ -235,19 +235,19 @@ To view the Cosmos DB containers, perform the following steps:
 
 3. Select your Azure Cosmos DB account. The name starts with `cosmos-db-iot`.
 
-   ![The Cosmos DB account is highlighted in the resource group.](media/resource-group-cosmos-db.png 'Cosmos DB in the Resource Group')
+   ![The Azure Cosmos DB account is highlighted in the resource group.](media/resource-group-cosmos-db.png 'Azure Cosmos DB in the Resource Group')
 
 4. Select **Data Explorer** in the left-hand menu, then expand the **ContosoAuto** database.
 
    ![Data Explorer is selected and the ContosoAuto database is expanded.](media/cosmos-containers.png "Data Explorer")
 
-5. Expand the **alerts** container in the Cosmos DB Data Explorer, then select **Scale & Settings**.
+5. Expand the **alerts** container in the Azure Cosmos DB Data Explorer, then select **Scale & Settings**.
 
     ![The Scale & Settings blade for the maintenance container is displayed.](media/cosmos-scale-settings-maintenance.png "Scale & Settings")
 
     The **Throughput** value for this container is set to **400** RU/s. This is the lowest setting for a container, which is sufficient for the throughput requirements for alert management-related data due to low read and write usage.
 
-    The **Partition Key** is set to **/id**. Having the partition key and ID share the same value allows us to perform rapid, low-cost point lookups of data, when coupled with the `ReadItemAsync` method on the `Container` object when using the [Cosmos DB SDK](https://github.com/Azure/azure-cosmos-dotnet-v3).
+    The **Partition Key** is set to **/id**. Having the partition key and ID share the same value allows us to perform rapid, low-cost point lookups of data, when coupled with the `ReadItemAsync` method on the `Container` object when using the [Azure Cosmos DB SDK](https://github.com/Azure/azure-cosmos-dotnet-v3).
 
     The **Indexing Policy** is set to the default value, which automatically indexes all fields for each document stored in the container. This is because all paths are included (remember, since we are storing JSON documents, we use paths to identify the property since they can exist within child collections in the document) by setting the value of `includedPaths` to `"path": "/*"`, and the only excluded path is the internal `_etag` property, which is used for versioning the documents. The default Indexing Policy is:
 
@@ -268,7 +268,7 @@ To view the Cosmos DB containers, perform the following steps:
     }
     ```
 
-6. Expand the **maintenance** container in the Cosmos DB Data Explorer, then select **Scale & Settings**.
+6. Expand the **maintenance** container in the Azure Cosmos DB Data Explorer, then select **Scale & Settings**.
 
     The **Throughput** value for this container is set to **400** RU/s, which is sufficient for the throughput requirements for maintenance data due to low read and write usage.
 
@@ -276,7 +276,7 @@ To view the Cosmos DB containers, perform the following steps:
 
     The **Indexing Policy** is set to the default value.
 
-7. Expand the **metadata** container in the Cosmos DB Data Explorer, then select **Scale & Settings**.
+7. Expand the **metadata** container in the Azure Cosmos DB Data Explorer, then select **Scale & Settings**.
 
     The **Throughput** value for this container is set to **50000** RU/s. We are initially setting the throughput on this container to this high number of RU/s because the data generator will perform a bulk insert of metadata the first time it runs. After inserting the data, it will programmatically reduce the throughput to **15000**.
 
@@ -284,17 +284,17 @@ To view the Cosmos DB containers, perform the following steps:
 
     The **Indexing Policy** is set to the default value.
 
-8. Expand the **telemetry** container in the Cosmos DB Data Explorer, then select **Scale & Settings**.
+8. Expand the **telemetry** container in the Azure Cosmos DB Data Explorer, then select **Scale & Settings**.
 
     The **Throughput** value for this container is set to **15000** RU/s, which is optimal for handling the rate of vehicle telemetry data written to this container.
 
-    The **Partition Key** is set to **/partitionKey**. The partitionKey property represents a synthetic composite partition key for the Cosmos DB container, consisting of the VIN + current year/month. Using a composite key instead of simply the VIN provides us with the following benefits:
+    The **Partition Key** is set to **/partitionKey**. The partitionKey property represents a synthetic composite partition key for the Azure Cosmos DB container, consisting of the VIN + current year/month. Using a composite key instead of simply the VIN provides us with the following benefits:
 
     1. Distributing the write workload at any given point in time over a high cardinality of partition keys.
     2. Ensuring efficient routing on queries on a given VIN - you can spread these across time, e.g. `SELECT * FROM c WHERE c.partitionKey IN (“VIN123-2019-01”, “VIN123-2019-02”, …)`.
     3. Scale beyond the 10GB quota for a single partition key value.
 
-    Notice that the **Time to Live** setting is set to **On (no default)**. This was turned off for the other containers. Time to Live (TTL) tells Cosmos DB when to expire, or delete, the document(s) automatically. This setting can help save in storage costs by removing what you no longer need. Typically, this is used on hot data, or data that must be expired after a period of time due to regulatory requirements. Turning the Time to Live setting on with no default allows us to define the TTL individually for each document, giving us more flexibility in deciding which documents should expire after a set period of time. To do this, we have a `ttl` field on the document that is saved to this container that specifies the TTL in seconds.
+    Notice that the **Time to Live** setting is set to **On (no default)**. This was turned off for the other containers. Time to Live (TTL) tells Azure Cosmos DB when to expire, or delete, the document(s) automatically. This setting can help save in storage costs by removing what you no longer need. Typically, this is used on hot data, or data that must be expired after a period of time due to regulatory requirements. Turning the Time to Live setting on with no default allows us to define the TTL individually for each document, giving us more flexibility in deciding which documents should expire after a set period of time. To do this, we have a `ttl` field on the document that is saved to this container that specifies the TTL in seconds.
 
     Now view the **Indexing Policy**, which is different from the default policy the other containers use. This custom policy is optimized for write-heavy workloads by excluding all paths and only including the paths used when we query the container (`vin`, `state`, and `partitionKey`):
 
@@ -324,21 +324,21 @@ To view the Cosmos DB containers, perform the following steps:
     }
     ```
 
-#### About Cosmos DB throughput
+#### About Azure Cosmos DB throughput
 
-You will notice that we have intentionally set the **throughput** in RU/s for each container, based on our anticipated event processing and reporting workloads. In Azure Cosmos DB, provisioned throughput is represented as request units/second (RUs). RUs measure the cost of both read and write operations against your Cosmos DB container. Because Cosmos DB is designed with transparent horizontal scaling (e.g., scale out) and multi-master replication, you can very quickly and easily increase or decrease the number of RUs to handle thousands to hundreds of millions of requests per second around the globe with a single API call.
+You will notice that we have intentionally set the **throughput** in RU/s for each container, based on our anticipated event processing and reporting workloads. In Azure Cosmos DB, provisioned throughput is represented as request units/second (RUs). RUs measure the cost of both read and write operations against your Azure Cosmos DB container. Because Azure Cosmos DB is designed with transparent horizontal scaling (e.g., scale out) and multi-master replication, you can very quickly and easily increase or decrease the number of RUs to handle thousands to hundreds of millions of requests per second around the globe with a single API call.
 
-Cosmos DB allows you to increment/decrement the RUs in small increments of 100 at the database level, or at the container level. It is recommended that you configure throughput at the container granularity for guaranteed performance for the container all the time, backed by SLAs. Other guarantees that Cosmos DB delivers are 99.999% read and write availability all around the world, with those reads and writes being served in less than 10 milliseconds at the 99th percentile.
+Azure Cosmos DB allows you to increment/decrement the RUs in small increments of 100 at the database level, or at the container level. It is recommended that you configure throughput at the container granularity for guaranteed performance for the container all the time, backed by SLAs. Other guarantees that Azure Cosmos DB delivers are 99.999% read and write availability all around the world, with those reads and writes being served in less than 10 milliseconds at the 99th percentile.
 
-When you set a number of RUs for a container, Cosmos DB ensures that those RUs are available in all regions associated with your Cosmos DB account. When you scale out the number of regions by adding a new one, Cosmos will automatically provision the same quantity of RUs in the newly added region. You cannot selectively assign different RUs to a specific region. These RUs are provisioned for a container (or database) for all associated regions.
+When you set a number of RUs for a container, Azure Cosmos DB ensures that those RUs are available in all regions associated with your Azure Cosmos DB account. When you scale out the number of regions by adding a new one, Cosmos will automatically provision the same quantity of RUs in the newly added region. You cannot selectively assign different RUs to a specific region. These RUs are provisioned for a container (or database) for all associated regions.
 
-#### About Cosmos DB partitioning
+#### About Azure Cosmos DB partitioning
 
 When you created each container, you were required to define a **partition key**. As you will see later in the lab when you review the solution source code, each document stored within a collection contains a `partitionKey` property. One of the most important decisions one must make when creating a new container is to select an appropriate partition key for the data. A partition key should provide even distribution of storage and throughput (measured in requests per second) at any given time to avoid storage and performance bottlenecks. For instance, vehicle metadata stores the VIN, which is a unique value for each vehicle, in the `partitionKey` field. Trip metadata also uses the VIN for the `partitionKey` field, since trips are most often queried by VIN, and trip documents are stored in the same logical partition as vehicle metadata since they are likely to be queried together, preventing fan-out, or cross-partition queries. Package metadata, on the other hand, use the Consignment ID value for the `partitionKey` field for the same purposes. The partition key should be present in the bulk of queries for read-heavy scenarios to avoid excessive fan-out across numerous partitions. This is because each document with a specific partition key value belongs to the same logical partition, and is also stored in and served from the same physical partition. Each physical partition is replicated across geographical regions, resulting in global distribution.
 
-Choosing an appropriate partition key for Cosmos DB is a critical step for ensuring balanced reads and writes, scaling, and, in the case of this solution, in-order change feed processing per partition. While there are no limits, per se, on the number of logical partitions, a single logical partition is allowed an upper limit of 10 GB of storage. Logical partitions cannot be split across physical partitions. For the same reason, if the partition key chosen is of bad cardinality, you could potentially have skewed storage distribution. For instance, if one logical partition becomes larger faster than the others and hits the maximum limit of 10 GB, while the others are nearly empty, the physical partition housing the maxed out logical partition cannot split and could cause an application downtime.
+Choosing an appropriate partition key for Azure Cosmos DB is a critical step for ensuring balanced reads and writes, scaling, and, in the case of this solution, in-order change feed processing per partition. While there are no limits, per se, on the number of logical partitions, a single logical partition is allowed an upper limit of 10 GB of storage. Logical partitions cannot be split across physical partitions. For the same reason, if the partition key chosen is of bad cardinality, you could potentially have skewed storage distribution. For instance, if one logical partition becomes larger faster than the others and hits the maximum limit of 10 GB, while the others are nearly empty, the physical partition housing the maxed out logical partition cannot split and could cause an application downtime.
 
-#### About the Cosmos DB indexing policies
+#### About the Azure Cosmos DB indexing policies
 
 The default indexing policy for newly created containers indexes every property of every item, enforcing range indexes for any string or number, and spatial indexes for any GeoJSON object of type Point. This allows you to get high query performance without having to think about indexing and index management upfront. Since the `alerts`, `metadata`, and `maintenance` containers have more read-heavy workloads than `telemetry`, it makes sense to use the default indexing policy where query performance is optimized. Since we need faster writes for `telemetry`, we exclude unused paths. The use of indexing paths can offer improved write performance and lower index storage for scenarios in which the query patterns are known beforehand, as indexing costs are directly correlated to the number of unique paths indexed.
 
@@ -346,7 +346,7 @@ The indexing mode for all three containers is set to **Consistent**. This means 
 
 ### Task 2: Authenticate the Office 365 API Connection for sending email alerts
 
-In this task, you will open the deployed Logic App workflow and configure it to send email alerts through its HTTP trigger. This trigger will be called by one of your Azure functions that gets triggered by the Cosmos DB change feed, any time a notification event occurs, such as completing a trip. You will need to have an Office 365 or Outlook.com account to send the emails.
+In this task, you will open the deployed Logic App workflow and configure it to send email alerts through its HTTP trigger. This trigger will be called by one of your Azure functions that gets triggered by the Azure Cosmos DB change feed, any time a notification event occurs, such as completing a trip. You will need to have an Office 365 or Outlook.com account to send the emails.
 
 1. In the [Azure portal](https://portal.azure.com), navigate to your resource group for this demo and open the **Logic App**.
 
@@ -516,11 +516,11 @@ To view the logic app, select **Logic app designer** in the left-hand menu. This
 
 ### Task 3: Add Stream Analytics Event Hubs input
 
-In this task, you will configure the [Azure Stream Analytics](https://docs.microsoft.com/azure/stream-analytics/stream-analytics-introduction) service that is deployed as part of the solution accelerator. This service provides real-time analytics through its event-processing engine that can work with high volumes of fast streaming data from multiple sources in parallel. Stream Analytics connects to inputs, such as IoT Hub and Event Hubs, and several outputs it can use as data sinks, including Cosmos DB, Power BI, and several other Azure services. It provides a SQL-like query language used to query over the incoming data, where you can easily adjust the event ordering options and duration of time windows when performing aggregation operations through simple language constructs or configurations. We use Stream Analytics in this solution accelerator to aggregate data over time windows of varying sizes. We use these aggregates to populate materialized views in Cosmos DB and to send small aggregates of data directly to Power BI to update a near real-time dashboard.
+In this task, you will configure the [Azure Stream Analytics](https://docs.microsoft.com/azure/stream-analytics/stream-analytics-introduction) service that is deployed as part of the solution accelerator. This service provides real-time analytics through its event-processing engine that can work with high volumes of fast streaming data from multiple sources in parallel. Stream Analytics connects to inputs, such as IoT Hub and Event Hubs, and several outputs it can use as data sinks, including Azure Cosmos DB, Power BI, and several other Azure services. It provides a SQL-like query language used to query over the incoming data, where you can easily adjust the event ordering options and duration of time windows when performing aggregation operations through simple language constructs or configurations. We use Stream Analytics in this solution accelerator to aggregate data over time windows of varying sizes. We use these aggregates to populate materialized views in Azure Cosmos DB and to send small aggregates of data directly to Power BI to update a near real-time dashboard.
 
-If you examine the right-hand side of the solution architecture diagram, you will see a flow of event data that feeds into Event Hubs from a Cosmos DB change feed-triggered function. Stream Analytics uses the event hub as an input source for a set of time window queries that create aggregates for individual vehicle telemetry, and overall vehicle telemetry that flows through the architecture from the vehicle IoT devices. Stream Analytics has two output data sinks:
+If you examine the right-hand side of the solution architecture diagram, you will see a flow of event data that feeds into Event Hubs from an Azure Cosmos DB change feed-triggered function. Stream Analytics uses the event hub as an input source for a set of time window queries that create aggregates for individual vehicle telemetry, and overall vehicle telemetry that flows through the architecture from the vehicle IoT devices. Stream Analytics has two output data sinks:
 
-1. Cosmos DB: Individual vehicle telemetry (grouped by VIN) is aggregated over a 30-second `TumblingWindow` and saved to the `metadata` container. This information is used in a Power BI report you will create in Power BI Desktop in a later task to display individual vehicle and multiple vehicle statistics.
+1. Azure Cosmos DB: Individual vehicle telemetry (grouped by VIN) is aggregated over a 30-second `TumblingWindow` and saved to the `metadata` container. This information is used in a Power BI report you will create in Power BI Desktop in a later task to display individual vehicle and multiple vehicle statistics.
 2. Power BI: All vehicle telemetry is aggregated over a 10-second `TumblingWindow` and output to a Power BI data set. This near real-time data is displayed in a live Power BI dashboard to show in 10 second snapshots how many events were processed, whether there are engine temperature, oil, or refrigeration unit warnings, whether aggressive driving was detected during the period, and the average speed, engine temperature, and refrigeration unit readings.
 
 ![The stream processing components of the solution architecture are displayed.](media/solution-architecture-stream-processing.png 'Solution Architecture - Stream Processing')
@@ -666,7 +666,7 @@ In the architecture for this scenario, Azure functions play a major role in even
 
 Before we dive into this section, let's go over how the functions and Web App fit into our architecture.
 
-There are three Function Apps and one Web App in the solution. The Function Apps handle event processing within two stages of the data pipeline, and the Web App is used to perform CRUD operations against data stored in Cosmos DB.
+There are three Function Apps and one Web App in the solution. The Function Apps handle event processing within two stages of the data pipeline, and the Web App is used to perform CRUD operations against data stored in Azure Cosmos DB.
 
 ![The two Function Apps and Web App are highlighted.](media/solution-diagram-function-apps-web-app.png 'Solution diagram')
 
@@ -676,22 +676,22 @@ Now let's introduce the Function Apps and Web App and how they contribute to the
 
 - **IoT-StreamProcessing Function App**: This is the Stream Processing Function App, and it contains a two functions:
 
-  - **IoTHubTrigger**: This function is automatically triggered by the IoT Hub's Event Hub endpoint as vehicle telemetry is sent by the data generator. The function performs some light processing to the data by defining the partition key value, the document's TTL, adds a timestamp value, then saves the information to Cosmos DB.
+  - **IoTHubTrigger**: This function is automatically triggered by the IoT Hub's Event Hub endpoint as vehicle telemetry is sent by the data generator. The function performs some light processing to the data by defining the partition key value, the document's TTL, adds a timestamp value, then saves the information to Azure Cosmos DB.
   - **HealthCheck**: This function has an Http trigger that enables users to verify that the Function App is up and running, and that each configuration setting exists and has a value. More thorough checks would validate each value against an expected format or by connecting to each service as required. The function will return an HTTP status of `200` (OK) if all values contain non-zero strings. If any are null or empty, the function will return an error (`400`), indicating which values are missing. The data generator calls this function before running.
 
   ![The Event Processing function is shown.](media/solution-architecture-function1.png 'Solution architecture')
 
-- **IoT-CosmosDBProcessing Function App**: This is the Trip Processing Function App. It contains three functions that are triggered by the Cosmos DB Change Feed on the `telemetry` container. Because the Cosmos DB Change Feed supports multiple consumers, these three functions can run in parallel, processing the same information simultaneously without conflicting with one another. When we define the `CosmosDBTrigger` for each of these functions, we configure the trigger settings to connect to a Cosmos DB collection named `leases` to keep track of which change feed events they have processed. We also set the `LeaseCollectionPrefix` value for each function with a unique prefix so one function does not attempt to retrieve or update the lease information for another. The following functions are in this Function App:
+- **IoT-CosmosDBProcessing Function App**: This is the Trip Processing Function App. It contains three functions that are triggered by the Azure Cosmos DB Change Feed on the `telemetry` container. Because the Azure Cosmos DB Change Feed supports multiple consumers, these three functions can run in parallel, processing the same information simultaneously without conflicting with one another. When we define the `CosmosDBTrigger` for each of these functions, we configure the trigger settings to connect to an Azure Cosmos DB collection named `leases` to keep track of which change feed events they have processed. We also set the `LeaseCollectionPrefix` value for each function with a unique prefix so one function does not attempt to retrieve or update the lease information for another. The following functions are in this Function App:
 
   - **TripProcessor**: This function groups vehicle telemetry data by VIN, retrieves the associated Trip record from the `metadata` container, updates the Trip record with a trip start timestamp, an end timestamp if completed, and a status showing whether the trip has started, is delayed, or has completed. It also updates the associated Consignment record with the status, and triggers the Logic App with the trip information if an alert needs to be emailed to the recipient defined in the Function App's app settings (`RecipientEmail`).
   - **ColdStorage**: This function connects to the Azure Storage account (`ColdStorageAccount`) and writes the raw vehicle telemetry data for cold storage in the following time-sliced path format: `telemetry/custom/scenario1/yyyy/MM/dd/HH/mm/ss-fffffff.json`.
-  - **SendToEventHubsForReporting**: This function simply sends the vehicle telemetry data straight to Event Hubs, allowing Stream Analytics to apply windowed aggregates and save those aggregates in batches to Power BI and to the Cosmos DB `metadata` container.
+  - **SendToEventHubsForReporting**: This function simply sends the vehicle telemetry data straight to Event Hubs, allowing Stream Analytics to apply windowed aggregates and save those aggregates in batches to Power BI and to the Azure Cosmos DB `metadata` container.
   - **HealthCheck**: As with the function of the same name within the Stream Processing Function App, this function has an Http trigger that enables users to verify that the Function App is up and running, and that each configuration setting exists and has a value. The data generator calls this function before running.
   - **SendQueuedAlerts**: This function executes on a regular 5-minute interval via its `TimerTrigger`. It uses the `TripHelper` to determine whether to send a summary alert, based on the user settings and the number of alerts in the Azure Storage queue, if applicable.
 
   ![The Trip Processing function is shown.](media/solution-architecture-function2.png 'Solution architecture')
 
-- **IoTWebApp**: The Web App provides a Fleet Management portal, allowing users to perform CRUD operations on vehicle data, make real-time battery failure predictions for a vehicle against the deployed machine learning model, and view consignments, packages, and trips. It connects to the Cosmos DB `metadata` container, using the [.NET SDK for Cosmos DB v3](https://github.com/Azure/azure-cosmos-dotnet-v3/).
+- **IoTWebApp**: The Web App provides a Fleet Management portal, allowing users to perform CRUD operations on vehicle data, make real-time battery failure predictions for a vehicle against the deployed machine learning model, and view consignments, packages, and trips. It connects to the Azure Cosmos DB `metadata` container, using the [.NET SDK for Azure Cosmos DB v3](https://github.com/Azure/azure-cosmos-dotnet-v3/).
 
   ![The Web App is shown.](media/solution-architecture-webapp.png 'Solution architecture')
 
@@ -708,7 +708,7 @@ In this task, you will open the Visual Studio solution for this lab. It contains
     1. **Functions.CosmosDB**: Project for the **IoT-CosmosDBProcessing** Function App.
     2. **Functions.StreamProcessing**: Project for the **IoT-StreamProcessing** Function App.
     3. **CosmosDbIoTScenario.Common**: Contains entity models, extensions, and helpers used by the other projects.
-    4. **FleetDataGenerator**: The data generator seeds the Cosmos DB `metadata` container with data and simulates vehicles, connects them to IoT Hub, then sends generated telemetry data.
+    4. **FleetDataGenerator**: The data generator seeds the Azure Cosmos DB `metadata` container with data and simulates vehicles, connects them to IoT Hub, then sends generated telemetry data.
     5. **FleetManagementWebApp**: Project for the **IoTWebApp** Web App.
     6. **Microsoft.Identity.Web**: Helper library that simplifies working with Microsoft Identity within the ASP.NET MVC Core web app (`IoTWebApp`).
 
@@ -716,7 +716,7 @@ In this task, you will open the Visual Studio solution for this lab. It contains
 
 3. Right-click on the `CosmosDbIoTScenario` solution in Solution Explorer, then select **Restore NuGet Packages**. The packages may have already been restored upon opening the solution.
 
-### Task 1: Deploy Cosmos DB Processing Function App
+### Task 1: Deploy Azure Cosmos DB Processing Function App
 
 1. Open the Visual Studio solution file **CosmosDbIoTScenario.sln** within the `C:\cosmos-db-iot-solution-accelerator-master\Solution` folder.
 
@@ -736,9 +736,9 @@ In this task, you will open the Visual Studio solution for this lab. It contains
 
     After the publish completes, you should see the following in the Output window: `========== Publish: 1 succeeded, 0 failed, 0 skipped ==========` to indicate a successful publish.
 
-#### Cosmos DB Processing Function App code walk-through
+#### Azure Cosmos DB Processing Function App code walk-through
 
-This Function App contains a group of Azure Functions that are triggered by the Cosmos DB Change Feed on the `telemetry` container. The Function App is written in C# and uses the version 2.0 function runtime on the .NET Core platform. The following are some highlights within the source code, which are areas you can adapt for your solution.
+This Function App contains a group of Azure Functions that are triggered by the Azure Cosmos DB Change Feed on the `telemetry` container. The Function App is written in C# and uses the version 2.0 function runtime on the .NET Core platform. The following are some highlights within the source code, which are areas you can adapt for your solution.
 
 1. Open **Startup.cs** within the **Functions.CosmosDB** project and locate the following block of code:
 
@@ -758,7 +758,7 @@ This Function App contains a group of Azure Functions that are triggered by the 
     });
     ```
 
-    Since we are using the [.NET SDK for Cosmos DB v3](https://github.com/Azure/azure-cosmos-dotnet-v3/), and dependency injection is supported starting with Function Apps v2, we are using a [singleton Azure Cosmos DB client for the lifetime of the application](https://docs.microsoft.com/azure/cosmos-db/performance-tips#sdk-usage). This is injected into the `Functions` class through its constructor, as you will see in the next code block.
+    Since we are using the [.NET SDK for Azure Cosmos DB v3](https://github.com/Azure/azure-cosmos-dotnet-v3/), and dependency injection is supported starting with Function Apps v2, we are using a [singleton Azure Cosmos DB client for the lifetime of the application](https://docs.microsoft.com/azure/cosmos-db/performance-tips#sdk-usage). This is injected into the `Functions` class through its constructor, as you will see in the next code block.
 
 2. Open **Functions.cs** within the **Functions.CosmosDB** project and locate the following block of code for the constructor at the top of the file:
 
@@ -788,7 +788,7 @@ This Function App contains a group of Azure Functions that are triggered by the 
     {
     ```
 
-    The `FunctionName` attribute defines how the function name appears within the Function App, and can be different from the C# method name. This `TripProcessor` function uses the `CosmosDBTrigger` to fire on every Cosmos DB change feed event. The events arrive in batches, whose size depends on factors such as how many Insert, Update, or Delete events there are for the container. The `databaseName` and `collectionName` properties define which container's change feed triggers the function. The `ConnectionStringSetting` indicates the name of the Function App's application setting from which to pull the Cosmos DB connection string. In our case, the connection string value will draw from the Key Vault secret you created. The `LeaseCollection` properties define the name of the lease container and the prefix applied to lease data for this function, and whether to create the lease container if it does not exist. `StartFromBeginning` is set to `true`, ensuring that all events since the function last run are processed. The function outputs the change feed documents into an `IReadOnlyList` collection.
+    The `FunctionName` attribute defines how the function name appears within the Function App, and can be different from the C# method name. This `TripProcessor` function uses the `CosmosDBTrigger` to fire on every Azure Cosmos DB change feed event. The events arrive in batches, whose size depends on factors such as how many Insert, Update, or Delete events there are for the container. The `databaseName` and `collectionName` properties define which container's change feed triggers the function. The `ConnectionStringSetting` indicates the name of the Function App's application setting from which to pull the Azure Cosmos DB connection string. In our case, the connection string value will draw from the Key Vault secret you created. The `LeaseCollection` properties define the name of the lease container and the prefix applied to lease data for this function, and whether to create the lease container if it does not exist. `StartFromBeginning` is set to `true`, ensuring that all events since the function last run are processed. The function outputs the change feed documents into an `IReadOnlyList` collection.
 
 4. Scroll down a little further in the function to view the following code block:
 
@@ -799,12 +799,12 @@ This Function App contains a group of Azure Functions that are triggered by the 
         group.Average(item => item.GetPropertyValue<double>("refrigerationUnitTemp"));
     ```
 
-    We have grouped the events by vehicle VIN, so we assign a local `vin` variable to hold the group key (VIN). Next, we use the `group.Max` aggregate function to calculate the max odometer value, and use the `group.Average` function to calculate the average refrigeration unit temperature. We will use the `odometerHigh` value to calculate the trip distance and determine whether the trip is completed, based on the planned trip distance from the `Trip` record in the Cosmos DB `metadata` container. The `averageRefrigerationUnitTemp` is added in the alert that gets sent to the Logic App, if needed.
+    We have grouped the events by vehicle VIN, so we assign a local `vin` variable to hold the group key (VIN). Next, we use the `group.Max` aggregate function to calculate the max odometer value, and use the `group.Average` function to calculate the average refrigeration unit temperature. We will use the `odometerHigh` value to calculate the trip distance and determine whether the trip is completed, based on the planned trip distance from the `Trip` record in the Azure Cosmos DB `metadata` container. The `averageRefrigerationUnitTemp` is added in the alert that gets sent to the Logic App, if needed.
 
 5. Review the code that is just below this code block:
 
     ```csharp
-    // First, retrieve the metadata Cosmos DB container reference:
+    // First, retrieve the metadata Azure Cosmos DB container reference:
     var container = _cosmosClient.GetContainer(database, metadataContainer);
 
     // Create a query, defining the partition key so we don't execute a fan-out query (saving RUs), where the entity type is a Trip and the status is not Completed, Canceled, or Inactive.
@@ -827,7 +827,7 @@ This Function App contains a group of Azure Functions that are triggered by the 
             var sendTripAlert = await tripHelper.UpdateTripProgress(odometerHigh);
     ```
 
-    Here we are using the [.NET SDK for Cosmos DB v3](https://github.com/Azure/azure-cosmos-dotnet-v3/) by retrieving a Cosmos DB container reference with the CosmosClient (`_cosmosClient`) that was injected into the class. We use the container's `GetItemLinqQueryable` with the `Trip` class type to query the container using LINQ syntax and binding the results to a new collection of type `Trip`. Note how we are passing the **partition key**, in this case the VIN, to prevent executing a cross-partion, fan-out query, saving RU/s. We also define the type of document we want to retrieve by setting the `entityType` document property in the query to Trip, since other entity types can also have the same partition key, such as the Vehicle type.
+    Here we are using the [.NET SDK for Azure Cosmos DB v3](https://github.com/Azure/azure-cosmos-dotnet-v3/) by retrieving an Azure Cosmos DB container reference with the CosmosClient (`_cosmosClient`) that was injected into the class. We use the container's `GetItemLinqQueryable` with the `Trip` class type to query the container using LINQ syntax and binding the results to a new collection of type `Trip`. Note how we are passing the **partition key**, in this case the VIN, to prevent executing a cross-partion, fan-out query, saving RU/s. We also define the type of document we want to retrieve by setting the `entityType` document property in the query to Trip, since other entity types can also have the same partition key, such as the Vehicle type.
 
     Once we have retrieved the trip (`var trip = (await query.ReadNextAsync()).FirstOrDefault();`), we instantiate a new instance of the `TripHelper` class, passing in the trip, container reference, and `HTTPClientFactory` instance that was injected into the constructor. We pass the `odometerHigh` value into the `UpdateTripProgress` method of the `TripHelper` class to determine whether we need to send an alert.
 
@@ -836,7 +836,7 @@ This Function App contains a group of Azure Functions that are triggered by the 
     ```csharp
     /// <summary>
     /// Uses a Trip record and the aggregate odometer reading (<see cref="odometerHigh"/>)
-    /// to retrieve a Consignment record from Cosmos DB and calculate the vehicle's trip
+    /// to retrieve a Consignment record from Azure Cosmos DB and calculate the vehicle's trip
     /// progress, based on miles driven compared to the planned trip distance. If the number
     /// of miles driven are greater than or equal to the planned distance, the trip and
     /// consignment records are marked as complete. Otherwise, if the trip has not been
@@ -844,7 +844,7 @@ This Function App contains a group of Azure Functions that are triggered by the 
     /// as delayed. Finally, if the trip record's start date (tripStarted) is null, the
     /// date/time is set to now and the trip and consignment records are marked as started.
     ///
-    /// The trip and consignment records in the Cosmos DB container are updated as needed,
+    /// The trip and consignment records in the Azure Cosmos DB container are updated as needed,
     /// and if any of the three conditions are met (completed, delayed, or started), a
     /// boolean value of true is returned, indicating a trip alert should be sent.
     /// </summary>
@@ -861,7 +861,7 @@ This Function App contains a group of Azure Functions that are triggered by the 
         var consignment = document.Resource;
     ```
 
-    Since we have the Consignment ID, we can use the `ReadItemAsync` method to retrieve a single Consignment record. Here we also pass the partition key to minimize fan-out. Within a Cosmos DB container, a document's unique ID is a combination of the `id` field and the partition key value.
+    Since we have the Consignment ID, we can use the `ReadItemAsync` method to retrieve a single Consignment record. Here we also pass the partition key to minimize fan-out. Within an Azure Cosmos DB container, a document's unique ID is a combination of the `id` field and the partition key value.
 
 7. Scroll down a little further in the same method to find the following code block:
 
@@ -877,7 +877,7 @@ This Function App contains a group of Azure Functions that are triggered by the 
     }
     ```
 
-    The `ReplaceItemAsync` method updates the Cosmos DB document with the passed in object with the associated `id` and partition key value.
+    The `ReplaceItemAsync` method updates the Azure Cosmos DB document with the passed in object with the associated `id` and partition key value.
 
 8. Scroll down to the `SendTripAlert` method to find the following code block at the bottom of the file:
 
@@ -902,7 +902,7 @@ This Function App contains a group of Azure Functions that are triggered by the 
         [EventHub("reporting", Connection = "EventHubsConnection")] IAsyncCollector<EventData> vehicleEventsOut,
         ILogger log)
     {
-        log.LogInformation($"Sending {vehicleEvents.Count} Cosmos DB records to Event Hubs for reporting.");
+        log.LogInformation($"Sending {vehicleEvents.Count} Azure Cosmos DB records to Event Hubs for reporting.");
 
         if (vehicleEvents.Count > 0)
         {
@@ -918,9 +918,9 @@ This Function App contains a group of Azure Functions that are triggered by the 
     }
     ``` 
 
-    Notice that this function is also triggered by the Cosmos DB Change Feed. We use a different `LeaseCollectionPrefix` value so this function keeps track of its own checkpointing when processing events from the Change Feed. This prefix allows functions to work from the Change Feed on the same container without conflicting with one another.
+    Notice that this function is also triggered by the Azure Cosmos DB Change Feed. We use a different `LeaseCollectionPrefix` value so this function keeps track of its own checkpointing when processing events from the Change Feed. This prefix allows functions to work from the Change Feed on the same container without conflicting with one another.
 
-    The `ReadAsAsync` method is an extension method located in `CosmosDbIoTScenario.Common.ExtensionMethods` that converts a Cosmos DB Document to a class; in this case, a `VehicleEvent` class. Currently, the `CosmosDBTrigger` on a function only supports returning an `IReadOnlyList` of `Documents`, requiring a conversion to another class if you want to work with your customer classes instead of a Document for now. This extension method automates the process.
+    The `ReadAsAsync` method is an extension method located in `CosmosDbIoTScenario.Common.ExtensionMethods` that converts an Azure Cosmos DB Document to a class; in this case, a `VehicleEvent` class. Currently, the `CosmosDBTrigger` on a function only supports returning an `IReadOnlyList` of `Documents`, requiring a conversion to another class if you want to work with your customer classes instead of a Document for now. This extension method automates the process.
 
     The `AddAsync` method asynchronously adds to the `IAsyncCollector<EventData>` collection defined in the function attributes, which takes care of sending the collection items to the defined Event Hub endpoint.
 
@@ -944,7 +944,7 @@ This Function App contains a group of Azure Functions that are triggered by the 
 
 #### Stream Processing Function App code walk-through
 
-This Function App provides initial stream processing from the IoT Hub instance and saves the processed data to the Cosmos DB `telemetry` container.
+This Function App provides initial stream processing from the IoT Hub instance and saves the processed data to the Azure Cosmos DB `telemetry` container.
 
 1. Open **Functions.cs** within the **Functions.StreamProcessing** project. Let us first review the function parameters:
 
@@ -960,7 +960,7 @@ This Function App provides initial stream processing from the IoT Hub instance a
     {
     ```
 
-    This function is defined with the `IoTHubTrigger`. Each time the IoT devices send data to IoT Hub, this function gets triggered and sent the event data in batches (`EventData[] vehicleEventData`). The `CosmosDB` attribute is an output attribute, simplifying writing Cosmos DB documents to the defined database and container; in our case, the `ContosoAuto` database and `telemetry` container, respectively.
+    This function is defined with the `IoTHubTrigger`. Each time the IoT devices send data to IoT Hub, this function gets triggered and sent the event data in batches (`EventData[] vehicleEventData`). The `CosmosDB` attribute is an output attribute, simplifying writing Azure Cosmos DB documents to the defined database and container; in our case, the `ContosoAuto` database and `telemetry` container, respectively.
 
 2. Scroll down in the function code to find the following code block:
 
@@ -973,15 +973,15 @@ This Function App provides initial stream processing from the IoT Hub instance a
     await vehicleTelemetryOut.AddAsync(vehicleEvent);
     ```
 
-    The `partitionKey` property represents a synthetic composite partition key for the Cosmos DB container, consisting of the VIN + current year/month. Using a composite key instead of simply the VIN provides us with the following benefits:
+    The `partitionKey` property represents a synthetic composite partition key for the Azure Cosmos DB container, consisting of the VIN + current year/month. Using a composite key instead of simply the VIN provides us with the following benefits:
 
     1. Distributing the write workload at any given point in time over a high cardinality of partition keys.
     2. Ensuring efficient routing on queries on a given VIN - you can spread these across time, e.g. `SELECT * FROM c WHERE c.partitionKey IN ("VIN123-2019-01", "VIN123-2019-02", …)`
     3. Scale beyond the 10GB quota for a single partition key value.
 
-    The `ttl` property sets the time-to-live for the document to 60 days, after which Cosmos DB will delete the document, since the `telemetry` container is our hot path storage.
+    The `ttl` property sets the time-to-live for the document to 60 days, after which Azure Cosmos DB will delete the document, since the `telemetry` container is our hot path storage.
 
-    When we asynchronously add the class to the `vehicleTelemetryOut` collection, the Cosmos DB output binding on the function automatically handles writing the data to the defined Cosmos DB database and container, managing the implementation details for us.
+    When we asynchronously add the class to the `vehicleTelemetryOut` collection, the Azure Cosmos DB output binding on the function automatically handles writing the data to the defined Azure Cosmos DB database and container, managing the implementation details for us.
 
 ### Task 3: Configure Azure Active Directory application for the Web App
 
@@ -1172,7 +1172,7 @@ Now that you have deployed the web app, we need to add the redirect URIs in the 
 
 ### Task 6: Update your notification settings in the Web App
 
-When you run the data generator in a later section, the device telemetry flows through the solution, starting with IoT devices sending telemetry to IoT Hub, an Azure Function processing those messages and saving them to Cosmos DB, then the Cosmos DB change feed triggering other Azure Functions for further processing. Inside one of these change feed-triggered functions, the processing logic keeps track of vehicle trip progress, optionally sending an alert notification through the Logic App.
+When you run the data generator in a later section, the device telemetry flows through the solution, starting with IoT devices sending telemetry to IoT Hub, an Azure Function processing those messages and saving them to Azure Cosmos DB, then the Azure Cosmos DB change feed triggering other Azure Functions for further processing. Inside one of these change feed-triggered functions, the processing logic keeps track of vehicle trip progress, optionally sending an alert notification through the Logic App.
 
 In this task, you sign in to the deployed web app and configure your notification settings.
 
@@ -1182,7 +1182,7 @@ In this task, you sign in to the deployed web app and configure your notificatio
 
 2. When prompted, sign in with your Azure account.
 
-    If you try to navigate through the site, you will notice there is no data. We will seed the Cosmos DB `metadata` container with data in the next section.
+    If you try to navigate through the site, you will notice there is no data. We will seed the Azure Cosmos DB `metadata` container with data in the next section.
 
     ![The Fleet Management web app home page is displayed.](media/webapp-home-page.png "Fleet Management home page")
 
@@ -1194,7 +1194,7 @@ In this task, you sign in to the deployed web app and configure your notificatio
 
 #### Web App code walk-through
 
-The Web App provides a web-based management interface for vehicle, package, trip, and consignment operational data for the sample scenario. You can adapt this web application as you deem necessary for your own scenario. This ASP.NET MVC Core web app demonstrates how to use the Cosmos DB SDK v3.0 to directly communicate with Cosmos DB, highlighting capabilities such as injecting the Cosmos DB client into controllers, performing CRUD operations against the database, and implementing paging of large data sets.
+The Web App provides a web-based management interface for vehicle, package, trip, and consignment operational data for the sample scenario. You can adapt this web application as you deem necessary for your own scenario. This ASP.NET MVC Core web app demonstrates how to use the Azure Cosmos DB SDK v3.0 to directly communicate with Azure Cosmos DB, highlighting capabilities such as injecting the Azure Cosmos DB client into controllers, performing CRUD operations against the database, and implementing paging of large data sets.
 
 1. Open **Startup.cs** within the **FleetManagementWebApp** project. Scroll down to the bottom of the file to find the following code:
 
@@ -1206,7 +1206,7 @@ The Web App provides a web-based management interface for vehicle, package, trip
     CosmosDbService cosmosDbService = new CosmosDbService(client, databaseName, containerName);
     ```
 
-    This code uses the [.NET SDK for Cosmos DB v3](https://github.com/Azure/azure-cosmos-dotnet-v3/) to initialize the `CosmosClient` instance that is added to the `IServiceCollection` as a singleton for dependency injection and object lifetime management.
+    This code uses the [.NET SDK for Azure Cosmos DB v3](https://github.com/Azure/azure-cosmos-dotnet-v3/) to initialize the `CosmosClient` instance that is added to the `IServiceCollection` as a singleton for dependency injection and object lifetime management.
 
 2. Open **CosmosDBService.cs** under the **Services** folder of the **FleetManagementWebApp** project to find the following code block:
 
@@ -1263,9 +1263,9 @@ The Web App provides a web-based management interface for vehicle, package, trip
 
     We are using dependency injection with this controller, just as we did with one of our Function Apps earlier. The `ICosmosDbService`, `IHttpClientFactory`, and `IConfiguration` services are injected into the controller through the controller's constructor. The `CosmosDbService` is the class whose code you reviewed in the previous step. The `CosmosClient` is injected into it through its constructor.
 
-    The `Index` controller action method uses paging, which it implements by calling the `ICosmosDbService.GetItemsWithPagingAsync` method you updated in the previous step. Using this service in the controller helps abstract the Cosmos DB query implementation details and business rules from the code in the action methods, keeping the controller lightweight and the code in the service reusable across all the controllers.
+    The `Index` controller action method uses paging, which it implements by calling the `ICosmosDbService.GetItemsWithPagingAsync` method you updated in the previous step. Using this service in the controller helps abstract the Azure Cosmos DB query implementation details and business rules from the code in the action methods, keeping the controller lightweight and the code in the service reusable across all the controllers.
 
-    Notice that the paging query does not include a partition key, making the Cosmos DB query cross-partition, which is needed to be able to query across all the documents. If this query ends up being used a lot with the passed in `search` value, causing a higher than desired RU usage on the container per execution, then you might want to consider alternate strategies for the partition key, such as a combination of `vin` and `stateVehicleRegistered`. However, since most of our access patterns for vehicles in this container use the VIN, we are using it as the partition key right now. You will see code further down in the method that explicitly pass the partition key value.
+    Notice that the paging query does not include a partition key, making the Azure Cosmos DB query cross-partition, which is needed to be able to query across all the documents. If this query ends up being used a lot with the passed in `search` value, causing a higher than desired RU usage on the container per execution, then you might want to consider alternate strategies for the partition key, such as a combination of `vin` and `stateVehicleRegistered`. However, since most of our access patterns for vehicles in this container use the VIN, we are using it as the partition key right now. You will see code further down in the method that explicitly pass the partition key value.
 
 5. Scroll down in the `VehiclesController.cs` file to find the following code:
 
@@ -1287,7 +1287,7 @@ By combining the power of Databricks, an end-to-end, managed Apache Spark platfo
 
 Contoso Auto wants to use the valuable data they are collecting from their vehicles to make predictions about the health of their fleet to reduce downtime due to maintenance-related issues. One of the predictions they would like to make is whether a vehicle's battery is likely to fail within the next 30 days, based on historical data. They would like to run a nightly batch process to identify vehicles that should be serviced, based on these predictions. They also want to have a way to make a prediction in real time when viewing a vehicle on their fleet management website.
 
-To support this requirement, you will use Apache Spark on Azure Databricks, a fully managed Apache Spark platform optimized to run on Azure. Spark is a unified big data and advanced analytics platform that enables data scientists and data engineers to explore and prepare large amounts of structured and unstructured data, then use that data to train, use, and deploy machine learning models at scale. We will read and write to Cosmos DB, using the `azure-cosmosdb-spark` connector (<https://github.com/Azure/azure-cosmosdb-spark>).
+To support this requirement, you will use Apache Spark on Azure Databricks, a fully managed Apache Spark platform optimized to run on Azure. Spark is a unified big data and advanced analytics platform that enables data scientists and data engineers to explore and prepare large amounts of structured and unstructured data, then use that data to train, use, and deploy machine learning models at scale. We will read and write to Azure Cosmos DB, using the `azure-cosmosdb-spark` connector (<https://github.com/Azure/azure-cosmosdb-spark>).
 
 In this task, you will create a new cluster on which data exploration and model deployment tasks will be executed in later sections.
 
@@ -1386,7 +1386,7 @@ After a moment, you will see a dialog verifying that the secret scope has been c
 
 In this section, we will explore the data generator project, **FleetDataGenerator**, update the application configuration, and run it in order to seed the metadata database with data and simulate vehicles.
 
-There are several tasks that the data generator performs, depending on the state of your environment. The first task is that the generator will create the Cosmos DB database and containers with the optimal configuration for this lab if these elements do not exist in your Cosmos DB account. When you run the generator in a few moments, this step will be skipped because you already created them at the beginning of the lab. The second task the generator performs is to seed your Cosmos DB `metadata` container with data if no data exists. This includes vehicle, consignment, package, and trip data. Before seeding the container with data, the generator temporarily increases the requested RU/s for the container to 50,000 for optimal data ingestion speed. After the seeding process completes, the RU/s are scaled back down to 15,000.
+There are several tasks that the data generator performs, depending on the state of your environment. The first task is that the generator will create the Azure Cosmos DB database and containers with the optimal configuration for this lab if these elements do not exist in your Azure Cosmos DB account. When you run the generator in a few moments, this step will be skipped because you already created them at the beginning of the lab. The second task the generator performs is to seed your Azure Cosmos DB `metadata` container with data if no data exists. This includes vehicle, consignment, package, and trip data. Before seeding the container with data, the generator temporarily increases the requested RU/s for the container to 50,000 for optimal data ingestion speed. After the seeding process completes, the RU/s are scaled back down to 15,000.
 
 After the generator ensures the metadata exists, it begins simulating the specified number of vehicles. You are prompted to enter a number between 1 and 5, simulating 1, 10, 50, 100, or the number of vehicles specified in your configuration settings, respectively. For each simulated vehicle, the following tasks take place:
 
@@ -1485,7 +1485,7 @@ You can update this code to simulate your own IoT devices. When you are ready to
 
 The best way to provision multiple IoT devices in a secure and scalable manner is to use the [Azure IoT Hub Device Provisioning Service](https://docs.microsoft.com/azure/iot-dps/about-iot-dps) (DPS). Use the [Microsoft Azure Provisioning SDKs](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-sdks#microsoft-azure-provisioning-sdks) for the best experience with using DPS.
 
-### Task 1: View Cosmos DB processing Function App in the portal and copy the Health Check URL
+### Task 1: View the Azure Cosmos DB processing Function App in the portal and copy the Health Check URL
 
 1. In the Azure portal (<https://portal.azure.com>), open the Azure Function App whose name begins with **IoT-CosmosDBProcessing**.
 
@@ -1534,7 +1534,7 @@ There is a lot of code within the data generator project, so we'll just touch on
 1. Within the **Main** method of **Program.cs**, the core workflow of the data generator is executed by the following code block:
 
     ```csharp
-    // Instantiate Cosmos DB client and start sending messages:
+    // Instantiate Azure Cosmos DB client and start sending messages:
     var trips = new List<Trip>();
     using (_cosmosDbClient = new CosmosClient(cosmosDbConnectionString.ServiceEndpoint.OriginalString,
         cosmosDbConnectionString.AuthKey, connectionPolicy))
@@ -1558,7 +1558,7 @@ There is a lot of code within the data generator project, so we'll just touch on
         var telemetryContainer = await GetContainerIfExists(TelemetryContainerName);
         await ChangeContainerPerformance(telemetryContainer, 15000);
 
-        // Initially seed the Cosmos DB database with metadata if empty or if the user wants to generate new trips.
+        // Initially seed the Azure Cosmos DB database with metadata if empty or if the user wants to generate new trips.
         await SeedDatabase(cosmosDbConnectionString, generateNewTripsOnly, cancellationToken);
         if (!generateNewTripsOnly)
         {
@@ -1597,7 +1597,7 @@ There is a lot of code within the data generator project, so we'll just touch on
     }
     ```
 
-    The top section of the code instantiates a new `CosmosClient`, using the connection string defined in either `appsettings.json` or the environment variables. The first call within the block is to `InitializeCosmosDb()`. We'll dig into this method in a moment, but it is responsible for creating the Cosmos DB database and containers if they do not exist in the Cosmos DB account. Next, we create a new `Container` instance, which the v3 version of the .NET Cosmos DB SDK uses for operations against a container, such as CRUD and maintenance information. For example, we call `ReadThroughputAsync` on the container to retrieve the current throughput (RU/s), and we pass it to `GetTripsFromDatabase` to read Trip documents from the container, based on the number of vehicles we are simulating. In this method, we also call the `SeedDatabase` method, which checks whether data currently exists and, if not, calls methods in the `DataGenerator` class (`DataGenerator.cs` file) to generate vehicles, consignments, packages, and trips, then writes the data in bulk using the `BulkImporter` class (`BulkImporter.cs` file). This `SeedDatabase` method executes the following on the `Container` instance to adjust the throughput (RU/s) to 50,000 before the bulk import, and back to 15,000 after the data seeding is complete: `await container.ReplaceThroughputAsync(desiredThroughput);`. Also notice that we are passing `generateNewTripsOnly` to the `SeedDatabase` method. This value is set to true if the user selects option 6 when executing the generator. When `generateNewTripsOnly` is set to true, any existing trips and consignments that are in pending or active status are canceled and new trips and consignments are created for existing vehicles. If no data currently exists, the `SeedDatabase` method generates all new data, as usual.
+    The top section of the code instantiates a new `CosmosClient`, using the connection string defined in either `appsettings.json` or the environment variables. The first call within the block is to `InitializeCosmosDb()`. We'll dig into this method in a moment, but it is responsible for creating the Azure Cosmos DB database and containers if they do not exist in the Azure Cosmos DB account. Next, we create a new `Container` instance, which the v3 version of the .NET Azure Cosmos DB SDK uses for operations against a container, such as CRUD and maintenance information. For example, we call `ReadThroughputAsync` on the container to retrieve the current throughput (RU/s), and we pass it to `GetTripsFromDatabase` to read Trip documents from the container, based on the number of vehicles we are simulating. In this method, we also call the `SeedDatabase` method, which checks whether data currently exists and, if not, calls methods in the `DataGenerator` class (`DataGenerator.cs` file) to generate vehicles, consignments, packages, and trips, then writes the data in bulk using the `BulkImporter` class (`BulkImporter.cs` file). This `SeedDatabase` method executes the following on the `Container` instance to adjust the throughput (RU/s) to 50,000 before the bulk import, and back to 15,000 after the data seeding is complete: `await container.ReplaceThroughputAsync(desiredThroughput);`. Also notice that we are passing `generateNewTripsOnly` to the `SeedDatabase` method. This value is set to true if the user selects option 6 when executing the generator. When `generateNewTripsOnly` is set to true, any existing trips and consignments that are in pending or active status are canceled and new trips and consignments are created for existing vehicles. If no data currently exists, the `SeedDatabase` method generates all new data, as usual.
 
     The `try/catch` block calls `SetupVehicleTelemetryRunTasks` to register IoT device instances for each simulated vehicle and load up the tasks from each `SimulatedVehicle` instance it creates. It uses `Task.WhenAll` to ensure all pending tasks (simulated vehicle trips) are complete, removing completed tasks from the `_runningvehicleTasks` list as they finish. The cancellation token is used to cancel all running tasks if you issue the cancel command (`Ctrl+C` or `Ctrl+Break`) in the console.
 
@@ -1613,7 +1613,7 @@ There is a lot of code within the data generator project, so we'll just touch on
         await _database.DefineContainer(TelemetryContainerName, $"/{PartitionKey}")
             // Tune the indexing policy for write-heavy workloads by only including regularly queried paths.
             // Be careful when using an opt-in policy as we are below. Excluding all and only including certain paths removes
-            // Cosmos DB's ability to proactively add new properties to the index.
+            // Azure Cosmos DB's ability to proactively add new properties to the index.
             .WithIndexingPolicy()
                 .WithIndexingMode(IndexingMode.Consistent)
                 .WithIncludedPaths()
@@ -1668,23 +1668,23 @@ There is a lot of code within the data generator project, so we'll just touch on
     }
     ```
 
-    This method creates a Cosmos DB database if it does not already exist, otherwise it retrieves a reference to it (`await _cosmosDbClient.CreateDatabaseIfNotExistsAsync(DatabaseName);`). Then it creates `ContainerProperties` for the `telemetry`, `metadata`, `maintenance`, and `alerts` containers. The `ContainerProperties` object lets us specify the container's indexing policy. We use the default indexing policy for `alerts`, `metadata`, and `maintenance` since they are read-heavy and benefit from a greater number of paths, but we exclude all paths in the `telemetry` index policy, and add paths only to those properties we need to query, due to the container's write-heavy workload. The `telemetry` container is assigned a throughput of 15,000 RU/s, 50,000 for `metadata` for the initial bulk import, then it is scaled down to 15,000, and 400 for `maintenance` and `alerts`.
+    This method creates an Azure Cosmos DB database if it does not already exist, otherwise it retrieves a reference to it (`await _cosmosDbClient.CreateDatabaseIfNotExistsAsync(DatabaseName);`). Then it creates `ContainerProperties` for the `telemetry`, `metadata`, `maintenance`, and `alerts` containers. The `ContainerProperties` object lets us specify the container's indexing policy. We use the default indexing policy for `alerts`, `metadata`, and `maintenance` since they are read-heavy and benefit from a greater number of paths, but we exclude all paths in the `telemetry` index policy, and add paths only to those properties we need to query, due to the container's write-heavy workload. The `telemetry` container is assigned a throughput of 15,000 RU/s, 50,000 for `metadata` for the initial bulk import, then it is scaled down to 15,000, and 400 for `maintenance` and `alerts`.
 
 ### Task 4: Update application configuration
 
-The data generator needs two connection strings before it can successfully run; the IoT Hub connection string, and the Cosmos DB connection string. The IoT Hub connection string can be found by selecting **Shared access policies** in IoT Hub, selecting the **iothubowner** policy, then copying the **Connection string--primary key** value. This is different from the Event Hub-compatible endpoint connection string you copied earlier.
+The data generator needs two connection strings before it can successfully run; the IoT Hub connection string, and the Azure Cosmos DB connection string. The IoT Hub connection string can be found by selecting **Shared access policies** in IoT Hub, selecting the **iothubowner** policy, then copying the **Connection string--primary key** value. This is different from the Event Hub-compatible endpoint connection string you copied earlier.
 
 ![The iothubowner shared access policy is displayed.](media/iot-hub-connection-string.png "IoT Hub shared access policy")
 
 1. Open **appsettings.json** within the **FleetDataGenerator** project.
 
-2. Paste the IoT Hub connection string value in quotes next to the **IOT_HUB_CONNECTION_STRING** key. Paste the Cosmos DB connection string value in quotes next to the **COSMOS_DB_CONNECTION_STRING** key.
+2. Paste the IoT Hub connection string value in quotes next to the **IOT_HUB_CONNECTION_STRING** key. Paste the Azure Cosmos DB connection string value in quotes next to the **COSMOS_DB_CONNECTION_STRING** key.
 
-    If you do not have the Cosmos DB connection string, you can find it by opening the Cosmos DB account in the solution accelerator's resource group in the portal, then selecting **Keys** in the left-hand menu, then copy the **Primary Connection String** value.
+    If you do not have the Azure Cosmos DB connection string, you can find it by opening the Azure Cosmos DB account in the solution accelerator's resource group in the portal, then selecting **Keys** in the left-hand menu, then copy the **Primary Connection String** value.
 
-    ![Cosmos DB connection string is highlighted within the Keys blade.](media/cosmos-db-connection-string.png "Keys")
+    ![Azure Cosmos DB connection string is highlighted within the Keys blade.](media/cosmos-db-connection-string.png "Keys")
 
-3. The data generator also requires the Health Check URLs you copied in the previous section for the `HealthCheck` functions located in both Function Apps. Paste the Cosmos DB Processing Function App's `HealthCheck` function's URL in quotes next to the **COSMOS_PROCESSING_FUNCTION_HEALTHCHECK_URL** key. Paste the Stream Processing Function App's `HealthCheck` function's URL in quotes next to the **STREAM_PROCESSING_FUNCTION_HEALTHCHECK_URL** key.
+3. The data generator also requires the Health Check URLs you copied in the previous section for the `HealthCheck` functions located in both Function Apps. Paste the Azure Cosmos DB Processing Function App's `HealthCheck` function's URL in quotes next to the **COSMOS_PROCESSING_FUNCTION_HEALTHCHECK_URL** key. Paste the Stream Processing Function App's `HealthCheck` function's URL in quotes next to the **STREAM_PROCESSING_FUNCTION_HEALTHCHECK_URL** key.
 
     ![The appsettings.json file is highlighted in the Solution Explorer, and the connection strings and health check URLs are highlighted within the file.](media/vs-appsettings.png "appsettings.json")
 
@@ -1763,17 +1763,17 @@ In this section, we use the Live Metrics Stream feature of Application Insights 
 
     ![The Live Metrics Stream page is displayed.](media/app-insights-live-metrics-stream.png "Live Metrics Stream")
 
-    At the top of the page, you will see a server count. This shows how many instances of the Function Apps there are, and one server is allocated to the Web App. As the Function App server instances exceed computational, memory, or request duration thresholds, and as the IoT Hub and Change Feed queues grow and age, new instances are automatically allocated to scale out the Function Apps. You can view the server list at the bottom of the page. On the right-hand side, you will see sample telemetry, including messages sent to the logger within the functions. Here we highlighted a message stating that the Cosmos DB Processing function is sending 100 Cosmos DB records to Event Hubs.
+    At the top of the page, you will see a server count. This shows how many instances of the Function Apps there are, and one server is allocated to the Web App. As the Function App server instances exceed computational, memory, or request duration thresholds, and as the IoT Hub and Change Feed queues grow and age, new instances are automatically allocated to scale out the Function Apps. You can view the server list at the bottom of the page. On the right-hand side, you will see sample telemetry, including messages sent to the logger within the functions. Here we highlighted a message stating that the Azure Cosmos DB Processing function is sending 100 Azure Cosmos DB records to Event Hubs.
 
-    While observing the live stream, you may notice many dependency call failures (404). These can be safely ignored. They are caused by the Azure Storage binding used in the **ColdStorage** function within the Cosmos DB Processing Function App. This binding checks if the file exists before writing to the specified container. Since we are writing new files, you will see a `404` message for every file that is written since it does not exist. Currently, the binding engine does not know the difference between "good" 404 messages such as these, and "bad" ones.
+    While observing the live stream, you may notice many dependency call failures (404). These can be safely ignored. They are caused by the Azure Storage binding used in the **ColdStorage** function within the Azure Cosmos DB Processing Function App. This binding checks if the file exists before writing to the specified container. Since we are writing new files, you will see a `404` message for every file that is written since it does not exist. Currently, the binding engine does not know the difference between "good" 404 messages such as these, and "bad" ones.
 
-## Section 6: Observe data using Cosmos DB Data Explorer and Web App
+## Section 6: Observe data using the Azure Cosmos DB Data Explorer and Web App
 
-The Cosmos DB Data Explorer is a web-based interface that allows you to view and manage the data stored in Cosmos DB. Alternately, you can use the [Azure Cosmos DB explorer](https://docs.microsoft.com/azure/cosmos-db/data-explorer) stand-alone interface to perform the same tasks.
+The Azure Cosmos DB Data Explorer is a web-based interface that allows you to view and manage the data stored in Azure Cosmos DB. Alternately, you can use the [Azure Cosmos DB explorer](https://docs.microsoft.com/azure/cosmos-db/data-explorer) stand-alone interface to perform the same tasks.
 
-### Task 1: View data in Cosmos DB Data Explorer
+### Task 1: View data in Azure Cosmos DB Data Explorer
 
-1. In the Azure portal (<https://portal.azure.com>), open the Cosmos DB instance within your **cosmos-db-iot** resource group.
+1. In the Azure portal (<https://portal.azure.com>), open the Azure Cosmos DB instance within your **cosmos-db-iot** resource group.
 
 2. Select **Data Explorer** in the left-hand menu.
 
@@ -2063,7 +2063,7 @@ In this section, you will import a Power BI report that has been created for you
 
     ![The Trip query is selected and the source configuration icon is highlighted.](media/pbi-queries-trips-source.png "Edit Queries")
 
-3. In the source dialog, update the Cosmos DB **URL** value with your Cosmos DB URI you copied earlier in the lab, then click **OK**. If you need to find this value, navigate to your Cosmos DB account in the portal, select Keys in the left-hand menu, then copy the URI value.
+3. In the source dialog, update the Azure Cosmos DB **URL** value with your Azure Cosmos DB URI you copied earlier in the lab, then click **OK**. If you need to find this value, navigate to your Azure Cosmos DB account in the portal, select Keys in the left-hand menu, then copy the URI value.
 
     ![The Trips source dialog is displayed.](media/pbi-queries-trips-source-dialog.png "Trips source dialog")
 
@@ -2092,9 +2092,9 @@ In this section, you will import a Power BI report that has been created for you
     and c.status in ('Active', 'Delayed', 'Completed')
     ```
 
-4. When prompted, enter the Cosmos DB **Account key** value, then click **Connect**. If you need to find this value, navigate to your Cosmos DB account in the portal, select Keys in the left-hand menu, then copy the Primary Key value.
+4. When prompted, enter the Azure Cosmos DB **Account key** value, then click **Connect**. If you need to find this value, navigate to your Azure Cosmos DB account in the portal, select Keys in the left-hand menu, then copy the Primary Key value.
 
-    ![The Cosmos DB account key dialog is displayed.](media/pbi-queries-trips-source-dialog-account-key.png "Cosmos DB account key dialog")
+    ![The Azure Cosmos DB account key dialog is displayed.](media/pbi-queries-trips-source-dialog-account-key.png "Azure Cosmos DB account key dialog")
 
 5. In a moment, you will see a table named **Document** that has several rows whose value is Record. This is because Power BI doesn't know how to display the JSON document. The document has to be expanded. After expanding the document, you want to change the data type of the numeric and date fields from the default string types, so you can perform aggregate functions in the report. These steps have already been applied for you. Select the **Changed Type** step under Applied Steps to see the columns and changed data types.
 
@@ -2108,7 +2108,7 @@ In this section, you will import a Power BI report that has been created for you
 
     ![The VehicleAverages query is selected and the source configuration icon is highlighted.](media/pbi-queries-vehicleaverages-source.png "Edit Queries")
 
-7. In the source dialog, update the Cosmos DB **URL** value with your Cosmos DB URI, then click **OK**.
+7. In the source dialog, update the Azure Cosmos DB **URL** value with your Azure Cosmos DB URI, then click **OK**.
 
     ![The VehicleAverages source dialog is displayed.](media/pbi-queries-vehicleaverages-source-dialog.png "Trips source dialog")
 
@@ -2122,15 +2122,15 @@ In this section, you will import a Power BI report that has been created for you
     FROM c WHERE c.entityType = 'VehicleAverage'
     ```
 
-8. If prompted, enter the Cosmos DB **Account key** value, then click **Connect**. You may not be prompted since you entered the key in an earlier step.
+8. If prompted, enter the Azure Cosmos DB **Account key** value, then click **Connect**. You may not be prompted since you entered the key in an earlier step.
 
-    ![The Cosmos DB account key dialog is displayed.](media/pbi-queries-trips-source-dialog-account-key.png "Cosmos DB account key dialog")
+    ![The Azure Cosmos DB account key dialog is displayed.](media/pbi-queries-trips-source-dialog-account-key.png "Azure Cosmos DB account key dialog")
 
 9. Select **VehicleMaintenance** in the Queries list on the left, then select **Source** under Applied Steps. Click the gear icon next to Source.
 
     ![The VehicleMaintenance query is selected and the source configuration icon is highlighted.](media/pbi-queries-vehiclemaintenance-source.png "Edit Queries")
 
-10. In the source dialog, update the Cosmos DB **URL** value with your Cosmos DB URI, then click **OK**.
+10. In the source dialog, update the Azure Cosmos DB **URL** value with your Azure Cosmos DB URI, then click **OK**.
 
     ![The VehicleMaintenance source dialog is displayed.](media/pbi-queries-vehiclemaintenance-source-dialog.png "Trips source dialog")
 
@@ -2140,9 +2140,9 @@ In this section, you will import a Power BI report that has been created for you
     SELECT c.vin, c.serviceRequired FROM c
     ```
 
-11. If prompted, enter the Cosmos DB **Account key** value, then click **Connect**. You may not be prompted since you entered the key in an earlier step.
+11. If prompted, enter the Azure Cosmos DB **Account key** value, then click **Connect**. You may not be prompted since you entered the key in an earlier step.
 
-    ![The Cosmos DB account key dialog is displayed.](media/pbi-queries-trips-source-dialog-account-key.png "Cosmos DB account key dialog")
+    ![The Azure Cosmos DB account key dialog is displayed.](media/pbi-queries-trips-source-dialog-account-key.png "Azure Cosmos DB account key dialog")
 
 12. If you are prompted, click **Close & Apply**.
 
@@ -2182,7 +2182,7 @@ In this section, you will import a Power BI report that has been created for you
 
 In this section, you will import Databricks notebooks into your Azure Databricks workspace. A notebook is interactive and runs in any web browser, mixing markup (formatted text with instructions), executable code, and outputs from running the code.
 
-Next, you will run the Batch Scoring notebook to make battery failure predictions on vehicles, using vehicle and trip data stored in Cosmos DB.
+Next, you will run the Batch Scoring notebook to make battery failure predictions on vehicles, using vehicle and trip data stored in Azure Cosmos DB.
 
 ### About Azure Machine Learning
 
@@ -2234,9 +2234,9 @@ In this task, you will run the `Batch Scoring` notebook, using a pre-trained mac
 1. Installs required Python libraries.
 2. Connects to Azure Machine Learning (Azure ML).
 3. Downloads a pre-trained ML model, saves it to Azure ML, then uses that model for batch scoring.
-4. Uses the Cosmos DB Spark connector to retrieve completed Trips and Vehicle metadata from the `metadata` Cosmos DB container, prepares the data using SQL queries, then surfaces the data as temporary views.
+4. Uses the Azure Cosmos DB Spark connector to retrieve completed Trips and Vehicle metadata from the `metadata` Azure Cosmos DB container, prepares the data using SQL queries, then surfaces the data as temporary views.
 5. Applies predictions against the data, using the pre-trained model.
-6. Saves the prediction results in the Cosmos DB `maintenance` container for reporting purposes.
+6. Saves the prediction results in the Azure Cosmos DB `maintenance` container for reporting purposes.
 
 To run this notebook, perform the following steps:
 

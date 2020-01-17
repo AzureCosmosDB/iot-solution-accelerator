@@ -11,9 +11,9 @@ Most of the solution accelerator's components are required for the core end-to-e
 | Resource | Size | Monthly Cost | Description |
 | --- | --- | --- | --- |
 | API Connection | N/A | $0 | Office 365 connection for the Logic App |
-| Azure Functions | Consumption-based | < $5 (Depends on usage. The first 400,000 GB/s of execution and 1,000,000 executions are free.) | Function App that contains functions triggered by the Cosmos DB change feed |
-| Azure Functions | Consumption-based | < $5 | Function App that contains a function triggered by IoT Hub and outputs to the Cosmos DB telemetry container |
-| App Service | Standard: S1 | $73 | The example management web app that performs CRUD operations against Cosmos DB |
+| Azure Functions | Consumption-based | < $5 (Depends on usage. The first 400,000 GB/s of execution and 1,000,000 executions are free.) | Function App that contains functions triggered by the Azure Cosmos DB change feed |
+| Azure Functions | Consumption-based | < $5 | Function App that contains a function triggered by IoT Hub and outputs to the Azure Cosmos DB telemetry container |
+| App Service | Standard: S1 | $73 | The example management web app that performs CRUD operations against Azure Cosmos DB |
 | Application Insights | N/A | N/A (not enough volume to incur a cost) | Application Insights instance |
 | Azure Cosmos DB account | Various containers (see below) | - | The Azure Cosmos DB account configured with the SQL API |
 | - Container: **telemetry** | 15,000 RUs | $876 | Used for ingesting hot vehicle telemetry data with a 90-day lifespan (TTL). |
@@ -21,14 +21,14 @@ Most of the solution accelerator's components are required for the core end-to-e
 | - Container: **maintenance** | 400 RUs | $23.36 | The batch battery failure predictions are stored here for reporting purposes. |
 | - Container: **alerts** | 400 RUs | $23.36 | Stores alert settings that control the types of alerts and frequency in which they are sent. It also stores a history document that keeps track of when summary alerts are sent. |
 | - Container: **leases** | 400 RUs | $23.36 | Stores lease information for the Azure Functions that consume the change feed. |
-| Event Hubs | Standard tier, 10 million events @ 1 throughput unit | $22.18 | The Event Hubs namespace that contains the "reporting" event hub. A Cosmos DB change feed-triggered function writes to this event hub, which in turn triggers the Stream Analytics job |
+| Event Hubs | Standard tier, 10 million events @ 1 throughput unit | $22.18 | The Event Hubs namespace that contains the "reporting" event hub. An Azure Cosmos DB change feed-triggered function writes to this event hub, which in turn triggers the Stream Analytics job |
 | IoT Hub | B2 - Basic, 4 IoT Hub units | $200 | The IoT Hub instance for managing devices and ingesting telemetry|
 | Key vault | Consumption-based | $3 @ 1,000,000 operations | Azure Key Vault contains secrets used by the Function Apps, web app, and Databricks |
-| Logic App | Consumption-based| $4.50 @ 1,000 executions/day | The Logic App that sends notification emails. A Cosmos DB change feed-triggered function triggers the logic app via its HTTP trigger when it needs to send a notification email |
-| Storage account | Performance tier: Standard, General Purpose (V1), 100 GB capacity | $2.44 | Azure Storage account for the Cosmos DB Function App |
+| Logic App | Consumption-based| $4.50 @ 1,000 executions/day | The Logic App that sends notification emails. An Azure Cosmos DB change feed-triggered function triggers the logic app via its HTTP trigger when it needs to send a notification email |
+| Storage account | Performance tier: Standard, General Purpose (V1), 100 GB capacity | $2.44 | Azure Storage account for the Azure Cosmos DB Function App |
 | Storage account | Performance tier: Standard, General Purpose (V1), 100 GB capacity | $2.44 | Azure Storage account for the stream processing (IoT Hub) Function App |
-| Storage account | Performance tier: Standard, General Purpose (V1), 100 GB capacity, 10,000 Queue Class 1 & 10,000 Queue Class 2 operations | $11.70 | Azure Storage account used for cold storage of all telemetry. A Cosmos DB change feed-triggered function outputs all telemetry to a container ("telemetry") in time-sliced path format: `/yyyy/MM/dd/HH/mm/ss-fffffff.json`. The Storage Queues service is also used on this account to provide a queue for temporarily storing alert messages when they need to be summarized on a regular schedule. The name of the queue is `alertqueue`. |
-| Azure Stream Analytics job | 3 streaming units | $240.90 | Azure Stream Analytics job used for stream processing of events sent to Event Hubs from a Cosmos DB change feed-triggered function. The query uses window functions to create aggregates over time windows of varying length, outputting the results to Cosmos DB and Power BI |
+| Storage account | Performance tier: Standard, General Purpose (V1), 100 GB capacity, 10,000 Queue Class 1 & 10,000 Queue Class 2 operations | $11.70 | Azure Storage account used for cold storage of all telemetry. An Azure Cosmos DB change feed-triggered function outputs all telemetry to a container ("telemetry") in time-sliced path format: `/yyyy/MM/dd/HH/mm/ss-fffffff.json`. The Storage Queues service is also used on this account to provide a queue for temporarily storing alert messages when they need to be summarized on a regular schedule. The name of the queue is `alertqueue`. |
+| Azure Stream Analytics job | 3 streaming units | $240.90 | Azure Stream Analytics job used for stream processing of events sent to Event Hubs from an Azure Cosmos DB change feed-triggered function. The query uses window functions to create aggregates over time windows of varying length, outputting the results to Azure Cosmos DB and Power BI |
 
 **Total monthly cost as configured**: $2,379.80
 
@@ -51,9 +51,9 @@ The optional resources are not required to support the core features of the solu
 
 Depending on your throughput and processing requirements, you can reduce the size of some of the core services to reduce your overall monthly cost. For example, if you have fewer than 50 users for the management web app, you can scale down the App Service to the Shared tier with the D1 instance for $9.49/month, saving around $64/month.
 
-If your IoT device throughput requirements are relatively low, you can save money by reducing the RUs for the `telemetry` and `maintenance` containers. Use the handy Azure Cosmos DB [capacity planner](https://cosmos.azure.com/capacitycalculator/) to help estimate your required throughput, as [outlined in the Azure Cosmos DB documentation](https://docs.microsoft.com/azure/cosmos-db/estimate-ru-with-capacity-planner). You can also reduce the number of IoT Hub units assigned to the IoT Hub account, based on your IoT device throughput requirements. If you make reductions to the Cosmos DB container throughput and the number of IoT Hub units, then you can also consider reducing the number of streaming units assigned to the Azure Stream Analytics job. The combination of these optimizations can save you a significant amount of money each month.
+If your IoT device throughput requirements are relatively low, you can save money by reducing the RUs for the `telemetry` and `maintenance` containers. Use the handy Azure Cosmos DB [capacity planner](https://cosmos.azure.com/capacitycalculator/) to help estimate your required throughput, as [outlined in the Azure Cosmos DB documentation](https://docs.microsoft.com/azure/cosmos-db/estimate-ru-with-capacity-planner). You can also reduce the number of IoT Hub units assigned to the IoT Hub account, based on your IoT device throughput requirements. If you make reductions to the Azure Cosmos DB container throughput and the number of IoT Hub units, then you can also consider reducing the number of streaming units assigned to the Azure Stream Analytics job. The combination of these optimizations can save you a significant amount of money each month.
 
-If your Cosmos DB throughput requirements fluctuate considerably during different times of the day, consider recreating the containers as configured and enabling [autopilot mode](https://docs.microsoft.com/azure/cosmos-db/provision-throughput-autopilot) to adjust the throughput based on actual usage automatically. This way, you only pay for the resources that your workloads need on a per-hour basis.
+If your Azure Cosmos DB throughput requirements fluctuate considerably during different times of the day, consider recreating the containers as configured and enabling [autopilot mode](https://docs.microsoft.com/azure/cosmos-db/provision-throughput-autopilot) to adjust the throughput based on actual usage automatically. This way, you only pay for the resources that your workloads need on a per-hour basis.
 
 ## Cost analysis tool
 
