@@ -79,7 +79,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/AzureCosmosDB/scenario-based-labs/master/IoT/deploy/labDeploy.json",
+                    "uri": "https://raw.githubusercontent.com/AzureCosmosDB/solution-accelerator/master/deploy/labDeploy.json",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
@@ -783,7 +783,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/AzureCosmosDB/scenario-based-labs/master/IoT/deploy/demoDeploy_accessPolicies.json",
+                    "uri": "https://raw.githubusercontent.com/AzureCosmosDB/solution-accelerator/master/deploy/demoDeploy_accessPolicies.json",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {

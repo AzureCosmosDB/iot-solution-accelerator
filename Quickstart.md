@@ -164,7 +164,7 @@ Download a starter project that includes a vehicle simulator, Azure Function App
 
    ![Download .zip containing the repository](media/github-download-repo.png 'Download ZIP')
 
-4. Unzip the contents to your root hard drive (i.e. `C:\`). This will create a folder on your root drive named `cosmos-db-iot-solution-accelerator-master`.
+4. Unzip the contents to your root hard drive (i.e. `C:\`). This will create a folder on your root drive named `solution-accelerator-master`.
 
 5. Navigate to the [.NET Core 2.2 download page](https://dotnet.microsoft.com/download/dotnet-core/2.2), then download the SDK for your environment, such as Windows .NET Core Installer x64.
 
@@ -699,7 +699,7 @@ Now let's introduce the Function Apps and Web App and how they contribute to the
 
 In this task, you will open the Visual Studio solution for this lab. It contains projects for both Function Apps, the Web App, and the data generator.
 
-1. Open Windows Explorer and navigate to the location you extracted the solution ZIP file, as instructed at the beginning of this Quickstart guide. If you extracted the ZIP file directly to `C:\`, you need to open the following folder: `C:\cosmos-db-iot-solution-accelerator-master\Solution`. Open the Visual Studio solution file: **CosmosDbIoTScenario.sln**.
+1. Open Windows Explorer and navigate to the location you extracted the solution ZIP file, as instructed at the beginning of this Quickstart guide. If you extracted the ZIP file directly to `C:\`, you need to open the following folder: `C:\solution-accelerator-master\Solution`. Open the Visual Studio solution file: **CosmosDbIoTScenario.sln**.
 
     > If Visual Studio prompts you to sign in when it first launches, use the account provided to you for this lab (if applicable), or an existing Microsoft account.
 
@@ -718,7 +718,7 @@ In this task, you will open the Visual Studio solution for this lab. It contains
 
 ### Task 1: Deploy Azure Cosmos DB Processing Function App
 
-1. Open the Visual Studio solution file **CosmosDbIoTScenario.sln** within the `C:\cosmos-db-iot-solution-accelerator-master\Solution` folder.
+1. Open the Visual Studio solution file **CosmosDbIoTScenario.sln** within the `C:\solution-accelerator-master\Solution` folder.
 
 2. In the Visual Studio Solution Explorer, right-click on the **Functions.CosmosDB** project, then select **Publish...**.
 
@@ -1012,7 +1012,7 @@ The scripts install the required PowerShell module (AzureAD) for the current use
 
 1. Open PowerShell (On Windows, press  `Windows-R` and type `PowerShell` in the search window)
 
-2. Navigate to the location you extracted the solution ZIP file, as instructed at the beginning of this Quickstart guide. You need to navigate to the **AppCreationScripts** sub-folder of the **FleetManagementWebApp** directory within the `Solution` folder. If you extracted the ZIP file directly to `C:\`, you need to open the following folder: `C:\cosmos-db-iot-solution-accelerator-master\Solution\FleetManagementWebApp\AppCreationScripts`.
+2. Navigate to the location you extracted the solution ZIP file, as instructed at the beginning of this Quickstart guide. You need to navigate to the **AppCreationScripts** sub-folder of the **FleetManagementWebApp** directory within the `Solution` folder. If you extracted the ZIP file directly to `C:\`, you need to open the following folder: `C:\solution-accelerator-master\Solution\FleetManagementWebApp\AppCreationScripts`.
 
 3. Until you change it, the default [Execution Policy](https:/go.microsoft.com/fwlink/?LinkID=135170) for scripts is usually `Restricted`. In order to run the PowerShell script you need to set the Execution Policy to `RemoteSigned`. You can set this just for the current PowerShell process by running the command:
 
@@ -1521,7 +1521,7 @@ The best way to provision multiple IoT devices in a secure and scalable manner i
 
 ### Task 3: Open the data generator project
 
-1. If the Visual Studio solution is not already open, navigate to `C:\cosmos-db-iot-solution-accelerator-master\Solution` and open the Visual Studio solution file: **CosmosDbIoTScenario.sln**.
+1. If the Visual Studio solution is not already open, navigate to `C:\solution-accelerator-master\Solution` and open the Visual Studio solution file: **CosmosDbIoTScenario.sln**.
 
 2. Expand the **FleetDataGenerator** project and open **Program.cs** in the Solution Explore
 
@@ -2049,7 +2049,7 @@ In this section, you will import a Power BI report that has been created for you
 
     ![The Open other reports link is highlighted.](media/pbi-splash-screen.png "Power BI Desktop")
 
-2. In the Open report dialog, browse to `C:\scenario-based-labs-master\IoT\Reports`, then select **FleetReport.pbix**. Click **Open**.
+2. In the Open report dialog, browse to `C:\solution-accelerator-master\Reports`, then select **FleetReport.pbix**. Click **Open**.
 
     ![The FleetReport.pbix file is selected in the dialog.](media/pbi-open-report.png "Open report dialog")
 
@@ -2208,7 +2208,7 @@ In this task, you will import the Databricks notebooks into your workspace.
 
    ![The Import link is highlighted in the Workspace.](media/databricks-import-link.png 'Workspace')
 
-4. Select **URL** next to **Import from**, paste the following into the text box: `https://github.com/AzureCosmosDB/scenario-based-labs/blob/master/IoT/Notebooks/01%20IoT.dbc`, then select **Import**.
+4. Select **URL** next to **Import from**, paste the following into the text box: `https://github.com/AzureCosmosDB/solution-accelerator/blob/master/Notebooks/01%20IoT.dbc`, then select **Import**.
 
    ![The URL has been entered in the import form.](media/databricks-import.png 'Import Notebooks')
 
