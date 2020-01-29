@@ -223,7 +223,7 @@ Among the Azure resources the deployment script created, is an Azure Cosmos DB d
 - **maintenance**: The batch battery failure predictions are stored here for reporting purposes.
 - **alerts**: Stores alert settings that control the types of alerts and frequency in which they are sent. Also stores a history document that keeps track of when summary alerts are sent.
 
-These containers are used for the demo solution used as a reference for this accelerator. In this document, as well as the [companion accelerator guide](Microsoft_Cosmos_DB_IoT_Solution_Accelerator.docx), we provide detailed information about design decisions and database configuration that you can use to adapt the solution to your scenario.
+These containers are used for the demo solution used as a reference for this accelerator. In this document, as well as the [companion accelerator guide](Guide_Azure_Cosmos_DB_IoT_Solution_Accelerator.docx), we provide detailed information about design decisions and database configuration that you can use to adapt the solution to your scenario.
 
 To view the Azure Cosmos DB containers, perform the following steps:
 

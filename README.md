@@ -265,7 +265,7 @@ The sample devices and data provided in this solution accelerator are based on f
 
 ## References
 
-- For a more detailed discussion of the solution accelerator, see [Microsoft Azure Cosmos DB IoT solution accelerator](Microsoft_Cosmos_DB_IoT_Solution_Accelerator.docx) (Word document).
+- For a more detailed discussion of the solution accelerator, see [Microsoft Azure Cosmos DB IoT solution accelerator](Guide_Azure_Cosmos_DB_IoT_Solution_Accelerator.docx) (Word document).
 
 - For detailed documentation of the various Azure IoT services, see [Azure IoT Fundamentals](https://docs.microsoft.com/azure/iot-fundamentals/).
 
